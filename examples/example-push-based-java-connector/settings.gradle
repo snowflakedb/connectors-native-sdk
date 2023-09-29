@@ -1,0 +1,5 @@
+rootProject.name = 'example-push-based-java-connector'
+include ':example-push-based-java-connector-integration-test'
+project(":example-push-based-java-connector-integration-test").projectDir = file("./integration-test")
+include ':example-push-based-java-connector-agent'
+project(":example-push-based-java-connector-agent").projectDir = file("./example-push-based-java-connector-agent")
