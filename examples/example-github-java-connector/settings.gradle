@@ -1,0 +1,3 @@
+rootProject.name = 'example-github-java-connector'
+include 'example-github-connector-java-module'
+include 'integration-test'
