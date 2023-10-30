@@ -1,0 +1,15 @@
+manifest_version: 1
+artifacts:
+  setup_script: setup.sql
+  extension_code: true
+  default_streamlit: PUBLIC.EXAMPLE_PUSH_BASED_JAVA_CONNECTOR_STREAMLIT
+version:
+  name: V_1_0
+  comment: "Build info {version: V_1_0, patch: 0}"
+privileges:
+  - EXECUTE TASK:
+      description: "Permission to run ingestion tasks"
+  - EXECUTE MANAGED TASK:
+      description: "Permission to run managed task"
+  - CREATE DATABASE:
+      description: "Create destination database"

@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "snowflake_github_connector"
+version = "0.0.1"
+dependencies = [
+    "snowflake-connector-python==3.0.2",
+    "snowflake-snowpark-python==1.1.0",
+    "requests===2.28.1"
+]
+
+[project.optional-dependencies]
+dev = [
+    'pytest',
+]
+
+[tool.hatch.build.hooks.custom]
+
+[tool.black]
+line-length = 110
+target-version = ['py38', 'py39', 'py310']
+
+[tool.ruff]
+line-length = 110
+ignore-init-module-imports = true
+
+[tool.ruff.isort]
+combine-as-imports = true
