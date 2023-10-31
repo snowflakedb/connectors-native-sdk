@@ -20,10 +20,9 @@ By using a pull-based connector pattern, providers (Snowflake, or a third-party 
 
 ![image Pull-Based Connector Architecture](./images/pull_based_connector_architecture.png)
 
-LINK 1: Repo: https://github.com/snowflakedb/connectors-native-sdk \
-LINK 2: Quickstart: https://quickstarts.snowflake.com/guide/connectors_github_python \
-LINK 3: Repo:  https://github.com/snowflakedb/connectors-native-sdk \
-LINK 4: Quickstart: https://quickstarts.snowflake.com/guide/connectors_github_java
+ * [Examples repository](https://github.com/snowflakedb/connectors-native-sdk)
+ * [Quickstart: Native GitHub Connector (Python)](https://quickstarts.snowflake.com/guide/connectors_github_python)
+ * [Quickstart: Native GitHub Connector (Java)](https://quickstarts.snowflake.com/guide/connectors_github_java)
 
 ## Push-based connector template and quickstart
 
@@ -39,8 +38,8 @@ A Snowflake Native App runs within Snowflake, coordinates the integration. The S
 
 ![image Push-Based Connector Architecture](./images/push_based_connector_architecture.png)
 
-LINK 5: Repo: https://github.com/snowflakedb/connectors-native-sdk \
-LINK 6: Quickstart: https://quickstarts.snowflake.com/guide/connectors_example_push_based_java
+ * [Examples repository](https://github.com/snowflakedb/connectors-native-sdk)
+ * [Quickstart: Push-based Java Connector](https://quickstarts.snowflake.com/guide/connectors_example_push_based_java)
 
 ## Upcoming changes to the Snowflake Native SDK for Connectors
 
