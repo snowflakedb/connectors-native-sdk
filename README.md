@@ -2,7 +2,7 @@
 
 ## About the Snowflake Native SDK for Connectors
 
-The Snowflake Native SDK for Connectors is a set of application templates and quickstarts that show how to build a Snowflake Native App that ingests data from an external data source into Snowflake. These templates cover  pull-based and push-based data integration patterns. 
+The Snowflake Native SDK for Connectors (Phase 1 of the release) is a set of application templates and quickstarts that show how to build a Snowflake Native App that ingests data from an external data source into Snowflake. These templates cover  pull-based and push-based data integration patterns. 
 
 These templates do not restrict or limit developers. Instead, the templates provide examples of how to use core Snowflake features to ingest data and encapsulate application code within a Snowflake Native App. 
 
@@ -41,6 +41,8 @@ A Snowflake Native App runs within Snowflake, coordinates the integration. The S
  * [Examples repository](https://github.com/snowflakedb/connectors-native-sdk)
  * [Quickstart: Push-based Java Connector](https://quickstarts.snowflake.com/guide/connectors_example_push_based_java)
 
-## Upcoming changes to the Snowflake Native SDK for Connectors
+## Next steps for the Snowflake Native SDK for Connectors
 
-Snowflake plans to add examples of more advanced use cases, for example how to manage ingestion jobs in Snowflake, and how to generalize common connector blocks in the form of reusable libraries. Stay tuned for updates! 
+With Phase 2 of the Snowflake Native SDK for Connectors, Snowflake intends to add additional examples, such as include how to manage ingestion jobs, how to generalize common
+connector blocks in the form of reusable libraries, and more.  Please note specific examples, new libaries or other additions and updates are subject to change.
+If you are interested in the Phase 2 preview, please sign up here: https://www.snowflake.com/connectors-native-sdk 
