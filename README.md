@@ -45,4 +45,4 @@ A Snowflake Native App runs within Snowflake, coordinates the integration. The S
 
 With Phase 2 of the Snowflake Native SDK for Connectors, Snowflake intends to add additional examples, such as include how to manage ingestion jobs, how to generalize common
 connector blocks in the form of reusable libraries, and more.  Please note specific examples, new libaries or other additions and updates are subject to change.
-To sign up for the Phase 2 preview see, please sign up here: https://www.snowflake.com/connectors-native-sdk 
+To sign up for the Phase 2 preview, please sign up here: https://www.snowflake.com/connectors-native-sdk 
