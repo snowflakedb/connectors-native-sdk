@@ -58,7 +58,6 @@ Let's take a look at the structure of this connector.
 │        ├── main
 │        └── test
 ├── integration-test
-├── java-module
 ├── manifest.yml
 ├── scripts
 ├── setup.sql
