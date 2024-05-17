@@ -18,7 +18,7 @@ Pull-based patterns are effective when the source data provider does not manage 
 
 By using a pull-based connector pattern, providers (Snowflake, or a third-party ETL provider) can publish, distribute a Native Connector based on a Snowflake Native App using the Snowflake Marketplace. A Native Connector uses direct external access to connect with the source application. A Native Connector performs outbound authentication, fetches data from the source directly into a customer account, processes and persists the data based on user specified configuration.
 
-![image Pull-Based Connector Architecture](./images/pull_based_connector_architecture.png)
+![image Pull-Based Connector Architecture](.assets/pull_based_connector_architecture.png)
 
  * [Examples repository](https://github.com/snowflakedb/connectors-native-sdk)
  * [Quickstart: Native GitHub Connector (Python)](https://quickstarts.snowflake.com/guide/connectors_github_python)
@@ -36,7 +36,7 @@ An agent is a standalone application, distributed as a Docker image, that is dep
 
 A Snowflake Native App runs within Snowflake, coordinates the integration. The Snowflake Native App is primarily responsible for managing the replication process, controlling the agent state and creating required objects, including the target databases.
 
-![image Push-Based Connector Architecture](./images/push_based_connector_architecture.png)
+![image Push-Based Connector Architecture](.assets/push_based_connector_architecture.png)
 
  * [Examples repository](https://github.com/snowflakedb/connectors-native-sdk)
  * [Quickstart: Push-based Java Connector](https://quickstarts.snowflake.com/guide/connectors_example_push_based_java)
