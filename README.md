@@ -1,48 +1,87 @@
-# Snowflake Native SDK for Connectors
+# Native SDK for Connectors
 
-## About the Snowflake Native SDK for Connectors
+Data is fuel for data clouds. Transferring the data to Snowflake is a step where the whole data journey begins so that 
+is why, this step on the Snowflake customer's path is such an essential one.
 
-The Snowflake Native SDK for Connectors (Phase 1 of the release) is a set of application templates and quickstarts that show how to build a Snowflake Native App that ingests data from an external data source into Snowflake. These templates cover  pull-based and push-based data integration patterns. 
+There are many various ways of importing the data to the Snowflake environment. One of them is connectors. A connector 
+is an application that allows data flow from an external source system into Snowflake. We can also distinguish the 
+concept of a Native Connector, which in the context of Snowflake is understood as a connector application built on the 
+foundations of the [Snowflake Native App Framework][Native Apps docs]. 
 
-These templates do not restrict or limit developers. Instead, the templates provide examples of how to use core Snowflake features to ingest data and encapsulate application code within a Snowflake Native App. 
+**In order to accelerate and standardize the process of developing new Native Connectors, Snowflake would like to introduce
+the Native SDK for Connectors which is a set of libraries, developing tools, example connectors and connector template 
+projects.**
 
-The Snowflake Native App Framework allows providers to publish and monetize a Snowflake Native App on the Snowflake marketplace. Snowflake Native App developers can clone the template repository, modify the boilerplate code, and create their own Snowflake Connectors.
+## Key components
 
-## Pull-based connector templates and quickstarts
+In the diagram below, you can find key components that are listed with a brief description below the diagram.
 
-### When to use a pull-based pattern
+![Repository Components Diagram](./.assets/components_diagram.png)
 
-Pull-based patterns are effective when the source data provider does not manage customer data in Snowflake and is not willing to incur COGS for a continuous data share in Snowflake. These patterns are also effective when a source data provider has well-documented APIs that customers can use to replicate and consume data.
+### Native SDK for Connectors Java
 
-### How to use a pull-based pattern
+The Java library distributed through the [Maven Central Repository][SDK in Maven Central] which consists of .sql files that deliver database 
+objects definitions that are created during the installation of the Connector in the Snowflake environment and a bunch of 
+Java classes that mainly serve as procedure handlers. However, among these Java classes, there also are some helper/util 
+classes that help in coping with most of the common problems that might be encountered during the development of the Connector 
+project. The database objects and Java classes create a coherent whole that makes managing the state of the Connector 
+much easier and lets the developers focus on the implementation of the specific external source ingestion logic which 
+also is easier to do with the SDK.
 
-By using a pull-based connector pattern, providers (Snowflake, or a third-party ETL provider) can publish, distribute a Native Connector based on a Snowflake Native App using the Snowflake Marketplace. A Native Connector uses direct external access to connect with the source application. A Native Connector performs outbound authentication, fetches data from the source directly into a customer account, processes and persists the data based on user specified configuration.
+Learn more from the [official documentation][Native SDK official docs].
 
-![image Pull-Based Connector Architecture](./images/pull_based_connector_architecture.png)
+#### Task Reactor
 
- * [Examples repository](https://github.com/snowflakedb/connectors-native-sdk)
- * [Quickstart: Native GitHub Connector (Python)](https://quickstarts.snowflake.com/guide/connectors_github_python)
- * [Quickstart: Native GitHub Connector (Java)](https://quickstarts.snowflake.com/guide/connectors_github_java)
+This major component is built into Native SDK for Connectors Java library. It consists of .sql files and Java classes 
+embedded into the library that helps in managing and executing work asynchronously, mostly the work related to data 
+ingestion. This component offers stability and scalability in work executing. Although this component is dedicated to 
+orchestrating the ingestion tasks, it also can be used for executing non-ingestion tasks that require an asynchronous 
+way of the execution.
 
-## Push-based connector template and quickstart
+Learn more from the [official documentation][Task Reactor official docs]
 
-### When to use a push-based pattern
+### Native SDK for Connectors Java Test
 
-Using a push-based pattern is effective when inbound access to the source application through customer firewall is not feasible because of security, performance or governance limitation. This pattern uses an agent and a Snowflake Native Application to allow customers to ingest data changes into Snowflake from behind a firewall .
+The separate Java library distributed through the [Maven Central Repository][SDK Test in Maven Central] which consists of Java utils helping in 
+testing the developed Connectors. These utils are custom assertions and in-memory objects (mocks) for Java classes used 
+in the Native SDK for Connectors Java library.
 
-### How to use a push-based pattern
+### Connectors Native SDK Template
 
-An agent is a standalone application, distributed as a Docker image, that is deployed in a customer environment and is responsible for sending initial and incremental loads to Snowflake by reading data changes from source CDC stream.
+The template Gradle Java project with inbuilt Native Java SDK that allows the developer to deploy, install, and run the 
+sample, mocked source connector right after downloading the template. The template is filled with some code already which 
+shows how to use the Native SDK for Connectors Java according to the connector flow defined by the Native SDK for Connectors. 
+Reach the [official tutorial][Template tutorial] that will guide through the whole developer flow starting
+from cloning the template project, through the implementation process of key functionalities, ending with the deployed 
+and running connector in the Snowflake environment!
 
-A Snowflake Native App runs within Snowflake, coordinates the integration. The Snowflake Native App is primarily responsible for managing the replication process, controlling the agent state and creating required objects, including the target databases.
+### Example connectors
 
-![image Push-Based Connector Architecture](./images/push_based_connector_architecture.png)
+These are example projects of connectors that provide the general information on how the connectors, as Native Applications, 
+should be created and deployed to the Snowflake environment. Among these connectors there is the one that is built on the 
+top of the [Connectors Native SDK Template project](#connectors-native-sdk-template), to show in practice how the template 
+should be used to develop a new connector projects. There are also some basic example projects of connectors that show the 
+general concept of:
 
- * [Examples repository](https://github.com/snowflakedb/connectors-native-sdk)
- * [Quickstart: Push-based Java Connector](https://quickstarts.snowflake.com/guide/connectors_example_push_based_java)
+* push-based connectors
+* basic pull-based connectors written in Python
+* basic pull-based connectors written in Java
 
-## Next steps for the Snowflake Native SDK for Connectors
+Keep in mind that these basic connectors do not use the [Native SDK for Connectors Java library](#native-sdk-for-connectors-java).
 
-With Phase 2 of the Snowflake Native SDK for Connectors, Snowflake intends to add additional examples, such as include how to manage ingestion jobs, how to generalize common
-connector blocks in the form of reusable libraries, and more.  Please note specific examples, new libaries or other additions and updates are subject to change.
-If you are interested in the Phase 2 preview, please sign up here: https://www.snowflake.com/connectors-native-sdk 
+## Contributing
+Please refer to [CONTRIBUTING.md][contributing].
+
+## License
+Please refer to [LICENSE][license]
+
+[Native SDK official docs]: TODO:native_sdk_official_docs_url
+[Task Reactor official docs]: TODO:task_reactor_official_docs_url
+[SDK in Maven Central]: TODO:sdk_in_maven_central_url
+[SDK Test in Maven Central]: TODO:sdk_in_maven_central_url
+[Template tutorial]: TODO:template_tutorial_url
+[Native Apps docs]: https://docs.snowflake.com/en/developer-guide/native-apps/native-apps-about
+
+[contributing]: ./CONTRIBUTING.md
+[license]: ./LICENSE
+[examples]: ./examples
