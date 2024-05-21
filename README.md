@@ -69,6 +69,17 @@ general concept of:
 
 Keep in mind that these basic connectors do not use the [Native SDK for Connectors Java library](#native-sdk-for-connectors-java).
 
+## Structure of the repository
+
+* [Native SDK for Connectors Java](#native-sdk-for-connectors-java) - [connectors-native-sdk-java][Native SDK for Connectors Java path]
+* [Native SDK for Connectors Java Test](#native-sdk-for-connectors-java-test) - [connectors-native-sdk-java-test][Native SDK for Connectors Java Test path]
+* [Connectors Native SDK Template](#connectors-native-sdk-template) - [connectors-native-sdk-template][Connectors Native SDK Template path]
+* [Example Connectors](#example-connectors) - [examples][examples]
+  * Connectors Native SDK Example GitHub Java Connector - [examples/connectors-native-sdk-example-java-github-connector][Connectors Native SDK Example GitHub Java Connector path]
+  * Example GitHub Java Connector - [examples/examples-basic/example-github-java-connector][Example GitHub Java Connector path]
+  * Example GitHub Python Connector - [examples/examples-basic/example-github-python-connector][Example GitHub Python Connector path]
+  * Example Push-Based Java Connector - [examples/examples-basic/example-push-based-java-connector][Example Push-Based Java Connector path]
+
 ## Contributing
 Please refer to [CONTRIBUTING.md][contributing].
 
@@ -85,3 +96,10 @@ Please refer to [LICENSE][license]
 [contributing]: ./CONTRIBUTING.md
 [license]: ./LICENSE
 [examples]: ./examples
+[Native SDK for Connectors Java path]: TODO:add_path_to_README
+[Native SDK for Connectors Java Test path]: TODO:add_path_to_README
+[Connectors Native SDK Template path]: TODO:add_path_to_README
+[Connectors Native SDK Example GitHub Java Connector path]: TODO:add_path_to_README
+[Example GitHub Java Connector path]: ./examples/example-github-java-connector/README.md
+[Example GitHub Python Connector path]: ./examples/example-github-python-connector/README.md
+[Example Push-Based Java Connector path]: ./examples/example-push-based-java-connector/README.md
