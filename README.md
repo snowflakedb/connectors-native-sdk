@@ -20,13 +20,13 @@ In the diagram below, you can find key components that are listed with a brief d
 
 ### Native SDK for Connectors Java
 
-The Java library distributed through the [Maven Central Repository][SDK in Maven Central] which consists of .sql files that deliver database 
-objects definitions that are created during the installation of the Connector in the Snowflake environment and a bunch of 
-Java classes that mainly serve as procedure handlers. However, among these Java classes, there also are some helper/util 
-classes that help in coping with most of the common problems that might be encountered during the development of the Connector 
-project. The database objects and Java classes create a coherent whole that makes managing the state of the Connector 
-much easier and lets the developers focus on the implementation of the specific external source ingestion logic which 
-also is easier to do with the SDK.
+The Java library distributed through the [Maven Central Repository][SDK in Maven Central] which consists of .sql files 
+that deliver database objects definitions that are created during the installation of the Connector in the Snowflake 
+environment and a bunch of Java classes that mainly serve as procedure handlers. However, among these Java classes, 
+there also are some helper/util classes that help in coping with most of the common problems that might be encountered 
+during the development of the Connector project. The database objects and Java classes create a coherent whole that 
+makes managing the state of the Connector much easier and lets the developers focus on the implementation of the 
+specific external source ingestion logic which also is easier to do with the SDK.
 
 Learn more from the [official documentation][Native SDK official docs].
 
@@ -42,9 +42,9 @@ Learn more from the [official documentation][Task Reactor official docs]
 
 ### Native SDK for Connectors Java Test
 
-The separate Java library distributed through the [Maven Central Repository][SDK Test in Maven Central] which consists of Java utils helping in 
-testing the developed Connectors. These utils are custom assertions and in-memory objects (mocks) for Java classes used 
-in the Native SDK for Connectors Java library.
+The separate Java library distributed through the [Maven Central Repository][SDK Test in Maven Central] which consists 
+of Java utils helping in testing the developed Connectors. These utils are custom assertions and in-memory objects 
+(mocks) for Java classes used in the Native SDK for Connectors Java library.
 
 ### Connectors Native SDK Template
 
