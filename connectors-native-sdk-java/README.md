@@ -9,7 +9,7 @@ helper/util classes that provide useful tools to tackle most common use cases. T
 create a coherent whole that makes managing the state of the Connector much easier and lets the developers focus on the 
 implementation of the specific external source ingestion logic which also is easier to do with the SDK.
 
-Reach the [official documentation][Native SDK official docs] to learn more.
+Reach the [official documentation][Native SDK official docs] and [java docs][Native SDK official java docs] to learn more.
 
 ## Project structure
 
@@ -122,6 +122,7 @@ template is used in practice.
 
 
 [Native SDK official docs]: TODO:native_sdk_official_docs_url
+[Native SDK official java docs]: TODO:native_sdk_official_java_docs_url
 [Task Reactor official docs]: TODO:task_reactor_official_docs_url
 [SDK in Maven Central]: TODO:sdk_in_maven_central_url
 [Snowflake Stream Docs]: https://docs.snowflake.com/en/user-guide/streams-intro
