@@ -113,7 +113,7 @@ building and deployment to Snowflake.
 
 The library is build into the [Connectors Native SDK Template project][Connectors Native SDK Template path] which allows 
 the developer to start the project with already prepared common code. The developer is only required to implement the 
-most important area of the connector like the configuration and ingestion. Moreover, the template provide some tools 
+most important area of the connector like the configuration and ingestion. Moreover, the template provides some tools 
 that help with building and deploying the connector to Snowflake environment. It's a recommended way of starting a new 
 project with the Native SDK for Connectors Java library.
 
