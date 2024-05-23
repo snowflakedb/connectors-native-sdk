@@ -1,12 +1,11 @@
 # Native SDK for Connectors
 
-Data is fuel for data clouds. Transferring the data to Snowflake is a step where the whole data journey begins so that 
-is why, this step on the Snowflake customer's path is such an essential one.
+Data is fuel for data clouds. The journey of data begins with transferring it into Snowflake, because of that this is 
+essential step for customers.
 
-There are many various ways of importing the data to the Snowflake environment. One of them is connectors. A connector 
-is an application that allows data flow from an external source system into Snowflake. We can also distinguish the 
-concept of a Native Connector, which in the context of Snowflake is understood as a connector application built on the 
-foundations of the [Snowflake Native App Framework][Native Apps docs]. 
+There are many various ways of importing the data to the Snowflake environment. One of them is by using connectors. 
+A connector is an application that allows data flow from an external source system into Snowflake. A Native Connector 
+is a connector built on the foundations of the [Snowflake Native App Framework][Native Apps docs].
 
 **In order to accelerate and standardize the process of developing new Native Connectors, Snowflake would like to introduce
 the Native SDK for Connectors which is a set of libraries, developing tools, example connectors and connector template 
@@ -20,19 +19,20 @@ In the diagram below, you can find key components that are listed with a brief d
 
 ### Native SDK for Connectors Java
 
-The Java library distributed through the [Maven Central Repository][SDK in Maven Central] which consists of .sql files 
-that deliver database objects definitions that are created during the installation of the Connector in the Snowflake 
-environment and a bunch of Java classes that mainly serve as procedure handlers. However, among these Java classes, 
-there also are some helper/util classes that help in coping with most of the common problems that might be encountered 
-during the development of the Connector project. The database objects and Java classes create a coherent whole that 
-makes managing the state of the Connector much easier and lets the developers focus on the implementation of the 
-specific external source ingestion logic which also is easier to do with the SDK.
+Native SDK for Connectors Java is a library that is distributed through the [Maven Central Repository][SDK in Maven Central].
+The library significantly helps developers in building Snowflake Native Applications of connectors' type. The SDK
+consists of both Java and sql components. Sql components can be found in the `.sql` files placed in the resources
+directory. They provide the definitions of the database objects, that are created during the installation of the
+Connector. Java components mainly serve as procedure handlers. However, among these Java classes, there also are some
+helper/util classes that provide useful tools to tackle most common use cases. The database objects and Java classes
+create a coherent whole that makes managing the state of the Connector much easier and lets the developers focus on the
+implementation of the specific external source ingestion logic which also is easier to do with the SDK.
 
-Learn more from the [official documentation][Native SDK official docs].
+Reach the [official documentation][Native SDK official docs] and [java docs][Native SDK official java docs] to learn more.
 
 #### Task Reactor
 
-This major component is built into Native SDK for Connectors Java library. It consists of .sql files and Java classes 
+This major component is built into Native SDK for Connectors Java library. It consists of `.sql` files and Java classes 
 embedded into the library that helps in managing and executing work asynchronously, mostly the work related to data 
 ingestion. This component offers stability and scalability in work executing. Although this component is dedicated to 
 orchestrating the ingestion tasks, it also can be used for executing non-ingestion tasks that require an asynchronous 
@@ -42,8 +42,8 @@ Learn more from the [official documentation][Task Reactor official docs]
 
 ### Native SDK for Connectors Java Test
 
-The separate Java library distributed through the [Maven Central Repository][SDK Test in Maven Central] which consists 
-of Java utils helping in testing the developed Connectors. These utils are custom assertions and in-memory objects 
+A separate Java library distributed through the [Maven Central Repository][SDK Test in Maven Central] which consists 
+of Java utils helping in testing the developed Connectors. These utils include custom assertions and in-memory objects 
 (mocks) for Java classes used in the Native SDK for Connectors Java library.
 
 ### Connectors Native SDK Template
@@ -60,8 +60,8 @@ and running connector in the Snowflake environment!
 These are example projects of connectors that provide the general information on how the connectors, as Native Applications, 
 should be created and deployed to the Snowflake environment. Among these connectors there is the one that is built on the 
 top of the [Connectors Native SDK Template project](#connectors-native-sdk-template), to show in practice how the template 
-should be used to develop a new connector projects. There are also some basic example projects of connectors that show the 
-general concept of:
+should be used to develop a new connector project. There are also some basic examples of connectors that show the
+general concept of the native connectors:
 
 * push-based connectors
 * basic pull-based connectors written in Python
@@ -87,6 +87,7 @@ Please refer to [CONTRIBUTING.md][contributing].
 Please refer to [LICENSE][license]
 
 [Native SDK official docs]: TODO:native_sdk_official_docs_url
+[Native SDK official java docs]: TODO:java_doc_url
 [Task Reactor official docs]: TODO:task_reactor_official_docs_url
 [SDK in Maven Central]: TODO:sdk_in_maven_central_url
 [SDK Test in Maven Central]: TODO:sdk_in_maven_central_url
