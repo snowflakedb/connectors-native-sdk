@@ -1,41 +1,42 @@
 # Native SDK for Connectors Java
 
 Native SDK for Connectors Java is a library that is distributed through the [Maven Central Repository][SDK in Maven Central].
-The library significantly helps developers in building Snowflake Native Applications of connectors' type. It consists of 
-.sql files that deliver database objects definitions that are created during the installation of the Connector in the 
-Snowflake environment and a bunch of Java classes that mainly serve as procedure handlers. However, among these Java 
-classes, there also are some helper/util classes that help in coping with most of the common problems that might be 
-encountered during the development of the Connector project. The database objects and Java classes create a coherent 
-whole that makes managing the state of the Connector much easier and lets the developers focus on the implementation of 
-the specific external source ingestion logic which also is easier to do with the SDK.
+The library significantly helps developers in building Snowflake Native Applications of connectors' type. The SDK 
+consists of both Java and sql components. Sql components can be found in the `.sql` files placed in the resources 
+directory. They provide the definitions of the database objects, that are created during the installation of the 
+Connector. Java components mainly serve as procedure handlers. However, among these Java classes, there also are some 
+helper/util classes that provide useful tools to tackle most common use cases. The database objects and Java classes 
+create a coherent whole that makes managing the state of the Connector much easier and lets the developers focus on the 
+implementation of the specific external source ingestion logic which also is easier to do with the SDK.
+
+Reach the [official documentation][Native SDK official docs] to learn more.
 
 ## Project structure
 
 Native Application consists of database objects like tables, views, stored procedures, etc. Most of the stored procedures 
-delivered by the Native SDK for Connectors are implemented in Java, so there is a requirement to distribute the SQL code 
-that sets up database objects with the Java code that serves as procedure handlers in a single package. In order to 
-achieve this, all files containing SQL code are placed into the resources directory, so thanks to that they are available 
-in the artifact JAR file. The idea of the packaging strategy is shown in the illustration below:
+delivered by the Native SDK for Connectors are implemented in Java. However, SQL code that sets up database objects with 
+the Java classes as handlers needs to be distributed alongside Java package. In order to achieve this, all files 
+containing SQL code are placed into the resources directory, so thanks to that they are available in the artifact JAR 
+file. The idea of the packaging strategy is shown in the illustration below:
 
 ![image SDK packaging](.assets/sdk_packaging.png)
 
-* java/
-  * application/ - this directory contains classes that are mostly procedure handlers, extensions of procedure handlers, and repositories that allow the managing of the connector. These classes are coupled with the Framework Core database objects.
-  * task reactor/ - this directory contains classes that are procedure handlers and repositories for the task reactor database objects.
-  * common/ - this directory contains classes that are commonly used among Framework Core and Task Reactor classes like exceptions or DTO objects.
-  * utils/ - this directory contains classes that are commonly used among Framework Core and Task Reactor classes and mostly help in integration with the Snowflake (procedures calling mechanisms, databases objects validators, etc.)
+* `java/`
+  * `application/` - this directory contains classes that are mostly procedure handlers, extensions of procedure handlers, and repositories that allow the managing of the connector. These classes are coupled with the Framework Core database objects.
+  * `task reactor/` - this directory contains classes that are procedure handlers and repositories for the task reactor database objects.
+  * `common/` - this directory contains classes that are commonly used among Framework Core and Task Reactor classes like exceptions or DTO objects.
+  * `utils/` - this directory contains classes that are commonly used among Framework Core and Task Reactor classes and mostly help with integration with the Snowflake (procedures calling mechanisms, databases objects validators, etc.)
 
-* resources/
-  * all.sql -  this file executes all feature .sql files with the usage of the “EXECUTE IMMEDIATE from file” mechanism.
-  * core.sql -  this file creates all required base roles, schemas, and database objects (base features) that are required by particular optional features.
-  * application/ - this directory includes files that create database objects for functionalities like configuration, ingestion, observability, lifecycle, and scheduler.
-  * task_reactor.sql - the file creates all database objects that are the API for task reactor instances management.
+* `resources/`
+  * `all.sql` -  this file executes all feature `.sql` files with the usage of the “EXECUTE IMMEDIATE from file” mechanism.
+  * `core.sql` -  this file creates all required base roles, schemas, and database objects (base features) that are required by particular optional features.
+  * `application/` - this directory includes files that create database objects for functionalities like configuration, ingestion, observability, lifecycle, and scheduler.
+  * `task_reactor.sql` - the file creates all database objects that are the API for task reactor instances management.
 
 ### Tests
 
-Every quality project should have tests, and Native SDK for Connectors Java is no different. The SDK is tested by tests 
-at different layers, which are:
-* Unit tests - lightweight tests that test the logic of the Java code in the separation from the Snowflake environment. They can be found in the `src/tests` directory.
+The SDK is tested by tests at different layers, which are:
+* Unit tests - lightweight tests of the Java code logic separated from the Snowflake environment. They can be found in the `src/tests` directory.
 * Integration tests - these tests most often test code that is responsible for operations in the Snowflake environment, so they need a Snowflake account connection in order to be executed. These tests create a separate database that is used during tests run. They can be found in the `src/intTests` directory.
 * Application tests - the main difference between these tests and integration tests is that these tests test the whole flow of the particular functionality in the environment of the Snowflake Native Application instead of the database. It's required to use Native Application as a test environment because sometimes, Native Applications behavior differs from the standard Snowflake database. These tests can be found in the `src/appTests` directory.
 
@@ -65,7 +66,7 @@ mechanisms (tables, views, procedures etc.). Among these areas we can mention:
 
 * Observability - the SDK provides a bunch of database objects like views and procedures that allow the connector user to observe some sort of data stored by the connector like the configuration or to see the state of the application. The user is also allowed to track the data related to the ingestion like ingestion stats (the aggregated data about ingestion processes and ingestion runs), defined resource and ingestion definitions data.
 
-* Application lifecycle management - the SDK provides mechanisms (mainly procedures) that helps in managing the state of the connector. Apart from the configuration mechanisms described above, there are procedures that allow the user to pause and resume the connector, which means that all database tasks are suspended or resumed. The SDK manages its own tasks, but there is a possibility to extend these procedures to manage custom database objects created by the connector developers additionally.
+* Application lifecycle management - the SDK provides mechanisms (mainly procedures) that helps with managing the state of the connector. Apart from the configuration mechanisms described above, there are procedures that allow the user to pause and resume the connector, which means that all database tasks are suspended or resumed. The SDK manages its own tasks, but there is a possibility to extend these procedures to manage custom database objects created by the connector developers additionally.
 
 * Work orchestration - one of the most challenging functionalities to be implemented by a connector developer is work orchestration and scheduling. In order to face this challenge, the SDK provides the following default mechanisms:
   * Task Reactor - the scalable component that uses Snowflake Tasks to perform work simultaneously. The developer can define the logic of how the work should be executed and the payload that is provided when the work is to be performed. This mechanism is expected to be used to perform work related to ingestion, but it’s a universal mechanism that can be used for any different purpose, like a message queue. The connector can use multiple Task Reactor instances.
@@ -78,7 +79,7 @@ layers, such as:
 * General feature layer - the name of the feature
 * API layer - entry points to the functionality like views and procedures
 * Custom implementation layers - in case of procedure the SDK provides the mechanism to override the default behavior of the procedure by implementing callback procedures from the default main procedure  or overriding the whole main procedure.
-* Service layer - consists of Java classes that help in executing the procedure logic
+* Service layer - consists of Java classes that help with the procedure logic execution
 * Data Access APIs layer - consists of Java classes that serve as repositories for appropriate tables
 * Tables layer - consists of tables that store the data used/required by the functionality
 
@@ -88,7 +89,7 @@ The example division into layers of the Connector Configuration functionality is
 
 ## Task Reactor
 
-This component consists of .sql files and Java classes embedded into the Native Java SDK library that helps in managing 
+This component consists of `.sql` files and Java classes embedded into the Native Java SDK library that helps with managing 
 and executing work asynchronously, mostly the work related to data ingestion. This component offers stability and 
 scalability in work executing. Although this component is dedicated to orchestrating the ingestion tasks, it can be also 
 used for executing non-ingestion tasks that require an asynchronous way of execution.
@@ -113,7 +114,7 @@ building and deployment to Snowflake.
 The library is build into the [Connectors Native SDK Template project][Connectors Native SDK Template path] which allows 
 the developer to start the project with already prepared common code. The developer is only required to implement the 
 most important area of the connector like the configuration and ingestion. Moreover, the template provide some tools 
-that help in building and deploying the connector to Snowflake environment. It's a recommended way for starting the new 
+that help with building and deploying the connector to Snowflake environment. It's a recommended way of starting a new 
 project with the Native SDK for Connectors Java library.
 
 You can also check the [Connectors Native SDK Example Java GitHub Connector][Example Connector path] to find out how the
