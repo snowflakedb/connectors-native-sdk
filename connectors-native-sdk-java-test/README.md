@@ -18,7 +18,7 @@ The Native SDK for Connectors Java Test library provides following components:
 
 Procedure handlers provided in the Native SDK for Connectors Java library most often have to perform operations in the 
 Snowflake environment. Objects that handle those operations require a `Snowpark Session` object and because of this, it's
-difficult to mock them in order to use these objects in unit tests . To make SDK components unit-testable, the SDK test 
+difficult to mock them in order to use these objects in unit tests. To make SDK components unit-testable, the SDK test 
 library provides mock objects for repositories, services and other low-level classes like database table representations. 
 These objects perform operations on in-memory data structures that can be easily set up according to particular test 
 conditions.
