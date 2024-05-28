@@ -1,38 +1,27 @@
-# Native SDK for Connectors Java Test
+# Native SDK for Connectors Test Java
 
-Native SDK for Connectors Java Test is a library that is distributed through the [Maven Central Repository][SDK Test in Maven Central].
+Native SDK for Connectors Test Java is a library that is distributed through the [Maven Central Repository][SDK Test in Maven Central].
 The main goal of the library is to help developers with testing their connectors that use the [Native SDK for Connectors
-Java library][Native SDK for Connectors Java readme]. More over, the test library is used in the SDK testes.
+Java library][Native SDK for Connectors Java readme]. Moreover, the test library is used in the SDK testes.
 
-The test library provides the biggest support for writing unit tests by delivering `inMemory` objects that can be used as 
-mocks for classes that connect directly to Snowflake. There also are custom assertions for Java representation of Snowflake 
-database objects (e.g. task definition) and for custom SDK objects (e.g. connector configuration). Moreover, the test 
-library delivers test builders for procedure handlers to allow the user fully customize handlers dependencies.
+The key motivation behind the test library is to provide `inMemory` objects that can be used as mocks for classes that 
+otherwise require connection to Snowflake. Another important use case was to provide custom assertions for Java 
+representation of Snowflake database objects (e.g. task definition) and for custom SDK objects (e.g. connector 
+configuration). Moreover, the test library delivers test builders for procedure handlers to allow the user fully 
+customize handlers dependencies.
 
 ## Provided components
 
 The Native SDK for Connectors Java Test library provides following components:
 
-### Custom assertions
-
-The custom assertions allow developer to make assertions over some of the Snowflake database objects and over objects 
-delivered by the SDK library. Assertions provided in the library are based on the [AssertJ fluent assertions][AssertJ fluent assertions doc]. 
-All the provided assertions have a fabrication method implemented inside the NativeSdkAssertions class, furthermore, 
-this class inherits all the original AssertJ fabrication methods, so only one import is needed to use both custom and 
-base assertions.
-
-Reach the [NativeSdkAssertions.java][NativeSdkAssertions.java path] in order to check, which types of assertions are 
-offered by the library.
-
 ### Mockups
 
-SDK procedures handlers logic implemented in Java use a bunch of classes that are responsible for performing operations 
-in the Snowflake environment. These objects constructors require the `Snowpark Session` object and because of this, it's
-really hard to mock them in order to use these objects in unit tests that should be performed in the isolation from the 
-Snowflake environment. To make SDK components unit-testable, the SDK test library provides mock objects for repositories, 
-services and other low-level classes like database table representations. These objects perform operations on in-memory 
-data structures that can be easily set up according to particular test conditions.
-
+Procedure handlers provided in the Native SDK for Connectors Java library most often have to perform operations in the 
+Snowflake environment. Objects that handle those operations require a `Snowpark Session` object and because of this, it's
+difficult to mock them in order to use these objects in unit tests . To make SDK components unit-testable, the SDK test 
+library provides mock objects for repositories, services and other low-level classes like database table representations. 
+These objects perform operations on in-memory data structures that can be easily set up according to particular test 
+conditions.
 
 Mentioned objects can be used like in the example below:
 
@@ -54,9 +43,20 @@ var repository = new DefaultConfigurationRepository(table);
 var connectorService = new DefaultConnectorConfigurationService(repository);
 ```
 
+### Custom assertions
+
+The custom assertions allow developer to make assertions over some of the Snowflake database objects and over objects 
+delivered by the SDK library. Assertions provided in the library are based on the [AssertJ fluent assertions][AssertJ fluent assertions doc]. 
+All the provided assertions have a fabrication method implemented inside the NativeSdkAssertions class, furthermore, 
+this class inherits all the original AssertJ fabrication methods, so only one import is needed to use both custom and 
+base assertions.
+
+Check the [NativeSdkAssertions.java][NativeSdkAssertions.java path] in order to check, which types of assertions are 
+offered by the library.
+
 ### Test builders for handlers
 
-Most of procedure handler in Java are created with the usage of builder. Some of their dependencies can not be customized
+Most of the procedure handlers in Java are created with the usage of builder. Some of their dependencies can not be customized
 in the standard builder. In order to let developers fully customize handler dependencies to perform unit tests on them, 
 the SDK test library provides test builder. For more information on using Builders check documentation about the 
 [builders customization][Builders customization docs].
