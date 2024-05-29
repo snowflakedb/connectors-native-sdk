@@ -1,3 +1,4 @@
+/** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.sdk.example_push_based_java_connector;
 
 import static java.lang.String.format;

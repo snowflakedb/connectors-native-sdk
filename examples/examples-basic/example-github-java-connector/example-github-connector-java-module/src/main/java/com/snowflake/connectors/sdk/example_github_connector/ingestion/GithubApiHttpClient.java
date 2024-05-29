@@ -1,3 +1,4 @@
+/** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.sdk.example_github_connector.ingestion;
 
 import com.snowflake.connectors.sdk.example_github_connector.application.Infrastructure;

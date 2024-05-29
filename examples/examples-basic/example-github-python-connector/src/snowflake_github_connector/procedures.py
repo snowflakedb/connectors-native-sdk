@@ -1,3 +1,4 @@
+# Copyright (c) 2024 Snowflake Inc.
 from typing import Dict
 
 from snowflake.snowpark.functions import column

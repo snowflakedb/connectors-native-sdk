@@ -1,3 +1,4 @@
+# Copyright (c) 2024 Snowflake Inc.
 # This is a copy of Streamlist UI of the Example Github Python Connector
 
 import json
