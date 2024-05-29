@@ -1,3 +1,4 @@
+/** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.sdk.examples.example_github_connector
 
 import com.snowflake.snowpark_java.Session

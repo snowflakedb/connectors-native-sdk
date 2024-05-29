@@ -1,3 +1,4 @@
+# Copyright (c) 2024 Snowflake Inc.
 export BUILD_DIR="sf_build"
 
 echo "Cleanup"

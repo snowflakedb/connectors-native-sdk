@@ -1,3 +1,4 @@
+# Copyright (c) 2024 Snowflake Inc.
 export BUILD_DIR="sf_build"
 export BUILD_DIR_JAVA="sf_build_java"
 

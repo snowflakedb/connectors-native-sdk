@@ -1,3 +1,4 @@
+-- Copyright (c) 2024 Snowflake Inc.
 create or alter versioned schema public;
 create schema if not exists state;
 create schema if not exists tasks;

@@ -1,3 +1,4 @@
+-- Copyright (c) 2024 Snowflake Inc.
 SET APP_NAME = '&{APP_NAME}';
 
 CREATE OR REPLACE DATABASE IDENTIFIER('&STAGE_DB');

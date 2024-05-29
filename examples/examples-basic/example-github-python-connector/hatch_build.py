@@ -1,3 +1,4 @@
+# Copyright (c) 2024 Snowflake Inc.
 import shutil
 from pathlib import Path
 from typing import Any, Dict

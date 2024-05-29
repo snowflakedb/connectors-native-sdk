@@ -1,3 +1,4 @@
+/** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.sdk.example_github_connector.ingestion;
 
 import static com.snowflake.connectors.sdk.example_github_connector.api.ResourcesManagementApi.createTableAndView;

@@ -1,3 +1,4 @@
+-- Copyright (c) 2024 Snowflake Inc.
 use role accountadmin;
 use database &{APP_INSTANCE_NAME};
 

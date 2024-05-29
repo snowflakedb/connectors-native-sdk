@@ -1,3 +1,4 @@
+# Copyright (c) 2024 Snowflake Inc.
 import re
 import requests
 from snowflake.snowpark import Session
