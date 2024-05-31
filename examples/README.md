@@ -1,13 +1,14 @@
 # Example connectors
 
-The Native SDK for Connectors provides a couple of example connectors that shows the general pattern of creating new
-connector as a [Native Application][Native Apps docs] recommended by Snowflake. From these examples, you will learn:
+The Native SDK for Connectors provides a couple of examples that show a general pattern, recommended by Snowflake, of 
+creating new connectors as a [Native Applications][Native Apps docs]. 
+From these examples, you will learn:
 * how to create pull-based connectors ([learn more about pull-based pattern][Pull-based pattern])
 * how to create push-based connectors ([learn more about push-based pattern][Push-based pattern])
 * how to implement the connector configuration mechanism
 * how to implement the ingestion mechanism
 * how to create an instance of the application in the Snowflake environment
-* how use the [SnowSQL][SnowSQL guide] tool in connector development process
+* how to use the [SnowSQL][SnowSQL guide] tool in connector development process
 
 ## Prerequisites
 
@@ -41,11 +42,11 @@ Connectors flow.
 
 In the [examples-basic][examples-basic dir] you can find example connectors that had been introduced before the [Native SDK 
 for Connectors Java library][connectors-native-sdk-java] was created, so that's why you need keep in mind that these examples
-do not use the SDK library. The aim of connectors present in the [examples-basic][examples-basic dir] is to show the general
-concept of the connector application. You can find there the following examples:
-* [example-github-java-connector]
-* [example-github-python-connector]
-* [example-push-based-java-connector]
+do not use the SDK library. The goal of these connectors is to show the general concept of the connector application. 
+You can find there the following examples:
+* [example-github-java-connector][example-github-java-connector dir]
+* [example-github-python-connector][example-github-python-connector dir]
+* [example-push-based-java-connector][example-push-based-java-connector dir]
 
 
 
@@ -57,8 +58,9 @@ concept of the connector application. You can find there the following examples:
 [Push-based pattern]: TODO:add_url_to_docs
 
 [connectors-native-sdk-example-java-github-connector dir]: ./connectors-native-sdk-example-java-github-connector
-[example-github-java-connector dir]:
-[example-github-python-connector dir]:
+[example-github-java-connector dir]: ./examples-basic/example-github-java-connector
+[example-github-python-connector dir]: ./examples-basic/example-github-python-connector
+[example-push-based-java-connector dir]: ./examples-basic/example-push-based-java-connector
 
 [examples-basic dir]: ./examples-basic
 [connectors-native-sdk template]: ../templates/connectors-native-sdk-template
