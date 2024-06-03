@@ -13,7 +13,7 @@ From these examples, you will learn:
 ## Prerequisites
 
 - Basic knowledge of [Snowflake Native Apps][Native Apps docs]
-- Basic knowledge of SQL/SnowflakeScripting
+- Basic knowledge of SQL/[Snowflake Scripting][Snowflake Scripting docs]
 - Snowflake user with `accountadmin` role
 
 ## Prepare your local environment
@@ -21,8 +21,9 @@ From these examples, you will learn:
 Before approaching example connectors, please take up the following steps or make sure that they are currently done:
 - Install Java 11
 - Install [SnowSQL][SnowSQL guide]
-- Configure [SnowSQL][SnowSQL guide] to allow using [variables][SnowSQL variables] (`variable_substitution = True`)
-- Configure [SnowSQL][SnowSQL guide] to [exit on first error][SnowSQL exit on error] (`exit_on_error = True`)
+- Configure [SnowSQL][SnowSQL guide]
+  - [allow using variables][SnowSQL variables] (`variable_substitution = True`)
+  - [exit on first error][SnowSQL exit on error] (`exit_on_error = True`)
 
 ## Files structure
 
@@ -54,6 +55,7 @@ You can find there the following examples:
 [SnowSQL guide]: https://docs.snowflake.com/en/user-guide/snowsql
 [SnowSQL variables]: https://docs.snowflake.com/en/user-guide/snowsql-use#enabling-variable-substitution
 [SnowSQL exit on error]: https://docs.snowflake.com/en/user-guide/snowsql-config#exit-on-error
+[Snowflake Scripting docs]: https://docs.snowflake.com/en/developer-guide/snowflake-scripting/index
 [Pull-based pattern]: TODO:add_url_to_docs
 [Push-based pattern]: TODO:add_url_to_docs
 
