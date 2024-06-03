@@ -2,7 +2,7 @@
 
 Native SDK for Connectors Test Java is a library that is distributed through the [Maven Central Repository][SDK Test in Maven Central].
 The main goal of the library is to help developers with testing their connectors that use the [Native SDK for Connectors
-Java library][Native SDK for Connectors Java readme]. Moreover, the test library is used in the SDK testes.
+Java library][Native SDK for Connectors Java path]. Moreover, the test library is used in the SDK testes.
 
 The key motivation behind the test library is to provide `inMemory` objects that can be used as mocks for classes that 
 otherwise require connection to Snowflake. Another important use case was to provide custom assertions for Java 
@@ -80,10 +80,10 @@ allows the developer to start the project with already prepared common code. It'
 project with the Native SDK for Connectors Java library and its test library.
 
 
-[SDK Test in Maven Central]: TODO:add_sdk_test_in_maven_central_url
+[SDK Test in Maven Central]: https://central.sonatype.com/artifact/com.snowflake/connectors-native-sdk-test
 [AssertJ fluent assertions doc]: https://assertj.github.io/doc/
 [Builders customization docs]: TODO:add_url_to_builder_customization_docs
 
-[Native SDK for Connectors Java readme]: TODO:path_to_SDK_README
+[Native SDK for Connectors Java path]: ../connectors-native-sdk-java
 [NativeSdkAssertions.java path]: src/main/java/com/snowflake/connectors/common/assertions/NativeSdkAssertions.java
-[Connectors Native SDK Template path]: TODO:add_path_to_readme
+[Connectors Native SDK Template path]: ../templates/connectors-native-sdk-template

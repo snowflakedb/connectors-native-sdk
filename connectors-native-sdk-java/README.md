@@ -124,10 +124,10 @@ template is used in practice.
 [Native SDK official docs]: TODO:native_sdk_official_docs_url
 [Native SDK official java docs]: TODO:native_sdk_official_java_docs_url
 [Task Reactor official docs]: TODO:task_reactor_official_docs_url
-[SDK in Maven Central]: TODO:sdk_in_maven_central_url
+[SDK in Maven Central]: https://central.sonatype.com/artifact/com.snowflake/connectors-native-sdk
 [Snowflake Stream Docs]: https://docs.snowflake.com/en/user-guide/streams-intro
 [Snowflake Tasks Docs]: https://docs.snowflake.com/en/user-guide/tasks-intro
 
-[Connectors Native SDK Template path]: TODO:add_path_to_readme
-[Example Connector path]: TODO:add_path_to_readme
+[Connectors Native SDK Template path]: ../templates/connectors-native-sdk-template
+[Example Connector path]: ../examples/connectors-native-sdk-example-java-github-connector
 [Task Reactor dir path]: ./src/main/java/com/snowflake/connectors/taskreactor

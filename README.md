@@ -89,8 +89,8 @@ Please refer to [LICENSE][license]
 [Native SDK official docs]: TODO:native_sdk_official_docs_url
 [Native SDK official java docs]: TODO:java_doc_url
 [Task Reactor official docs]: TODO:task_reactor_official_docs_url
-[SDK in Maven Central]: TODO:sdk_in_maven_central_url
-[SDK Test in Maven Central]: TODO:sdk_in_maven_central_url
+[SDK in Maven Central]: https://central.sonatype.com/artifact/com.snowflake/connectors-native-sdk
+[SDK Test in Maven Central]: https://central.sonatype.com/artifact/com.snowflake/connectors-native-sdk-test
 [Template tutorial]: TODO:template_tutorial_url
 [Native Apps docs]: https://docs.snowflake.com/en/developer-guide/native-apps/native-apps-about
 
