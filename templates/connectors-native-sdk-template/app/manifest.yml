@@ -1,0 +1,27 @@
+# Copyright (c) 2024 Snowflake Inc.
+
+manifest_version: 1
+artifacts:
+  setup_script: setup.sql
+  extension_code: true
+  default_streamlit: STREAMLIT.NATIVE_SDK_TEMPLATE_ST
+version:
+  name: "1.0"
+  label: "connectors-native-sdk-connector-template"
+  comment: "A template providing a working connector out of the box to accelerate initial development"
+configuration:
+  trace_level: ON_EVENT
+  log_level: info
+privileges:
+  - EXECUTE TASK:
+      description: "Needed to run ingestion tasks"
+  - CREATE DATABASE:
+      description: "Needed to create a database for ingested data"
+references:
+  - WAREHOUSE_REFERENCE:
+      label: "Warehouse used for ingestion"
+      description: "Warehouse, which will be used to schedule ingestion tasks"
+      privileges:
+        - USAGE
+      object_type: WAREHOUSE
+      register_callback: PUBLIC.REGISTER_REFERENCE

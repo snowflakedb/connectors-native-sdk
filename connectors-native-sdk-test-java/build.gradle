@@ -1,0 +1,176 @@
+import java.time.LocalDate
+
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'org.jreleaser' version '1.12.0'
+}
+
+group 'com.snowflake'
+version '2.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+
+    withSourcesJar()
+    withJavadocJar()
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    api project(':connectors-native-sdk')
+    api 'com.snowflake:snowpark:1.11.0'
+    api 'org.assertj:assertj-core:3.25.1'
+    api 'net.javacrumbs.json-unit:json-unit-assertj:2.38.0'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testImplementation 'org.mockito:mockito-core:5.8.0'
+}
+
+configurations {
+    testImplementation.extendsFrom implementation
+}
+
+test {
+    useJUnitPlatform()
+}
+
+javadoc {
+    def taskOptions = options as StandardJavadocDocletOptions
+
+    taskOptions.addBooleanOption('-allow-script-in-comments', true)
+    taskOptions.setDocTitle("Test utilities for Snowflake Native SDK for Connectors - Java API Reference (${project.version})")
+    taskOptions.setWindowTitle("Test utilities for Snowflake Native SDK for Connectors - Java API Reference (${project.version})")
+    taskOptions.setLinks([
+        'https://docs.oracle.com/en/java/javase/11/docs/api/',
+        'https://docs.snowflake.com/developer-guide/snowpark/reference/java/',
+        'https://www.javadoc.io/doc/com.fasterxml.jackson.core/jackson-databind/latest/'
+    ])
+
+    taskOptions.setHeader("""
+        <div style="margin-top: 14px"><strong>
+          Test utilities for Snowflake Native SDK for Connectors - Java API Reference (${project.version}) <br/>
+          <a style="text-transform: none" href="https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/about-connector-sdk" target="_top">[About the Snowflake Native SDK for Connectors]</a>
+        </strong></div>
+    """)
+
+    taskOptions.setBottom("""
+        &#169; ${LocalDate.now().year} Snowflake Inc. All Rights Reserved
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-00K70YK8HQ"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-00K70YK8HQ');
+        </script>
+
+        <script>
+        if (typeof useModuleDirectories !== 'undefined') {
+          useModuleDirectories = false;
+        }
+        </script>
+    """)
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            pom {
+                name = 'Test utilities for Snowflake Native SDK for Connectors'
+                description = 'Library providing universal components for testing connectors built using Snowflake Native SDK for Connectors'
+                url = 'https://www.snowflake.com/'
+                packaging = 'jar'
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        name = 'Snowflake Support Team'
+                        email = 'snowflake-java@snowflake.net'
+                        organization = 'Snowflake Computing'
+                        organizationUrl = 'https://www.snowflake.com/'
+                    }
+                }
+
+                scm {
+                    url = 'https://github.com/snowflakedb/connectors-native-sdk/tree/main'
+                    connection = 'scm:git:git://github.com/snowflakedb/connectors-native-sdk'
+                    developerConnection = 'scm:git:ssh://github.com/snowflakedb/connectors-native-sdk'
+                }
+            }
+
+            from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            def publishToCentral = System.getenv('publish') == 'true'
+            def isSnapshot = project.version.endsWith('-SNAPSHOT')
+
+            if (publishToCentral) {
+                if (isSnapshot) {
+                    throw new RuntimeException('Snapshot artifacts cannot be published to Maven Central')
+                }
+
+                url = layout.buildDirectory.dir('mvn-central-staging')
+            } else {
+                def repository = isSnapshot ? 'snapshots' : 'releases'
+                url = "${System.getenv('INTERNAL_NEXUS_URL')}/maven-$repository/"
+
+                credentials {
+                    username = System.getenv('INTERNAL_NEXUS_USERNAME')
+                    password = System.getenv('INTERNAL_NEXUS_PASSWORD')
+                }
+            }
+        }
+    }
+}
+
+jreleaser {
+    gitRootSearch = true
+
+    project {
+        description = 'Test utilities for Snowflake Native SDK for Connectors'
+        copyright = '2024 Snowflake Inc.'
+    }
+
+    signing {
+        active = 'ALWAYS'
+        armored = true
+        verify = false
+    }
+
+    deploy {
+        maven {
+            pomchecker {
+                version = '1.11.0'
+                failOnWarning = true
+                failOnError = true
+            }
+
+            nexus2 {
+                'mvn-central' {
+                    active = 'RELEASE'
+                    url = 'https://oss.sonatype.org/service/local'
+                    applyMavenCentralRules = true
+                    closeRepository = true
+                    releaseRepository = true
+                    stagingRepository('build/mvn-central-staging')
+                }
+            }
+        }
+    }
+}
