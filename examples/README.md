@@ -25,7 +25,7 @@ Before approaching example connectors, please take up the following steps or mak
   - [allow using variables][SnowSQL variables] (`variable_substitution = True`)
   - [exit on first error][SnowSQL exit on error] (`exit_on_error = True`)
 
-## Files structure
+## File structure
 
 ```text
 ├── connectors-native-sdk-example-java-github-connector
