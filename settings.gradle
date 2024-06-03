@@ -4,5 +4,4 @@ include 'connectors-native-sdk'
 project(':connectors-native-sdk').projectDir = file('./connectors-native-sdk-java')
 
 include 'connectors-native-sdk-test'
-project(':connectors-native-sdk-test').projectDir = file('./connectors-native-sdk-java-test')
-
+project(':connectors-native-sdk-test').projectDir = file('./connectors-native-sdk-test-java')

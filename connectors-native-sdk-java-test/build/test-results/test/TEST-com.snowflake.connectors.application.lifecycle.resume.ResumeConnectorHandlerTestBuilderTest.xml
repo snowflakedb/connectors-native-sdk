@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.snowflake.connectors.application.lifecycle.resume.ResumeConnectorHandlerTestBuilderTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2024-03-27T08:57:49" hostname="R4DFHF7979" time="0.737">
-  <properties/>
-  <testcase name="shouldInitializeResumeConnectorHandlerTestBuilder()" classname="com.snowflake.connectors.application.lifecycle.resume.ResumeConnectorHandlerTestBuilderTest" time="0.737"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

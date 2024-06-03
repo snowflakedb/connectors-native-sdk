@@ -1,7 +1,6 @@
 import java.time.LocalDate
 
 plugins {
-    id 'idea'
     id 'java-library'
     id 'maven-publish'
     id 'org.jreleaser' version '1.12.0'
@@ -20,56 +19,33 @@ java {
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
-    compileOnlyApi 'com.snowflake:snowpark:1.11.0'
-    compileOnlyApi 'com.snowflake:telemetry:0.0.1'
+    api project(':connectors-native-sdk')
+    api 'com.snowflake:snowpark:1.11.0'
+    api 'org.assertj:assertj-core:3.25.1'
+    api 'net.javacrumbs.json-unit:json-unit-assertj:2.38.0'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
-    testImplementation 'org.junit.platform:junit-platform-launcher:1.10.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.2'
-    testImplementation 'org.mockito:mockito-core:5.12.0'
-    testImplementation project(':connectors-native-sdk-test')
-}
-
-sourceSets {
-    appTest {
-        compileClasspath += sourceSets.main.output
-        runtimeClasspath += sourceSets.main.output
-    }
-    intTest {
-        compileClasspath += sourceSets.main.output
-        runtimeClasspath += sourceSets.main.output
-    }
-}
-
-idea {
-    module {
-        testSources.from(sourceSets.appTest.java.srcDirs)
-        testResources.from(sourceSets.appTest.resources.srcDirs)
-
-        testSources.from(sourceSets.intTest.java.srcDirs)
-        testResources.from(sourceSets.intTest.resources.srcDirs)
-    }
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testImplementation 'org.mockito:mockito-core:5.8.0'
 }
 
 configurations {
-    testImplementation.extendsFrom compileOnlyApi
+    testImplementation.extendsFrom implementation
+}
 
-    appTestImplementation.extendsFrom testImplementation
-    appTestRuntimeOnly.extendsFrom runtimeOnly
-
-    intTestImplementation.extendsFrom testImplementation
-    intTestRuntimeOnly.extendsFrom runtimeOnly
+test {
+    useJUnitPlatform()
 }
 
 javadoc {
     def taskOptions = options as StandardJavadocDocletOptions
 
     taskOptions.addBooleanOption('-allow-script-in-comments', true)
-    taskOptions.setDocTitle("Snowflake Native SDK for Connectors - Java API Reference (${project.version})")
-    taskOptions.setWindowTitle("Snowflake Native SDK for Connectors - Java API Reference (${project.version})")
+    taskOptions.setDocTitle("Test utilities for Snowflake Native SDK for Connectors - Java API Reference (${project.version})")
+    taskOptions.setWindowTitle("Test utilities for Snowflake Native SDK for Connectors - Java API Reference (${project.version})")
     taskOptions.setLinks([
         'https://docs.oracle.com/en/java/javase/11/docs/api/',
         'https://docs.snowflake.com/developer-guide/snowpark/reference/java/',
@@ -78,7 +54,7 @@ javadoc {
 
     taskOptions.setHeader("""
         <div style="margin-top: 14px"><strong>
-          Snowflake Native SDK for Connectors - Java API Reference (${project.version}) <br/>
+          Test utilities for Snowflake Native SDK for Connectors - Java API Reference (${project.version}) <br/>
           <a style="text-transform: none" href="https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/about-connector-sdk" target="_top">[About the Snowflake Native SDK for Connectors]</a>
         </strong></div>
     """)
@@ -103,46 +79,12 @@ javadoc {
     """)
 }
 
-test {
-    useJUnitPlatform()
-}
-
-tasks.register('intTest', Test) {
-    description = 'Runs integration tests'
-    group = 'verification'
-
-    testClassesDirs = sourceSets.intTest.output.classesDirs
-    classpath = sourceSets.intTest.runtimeClasspath
-
-    systemProperty 'snowflakeCredentials', System.getProperty(
-        'snowflakeCredentials',
-        '../.env/snowflake_credentials'
-    )
-
-    useJUnitPlatform()
-}
-
-tasks.register('appTest', Test) {
-    description = 'Runs integration tests in application.'
-    group = 'verification'
-
-    testClassesDirs = sourceSets.appTest.output.classesDirs
-    classpath = sourceSets.appTest.runtimeClasspath
-
-    systemProperty 'snowflakeCredentials', System.getProperty(
-        'snowflakeCredentials',
-        '../.env/snowflake_credentials'
-    )
-
-    useJUnitPlatform()
-}
-
 publishing {
     publications {
         mavenJava(MavenPublication) {
             pom {
-                name = 'Snowflake Native SDK for Connectors'
-                description = 'Library providing universal components that can be used to build a Snowflake Native App that ingests data from an external source into Snowflake'
+                name = 'Test utilities for Snowflake Native SDK for Connectors'
+                description = 'Library providing universal components for testing connectors built using Snowflake Native SDK for Connectors'
                 url = 'https://www.snowflake.com/'
                 packaging = 'jar'
 
@@ -201,7 +143,7 @@ jreleaser {
     gitRootSearch = true
 
     project {
-        description = 'Snowflake Native SDK for Connectors'
+        description = 'Test utilities for Snowflake Native SDK for Connectors'
         copyright = '2024 Snowflake Inc.'
     }
 
