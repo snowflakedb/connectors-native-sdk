@@ -1,0 +1,74 @@
+/** Copyright (c) 2024 Snowflake Inc. */
+package com.snowflake.connectors.common.task;
+
+import static com.snowflake.connectors.util.sql.SqlStringFormatter.quoted;
+
+import com.snowflake.connectors.common.object.ObjectName;
+import com.snowflake.snowpark_java.Row;
+import com.snowflake.snowpark_java.Session;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+/** Default implementation of {@link TaskLister}. */
+public class DefaultTaskLister implements TaskLister {
+
+  private final Session session;
+
+  /**
+   * Creates a new {@link DefaultTaskLister}.
+   *
+   * @param session Snowpark session object
+   */
+  public DefaultTaskLister(Session session) {
+    this.session = session;
+  }
+
+  @Override
+  public Optional<TaskProperties> showTask(ObjectName taskName) {
+    var foundTasks = showTasks(taskName.getSchema().toSqlString(), taskName.getName().getName());
+    return foundTasks.stream().findFirst();
+  }
+
+  @Override
+  public List<TaskProperties> showTasks(String schema) {
+    return showQueriedTasks("show tasks in schema " + schema);
+  }
+
+  @Override
+  public List<TaskProperties> showTasks(String schema, String like) {
+    return showQueriedTasks(String.format("show tasks like '%s' in schema %s", like, schema));
+  }
+
+  private List<TaskProperties> showQueriedTasks(String query) {
+    return Arrays.stream(
+            session
+                .sql(query)
+                .select(
+                    quoted("schema_name"),
+                    quoted("name"),
+                    quoted("definition"),
+                    quoted("schedule"),
+                    quoted("state"),
+                    quoted("warehouse"),
+                    quoted("condition"),
+                    quoted("allow_overlapping_execution"))
+                .collect())
+        .map(this::mapToProperties)
+        .sorted(Comparator.comparing(task -> task.name().getEscapedName()))
+        .collect(Collectors.toList());
+  }
+
+  private TaskProperties mapToProperties(Row row) {
+    ObjectName name = ObjectName.from(row.getString(0), row.getString(1));
+
+    return new TaskProperties.Builder(name, row.getString(2), row.getString(3))
+        .withState(row.getString(4))
+        .withWarehouse(row.getString(5))
+        .withCondition(row.getString(6))
+        .withAllowOverlappingExecution(Boolean.parseBoolean(row.getString(7)))
+        .build();
+  }
+}
