@@ -101,6 +101,6 @@ Please refer to [LICENSE][license]
 [Native SDK for Connectors Java Test path]: TODO:add_path_to_README
 [Connectors Native SDK Template path]: TODO:add_path_to_README
 [Connectors Native SDK Example GitHub Java Connector path]: TODO:add_path_to_README
-[Example GitHub Java Connector path]: ./examples/example-github-java-connector/README.md
-[Example GitHub Python Connector path]: ./examples/example-github-python-connector/README.md
-[Example Push-Based Java Connector path]: ./examples/example-push-based-java-connector/README.md
+[Example GitHub Java Connector path]: ./examples/examples-basic/example-github-java-connector
+[Example GitHub Python Connector path]: ./examples/examples-basic/example-github-python-connector
+[Example Push-Based Java Connector path]: ./examples/examples-basic/example-push-based-java-connector
