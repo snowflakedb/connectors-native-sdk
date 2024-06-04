@@ -201,6 +201,7 @@ private void createNewVersion() {
     String query = """ALTER APPLICATION PACKAGE ${appPackage}
                          ADD VERSION "${appVersion}"
                          USING '${versionDirPath}';"""
+    println(query)
     Process command = new ProcessBuilder(["snowsql", "-c", connection, "-q", query]).redirectErrorStream(true).start()
     Utils.executeStandardSnowsqlCommand(command)
     TaskLogger.success("Version [${appVersion}] cretead successfully.")
@@ -216,6 +217,7 @@ private void createAppInstance() {
     def instanceName = getCommandArgument("instanceName", {appPackage+(instanceNameSuffix.isBlank() ? "_INSTANCE" : "_${instanceNameSuffix}")})
 
     String query = createFromAppVersionOrVersionDir(instanceName, appPackage, versionDirPath, appVersion)
+    println(query)
     Process command = new ProcessBuilder("snowsql", "-c", connection, "-q", query).redirectErrorStream(true).start()
     Utils.executeStandardSnowsqlCommand(command)
     TaskLogger.success("Application instance [${instanceName}] created successfully.")
@@ -231,6 +233,7 @@ private String createFromAppVersionOrVersionDir(String instanceName, String appP
     String createFromAppPackageQuery = """CREATE APPLICATION ${instanceName}
                         FROM APPLICATION PACKAGE ${appPackage}
                         USING ${versionDirPath.orElse("")};"""
+    println createFromAppPackageQuery
     String createFromAppVersionQuery = """CREATE APPLICATION ${instanceName}
                         FROM APPLICATION PACKAGE ${appPackage}
                         USING VERSION "${appVersion.orElse("")}";"""
