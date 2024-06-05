@@ -17,6 +17,6 @@ This example is ready to be deployed after minimal configurations from the user.
 4. Ingest the data!
 
 [Quickstart]: ./QUICKSTART.md
-[Template tutorial]: TODO:template_tutorial_url
+[Template tutorial]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/tutorials/native_sdk_tutorial
 
 [template path]: ../../templates/connectors-native-sdk-template
