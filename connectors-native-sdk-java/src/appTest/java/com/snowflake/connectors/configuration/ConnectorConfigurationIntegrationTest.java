@@ -32,7 +32,6 @@ class ConnectorConfigurationIntegrationTest extends BaseNativeSdkIntegrationTest
             row("connector_configuration", "key_with_null_value", null),
             row("connector_configuration", "warehouse", "wh"),
             row("custom_configuration", "journal_table", "j_table_name"),
-            // TODO: should be changed back to null when UI handles it
             row("flat_config_key", "flat_config_key", "flat_config_value"));
   }
 
