@@ -86,21 +86,21 @@ Please refer to [CONTRIBUTING.md][contributing].
 ## License
 Please refer to [LICENSE][license]
 
-[Native SDK official docs]: TODO:native_sdk_official_docs_url
-[Native SDK official java docs]: TODO:java_doc_url
-[Task Reactor official docs]: TODO:task_reactor_official_docs_url
+[Native SDK official docs]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/about-connector-sdk
+[Native SDK official java docs]: https://docs.snowflake.com/developer-guide/native-apps/connector-sdk/java/index.html
+[Task Reactor official docs]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/using/task_reactor
 [SDK in Maven Central]: https://central.sonatype.com/artifact/com.snowflake/connectors-native-sdk
 [SDK Test in Maven Central]: https://central.sonatype.com/artifact/com.snowflake/connectors-native-sdk-test
-[Template tutorial]: TODO:template_tutorial_url
+[Template tutorial]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/tutorials/native_sdk_tutorial
 [Native Apps docs]: https://docs.snowflake.com/en/developer-guide/native-apps/native-apps-about
 
 [contributing]: ./CONTRIBUTING.md
 [license]: ./LICENSE
 [examples]: ./examples
-[Native SDK for Connectors Java path]: TODO:add_path_to_README
-[Native SDK for Connectors Java Test path]: TODO:add_path_to_README
-[Connectors Native SDK Template path]: TODO:add_path_to_README
-[Connectors Native SDK Example GitHub Java Connector path]: TODO:add_path_to_README
+[Native SDK for Connectors Java path]: ./connectors-native-sdk-java
+[Native SDK for Connectors Java Test path]: ./connectors-native-sdk-test-java
+[Connectors Native SDK Template path]: ./templates/connectors-native-sdk-template
+[Connectors Native SDK Example GitHub Java Connector path]: ./examples/connectors-native-sdk-example-java-github-connector
 [Example GitHub Java Connector path]: ./examples/examples-basic/example-github-java-connector
 [Example GitHub Python Connector path]: ./examples/examples-basic/example-github-python-connector
 [Example Push-Based Java Connector path]: ./examples/examples-basic/example-push-based-java-connector
