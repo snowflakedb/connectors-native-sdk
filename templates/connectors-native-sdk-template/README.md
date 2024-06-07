@@ -28,8 +28,8 @@ We recommend the following flow when using the tutorial, especially for the firs
 4. Redeploy and test your implementation in Snowflake
 5. Ingest the data!
 
-[Native SDK official docs]: TODO:native_sdk_official_docs_url
-[Tutorial docs]: TODO:add_url_to_tutorial
+[Native SDK official docs]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/about-connector-sdk
+[Tutorial docs]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/tutorials/native_sdk_tutorial
 
 [Example Connector path]: ../../examples/connectors-native-sdk-example-java-github-connector
 

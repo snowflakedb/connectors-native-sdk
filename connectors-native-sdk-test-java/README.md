@@ -82,7 +82,7 @@ project with the Native SDK for Connectors Java library and its test library.
 
 [SDK Test in Maven Central]: https://central.sonatype.com/artifact/com.snowflake/connectors-native-sdk-test
 [AssertJ fluent assertions doc]: https://assertj.github.io/doc/
-[Builders customization docs]: TODO:add_url_to_builder_customization_docs
+[Builders customization docs]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/using/sproc_and_handlers_customization
 
 [Native SDK for Connectors Java path]: ../connectors-native-sdk-java
 [NativeSdkAssertions.java path]: src/main/java/com/snowflake/connectors/common/assertions/NativeSdkAssertions.java

@@ -121,9 +121,9 @@ You can also check the [Connectors Native SDK Example Java GitHub Connector][Exa
 template is used in practice.
 
 
-[Native SDK official docs]: TODO:native_sdk_official_docs_url
-[Native SDK official java docs]: TODO:native_sdk_official_java_docs_url
-[Task Reactor official docs]: TODO:task_reactor_official_docs_url
+[Native SDK official docs]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/about-connector-sdk
+[Native SDK official java docs]: https://docs.snowflake.com/developer-guide/native-apps/connector-sdk/java/index.html
+[Task Reactor official docs]: Thttps://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/using/task_reactor
 [SDK in Maven Central]: https://central.sonatype.com/artifact/com.snowflake/connectors-native-sdk
 [Snowflake Stream Docs]: https://docs.snowflake.com/en/user-guide/streams-intro
 [Snowflake Tasks Docs]: https://docs.snowflake.com/en/user-guide/tasks-intro

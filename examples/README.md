@@ -56,8 +56,8 @@ You can find there the following examples:
 [SnowSQL variables]: https://docs.snowflake.com/en/user-guide/snowsql-use#enabling-variable-substitution
 [SnowSQL exit on error]: https://docs.snowflake.com/en/user-guide/snowsql-config#exit-on-error
 [Snowflake Scripting docs]: https://docs.snowflake.com/en/developer-guide/snowflake-scripting/index
-[Pull-based pattern]: TODO:add_url_to_docs
-[Push-based pattern]: TODO:add_url_to_docs
+[Pull-based pattern]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/about-connector-sdk#what-is-a-native-connector
+[Push-based pattern]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/about-connector-sdk#what-is-a-native-connector
 
 [connectors-native-sdk-example-java-github-connector dir]: ./connectors-native-sdk-example-java-github-connector
 [example-github-java-connector dir]: ./examples-basic/example-github-java-connector
