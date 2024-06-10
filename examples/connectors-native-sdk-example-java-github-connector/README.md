@@ -16,7 +16,7 @@ This example is ready to be deployed after minimal configurations from the user.
 3. Configure in Snowflake
 4. Ingest the data!
 
-[Quickstart]: ./QUICKSTART.md
+[Quickstart]: https://quickstarts.snowflake.com/guide/connectors_native_sdk_java_example
 [Template tutorial]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/tutorials/native_sdk_tutorial
 
 [template path]: ../../templates/connectors-native-sdk-template
