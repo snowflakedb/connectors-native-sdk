@@ -30,10 +30,9 @@ public class InstanceRegistryRepositoryIntegrationTest extends BaseTaskReactorIn
   @Test
   void shouldReturnAllInstances() {
     // given
-    TaskReactorInstance first =
-        new TaskReactorInstance(Identifier.fromWithAutoQuoting("ziemniaczek"), true, true);
+    TaskReactorInstance first = new TaskReactorInstance(Identifier.from("ziemniaczek"), true, true);
     TaskReactorInstance second =
-        new TaskReactorInstance(Identifier.fromWithAutoQuoting("kartofelek"), false, false);
+        new TaskReactorInstance(Identifier.from("kartofelek"), false, false);
     instanceRecordExists(first);
     instanceRecordExists(second);
 
@@ -45,9 +44,28 @@ public class InstanceRegistryRepositoryIntegrationTest extends BaseTaskReactorIn
   }
 
   @Test
+  void shouldReturnAllInitializedInstances() {
+    // given
+    TaskReactorInstance first = new TaskReactorInstance(Identifier.from("ziemniaczek"), true, true);
+    TaskReactorInstance second =
+        new TaskReactorInstance(Identifier.from("kartofelek"), true, false);
+    TaskReactorInstance third = new TaskReactorInstance(Identifier.from("pyra"), false, false);
+
+    instanceRecordExists(first);
+    instanceRecordExists(second);
+    instanceRecordExists(third);
+
+    // when
+    List<TaskReactorInstance> instances = repository.fetchAllInitialized();
+
+    // then
+    assertThat(instances).containsExactlyInAnyOrder(first, second);
+  }
+
+  @Test
   void shouldSetActive() {
     // given
-    Identifier instanceName = Identifier.fromWithAutoQuoting("IBelieveICanFly");
+    Identifier instanceName = Identifier.from("IBelieveICanFly");
     TaskReactorInstance first = new TaskReactorInstance(instanceName, true, false);
     instanceRecordExists(first);
 
@@ -62,7 +80,7 @@ public class InstanceRegistryRepositoryIntegrationTest extends BaseTaskReactorIn
   @Test
   void shouldSetInactive() {
     // given
-    Identifier instanceName = Identifier.fromWithAutoQuoting("IBelieveICanTouchTheSky");
+    Identifier instanceName = Identifier.from("IBelieveICanTouchTheSky");
     TaskReactorInstance first = new TaskReactorInstance(instanceName, true, true);
     instanceRecordExists(first);
 
@@ -80,9 +98,7 @@ public class InstanceRegistryRepositoryIntegrationTest extends BaseTaskReactorIn
             String.format(
                 "INSERT INTO TASK_REACTOR_INSTANCES.INSTANCE_REGISTRY (INSTANCE_NAME,"
                     + " IS_INITIALIZED, IS_ACTIVE) VALUES ('%s', %s, %s)",
-                instance.instanceName().toSqlString(),
-                instance.isInitialized(),
-                instance.isActive()))
+                instance.instanceName().getValue(), instance.isInitialized(), instance.isActive()))
         .collect();
   }
 

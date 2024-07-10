@@ -1,5 +1,7 @@
 -- Copyright (c) 2024 Snowflake Inc.
 
+-- connectors-native-sdk <sdk_version>2.1.0</sdk_version>
+
 CREATE APPLICATION ROLE IF NOT EXISTS ADMIN;
 CREATE APPLICATION ROLE IF NOT EXISTS VIEWER;
 CREATE APPLICATION ROLE IF NOT EXISTS DATA_READER;

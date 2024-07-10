@@ -5,42 +5,47 @@ import static com.snowflake.connectors.taskreactor.commands.queue.Command.Comman
 
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.object.ObjectName;
+import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceComponentProvider;
 import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
 import com.snowflake.connectors.taskreactor.registry.InstanceRegistryRepository;
-import com.snowflake.connectors.taskreactor.registry.TaskReactorInstance;
 import com.snowflake.snowpark_java.types.Variant;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Default implementation of {@link UpdateTaskReactorTasks}. */
 class DefaultUpdateTaskReactorTasks implements UpdateTaskReactorTasks {
 
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultUpdateTaskReactorTasks.class);
+
   private final InstanceRegistryRepository instanceRegistryRepository;
   private final TaskReactorInstanceComponentProvider componentProvider;
   private final TaskRepository taskRepository;
+  private final TaskReactorInstanceActionExecutor instanceExecutor;
 
   DefaultUpdateTaskReactorTasks(
       InstanceRegistryRepository instanceRegistryRepository,
       TaskReactorInstanceComponentProvider componentProvider,
-      TaskRepository taskRepository) {
+      TaskRepository taskRepository,
+      TaskReactorInstanceActionExecutor instanceExecutor) {
     this.instanceRegistryRepository = instanceRegistryRepository;
     this.componentProvider = componentProvider;
     this.taskRepository = taskRepository;
+    this.instanceExecutor = instanceExecutor;
   }
 
   @Override
   public void update(Identifier warehouse) {
-    instanceRegistryRepository.fetchAll().stream()
-        .map(TaskReactorInstance::instanceName)
-        .map(Identifier::getName)
-        .forEach(instance -> updateInstance(instance, warehouse));
+    instanceExecutor.applyToAllInitializedTaskReactorInstances(
+        instance -> updateInstance(instance.getValue(), warehouse));
   }
 
   @Override
   public void updateInstance(String instance, Identifier warehouse) {
     validateInstanceIsNotActive(instance);
 
-    var instanceIdentifier = Identifier.fromWithAutoQuoting(instance);
+    var instanceIdentifier = Identifier.from(instance);
     var commandQueueRepository = componentProvider.commandsQueueRepository(instanceIdentifier);
 
     var dispatcherTask = ObjectName.from(instance, "DISPATCHER_TASK");
@@ -60,9 +65,10 @@ class DefaultUpdateTaskReactorTasks implements UpdateTaskReactorTasks {
       Identifier warehouseName,
       CommandsQueueRepository commandsQueueRepository,
       TaskRef dispatcherTask) {
-    dispatcherTask.alterWarehouse(warehouseName.toSqlString());
+    dispatcherTask.alterWarehouse(warehouseName.getValue());
     commandsQueueRepository.add(
-        UPDATE_WAREHOUSE, new Variant(Map.of("warehouse_name", warehouseName.toSqlString())));
+        UPDATE_WAREHOUSE, new Variant(Map.of("warehouse_name", warehouseName.getValue())));
+    LOG.info("Added UPDATE_WAREHOUSE command to the command queue");
   }
 
   /**
@@ -75,7 +81,7 @@ class DefaultUpdateTaskReactorTasks implements UpdateTaskReactorTasks {
   private void validateInstanceIsNotActive(String instanceSchema) {
     var instanceRegistry =
         instanceRegistryRepository.fetchAll().stream()
-            .filter(instance -> instance.instanceName().getName().equals(instanceSchema))
+            .filter(instance -> instance.instanceName().getValue().equals(instanceSchema))
             .findFirst()
             .orElseThrow(() -> new InstanceNotFoundException(instanceSchema));
     if (instanceRegistry.isActive()) {

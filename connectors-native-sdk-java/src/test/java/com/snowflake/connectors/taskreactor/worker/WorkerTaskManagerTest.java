@@ -22,7 +22,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 public class WorkerTaskManagerTest {
-  private final Identifier instanceSchema = Identifier.fromWithAutoQuoting("SCHEMA");
+
+  private final Identifier instanceSchema = Identifier.from("SCHEMA");
   private final InMemoryConfigRepository configRepository = new InMemoryConfigRepository();
   private final TaskRepository taskRepository = mock();
   private final WorkerTaskManager workerTaskManager =
@@ -39,7 +40,7 @@ public class WorkerTaskManagerTest {
             "WORK_SELECTOR_TYPE", "PROCEDURE",
             "WORK_SELECTOR", "work-selector-test",
             "EXPIRED_WORK_SELECTOR", "expired-work-selector-test",
-            "WAREHOUSE", "\"escap3d%_warehouse\""));
+            "WAREHOUSE", "\"\\\"escap3d%_warehouse\\\"\""));
   }
 
   @AfterEach

@@ -26,7 +26,7 @@ public class PauseConnectorHandler {
   private final PauseConnectorCallback callback;
   private final ConnectorErrorHelper errorHelper;
   private final LifecycleService lifecycleService;
-  private final PauseConnectorSdkCallback pauseConnectorSdkCallback;
+  private final PauseConnectorSdkCallback sdkCallback;
   private final PauseTaskReactorService pauseTaskReactorService;
 
   PauseConnectorHandler(
@@ -34,13 +34,13 @@ public class PauseConnectorHandler {
       PauseConnectorCallback callback,
       ConnectorErrorHelper errorHelper,
       LifecycleService lifecycleService,
-      PauseConnectorSdkCallback pauseConnectorSdkCallback,
+      PauseConnectorSdkCallback sdkCallback,
       PauseTaskReactorService pauseTaskReactorService) {
     this.stateValidator = stateValidator;
     this.callback = callback;
     this.errorHelper = errorHelper;
     this.lifecycleService = lifecycleService;
-    this.pauseConnectorSdkCallback = pauseConnectorSdkCallback;
+    this.sdkCallback = sdkCallback;
     this.pauseTaskReactorService = pauseTaskReactorService;
   }
 
@@ -77,6 +77,8 @@ public class PauseConnectorHandler {
    *   <li>connector status check
    *   <li>{@link PauseConnectorStateValidator#validate()}
    *   <li>{@link PauseConnectorCallback#execute()}
+   *   <li>{@link PauseConnectorSdkCallback#execute()}
+   *   <li>{@link PauseTaskReactorService#pauseAllInstances()}
    *   <li>connector status update
    * </ul>
    *
@@ -96,20 +98,19 @@ public class PauseConnectorHandler {
     lifecycleService.validateStatus(STARTED, PAUSING);
 
     var validationResult = stateValidator.validate();
-    if (!validationResult.isOk()) {
+    if (validationResult.isNotOk()) {
       return validationResult;
     }
 
     lifecycleService.updateStatus(PAUSING);
 
     ConnectorResponse internalResult = lifecycleService.withRollbackHandling(callback::execute);
-    if (!internalResult.isOk()) {
+    if (internalResult.isNotOk()) {
       return internalResult;
     }
 
-    ConnectorResponse callbackResult =
-        lifecycleService.withRollbackHandling(pauseConnectorSdkCallback::execute);
-    if (!internalResult.isOk()) {
+    ConnectorResponse callbackResult = lifecycleService.withRollbackHandling(sdkCallback::execute);
+    if (callbackResult.isNotOk()) {
       return callbackResult;
     }
 

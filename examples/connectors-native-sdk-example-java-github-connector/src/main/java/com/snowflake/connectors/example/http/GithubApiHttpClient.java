@@ -24,7 +24,7 @@ public class GithubApiHttpClient {
     this.client = HttpClient.newHttpClient();
     this.secret =
         SnowflakeSecrets.newInstance()
-            .getGenericSecretString(GithubConnectionConfiguration.TOKEN_NAME);
+            .getOAuthAccessToken(GithubConnectionConfiguration.TOKEN_NAME);
   }
 
   /**

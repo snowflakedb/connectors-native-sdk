@@ -38,7 +38,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class DispatcherTest {
-  private final Identifier instanceSchema = Identifier.fromWithAutoQuoting("SCHEMA");
+
+  private final Identifier instanceSchema = Identifier.from("SCHEMA");
   private final InMemoryWorkerStatusRepository workerStatusRepository =
       new InMemoryWorkerStatusRepository();
   private final WorkerManager workerManager = mock();

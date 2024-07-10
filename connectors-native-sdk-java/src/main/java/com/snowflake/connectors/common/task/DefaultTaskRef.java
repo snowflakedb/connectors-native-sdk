@@ -1,8 +1,10 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.common.task;
 
-import static com.snowflake.connectors.util.sql.SqlStringFormatter.quoted;
+import static com.snowflake.connectors.util.sql.SqlTools.asVarchar;
+import static com.snowflake.connectors.util.sql.SqlTools.quoted;
 
+import com.snowflake.connectors.common.object.Identifier.AutoQuoting;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.snowpark_java.Row;
 import com.snowflake.snowpark_java.Session;
@@ -34,11 +36,16 @@ public class DefaultTaskRef implements TaskRef {
 
   @Override
   public boolean checkIfExists() {
+    var schema = taskName.getSchema();
+    if (schema.isEmpty()) {
+      return false;
+    }
+
     return session
             .sql(
                 String.format(
-                    "SHOW TASKS LIKE '%s' IN SCHEMA %s",
-                    taskName.getName().toSqlString(), taskName.getSchema().toSqlString()))
+                    "SHOW TASKS LIKE %s IN SCHEMA %s",
+                    asVarchar(taskName.getName().getUnquotedValue()), schema.get().getValue()))
             .collect()
             .length
         == 1;
@@ -76,22 +83,22 @@ public class DefaultTaskRef implements TaskRef {
 
   @Override
   public void alterSchedule(String schedule) {
-    alterTask(String.format("SET SCHEDULE = '%s'", schedule));
+    alterTask(String.format("SET SCHEDULE = %s", asVarchar(schedule)));
   }
 
   @Override
   public void alterScheduleIfExists(String schedule) {
-    alterTaskIfExists(String.format("SET SCHEDULE = '%s'", schedule));
+    alterTaskIfExists(String.format("SET SCHEDULE = %s", asVarchar(schedule)));
   }
 
   @Override
   public void alterWarehouse(String warehouse) {
-    alterTask(String.format("SET WAREHOUSE = %s", warehouse));
+    alterTask(String.format("SET WAREHOUSE = %s", asVarchar(warehouse)));
   }
 
   @Override
   public void alterWarehouseIfExists(String warehouse) {
-    alterTaskIfExists(String.format("SET WAREHOUSE = %s", warehouse));
+    alterTaskIfExists(String.format("SET WAREHOUSE = %s", asVarchar(warehouse)));
   }
 
   @Override
@@ -99,7 +106,7 @@ public class DefaultTaskRef implements TaskRef {
     session
         .sql(
             String.format(
-                "GRANT MONITOR ON TASK %s TO APPLICATION ROLE %s", taskName.getEscapedName(), role))
+                "GRANT MONITOR ON TASK %s TO APPLICATION ROLE %s", taskName.getValue(), role))
         .toLocalIterator();
   }
 
@@ -120,14 +127,14 @@ public class DefaultTaskRef implements TaskRef {
 
   private TaskProperties mapToProperties(Row row) {
     return new TaskProperties.Builder(taskName, row.getString(0), row.getString(1))
-        .withWarehouse(row.getString(2))
+        .withWarehouse(row.getString(2), AutoQuoting.ENABLED)
         .withState(row.getString(3))
         .withAllowOverlappingExecution(Boolean.parseBoolean(row.getString(4)))
         .build();
   }
 
   private String identifier() {
-    return String.format("IDENTIFIER('%s')", taskName.getEscapedName());
+    return String.format("IDENTIFIER(%s)", asVarchar(taskName.getValue()));
   }
 
   private void alterTask(String command) {

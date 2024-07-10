@@ -6,14 +6,14 @@ import static com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueR
 import static com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository.ColumnName.PAYLOAD;
 import static com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository.ColumnName.SEQ_NO;
 import static com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository.ColumnName.TYPE;
+import static com.snowflake.connectors.util.sql.SnowparkFunctions.lit;
 import static com.snowflake.snowpark_java.Functions.col;
-import static com.snowflake.snowpark_java.Functions.lit;
-import static java.lang.String.format;
 
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.connectors.taskreactor.ComponentNames;
 import com.snowflake.connectors.taskreactor.commands.queue.Command.CommandType;
+import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.snowpark_java.Row;
 import com.snowflake.snowpark_java.Session;
 import com.snowflake.snowpark_java.types.DataTypes;
@@ -25,13 +25,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Default implementation of the {@link CommandsQueueRepository} used by the Task Reactor. */
 public class DefaultCommandsQueueRepository implements CommandsQueueRepository {
 
-  private static final Logger logger =
-      LoggerFactory.getLogger(DefaultCommandsQueueRepository.class);
+  private static final Logger LOG =
+      TaskReactorLogger.getLogger(DefaultCommandsQueueRepository.class);
+
   private final Session session;
   private final ObjectName commandsQueueName;
 
@@ -57,7 +57,7 @@ public class DefaultCommandsQueueRepository implements CommandsQueueRepository {
   public List<Command> fetchAllSupportedOrderedBySeqNo() {
     return Arrays.stream(
             session
-                .table(commandsQueueName.getEscapedName())
+                .table(commandsQueueName.getValue())
                 .select(ID, TYPE, PAYLOAD, SEQ_NO)
                 .sort(col(SEQ_NO))
                 .collect())
@@ -74,7 +74,7 @@ public class DefaultCommandsQueueRepository implements CommandsQueueRepository {
    */
   @Override
   public void add(CommandType type, Variant payload) {
-    var table = session.table(commandsQueueName.getEscapedName());
+    var table = session.table(commandsQueueName.getValue());
     StructType schema =
         StructType.create(
             new StructField(TYPE, DataTypes.StringType),
@@ -90,8 +90,7 @@ public class DefaultCommandsQueueRepository implements CommandsQueueRepository {
         .insert(assignments)
         .collect();
 
-    logger.trace(
-        format("Added new [%s] command with payload [%s].", type.name(), payload.asJsonString()));
+    LOG.trace("Added new [{}] command with payload [{}].", type.name(), payload.asJsonString());
   }
 
   /**
@@ -101,17 +100,15 @@ public class DefaultCommandsQueueRepository implements CommandsQueueRepository {
    */
   @Override
   public void deleteById(String id) {
-    session.table(commandsQueueName.getEscapedName()).delete(col(ID).equal_to(lit(id)));
-    logger.trace(format("Deleted command with id [%s].", id));
+    session.table(commandsQueueName.getValue()).delete(col(ID).equal_to(lit(id)));
+    LOG.trace("Deleted command with id [{}].", id);
   }
 
   /** Deletes all commands of type that is not included in the {@link CommandType} set of values */
   @Override
   public void deleteUnsupportedCommands() {
     Object[] supportedTypes = Arrays.stream(CommandType.values()).map(CommandType::name).toArray();
-    session
-        .table(commandsQueueName.getEscapedName())
-        .delete(col(TYPE).in(supportedTypes).unary_not());
+    session.table(commandsQueueName.getValue()).delete(col(TYPE).in(supportedTypes).unary_not());
   }
 
   /**
@@ -135,10 +132,10 @@ public class DefaultCommandsQueueRepository implements CommandsQueueRepository {
   private void deleteFromQueueIfInvalidType(String id, String type) {
     if (!isValidType(type)) {
       deleteById(id);
-      logger.trace(
-          format(
-              "Command with id [%s] removed from Commands Queue because type [%s] is invalid.",
-              id, type));
+      LOG.trace(
+          "Command with id [{}] removed from Commands Queue because type [{}] is invalid.",
+          id,
+          type);
     }
   }
 }

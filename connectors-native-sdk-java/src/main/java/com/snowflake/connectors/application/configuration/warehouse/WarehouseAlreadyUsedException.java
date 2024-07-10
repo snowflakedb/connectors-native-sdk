@@ -20,6 +20,6 @@ public class WarehouseAlreadyUsedException extends ConnectorException {
    * @param warehouse warehouse name
    */
   public WarehouseAlreadyUsedException(Identifier warehouse) {
-    super(RESPONSE_CODE, format(MESSAGE, warehouse.toSqlString()));
+    super(RESPONSE_CODE, format(MESSAGE, warehouse.getValue()));
   }
 }

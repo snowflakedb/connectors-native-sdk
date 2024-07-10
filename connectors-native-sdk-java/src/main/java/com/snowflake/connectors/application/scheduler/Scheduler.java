@@ -1,6 +1,8 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.application.scheduler;
 
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.IN_PROGRESS;
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.SCHEDULED;
 import static java.util.stream.Collectors.toList;
 
 import com.snowflake.connectors.application.ingestion.process.CrudIngestionProcessRepository;
@@ -34,7 +36,7 @@ public class Scheduler {
 
   /** Runs the next scheduler iteration. */
   public void runIteration() {
-    List<IngestionProcess> processes = ingestionProcessRepository.fetchAll("SCHEDULED");
+    List<IngestionProcess> processes = ingestionProcessRepository.fetchAll(SCHEDULED);
     if (!processes.isEmpty()) {
       changeStatusToInProgress(processes);
       processes.forEach(this::callOnIngestionScheduled);
@@ -43,7 +45,7 @@ public class Scheduler {
 
   private void changeStatusToInProgress(List<IngestionProcess> processes) {
     List<IngestionProcess> updatedProcesses =
-        processes.stream().map(process -> process.withStatus("IN_PROGRESS")).collect(toList());
+        processes.stream().map(process -> process.withStatus(IN_PROGRESS)).collect(toList());
     ingestionProcessRepository.save(updatedProcesses);
   }
 

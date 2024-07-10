@@ -27,7 +27,7 @@ def prerequisites_page():
     for prerequisite in prerequisites:
         single_prerequisite_layout(prerequisite)
 
-    _, mark_btn_col, conf_btn_call = st.columns([2.6, 1.25, 1.15])
+    _, mark_btn_col, conf_btn_call = st.columns([2.55, 1.25, 1.2])
     with mark_btn_col:
         st.button(
             "Mark all as done",

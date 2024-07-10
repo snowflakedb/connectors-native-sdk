@@ -29,4 +29,10 @@ public class DefaultConfigurationMap implements ConfigurationMap {
   public <T> Optional<T> get(String key, Class<T> clazz) {
     return Optional.ofNullable(configuration.get(key)).map(value -> mapVariant(value, clazz));
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public int size() {
+    return configuration.size();
+  }
 }

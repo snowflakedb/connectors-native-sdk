@@ -89,4 +89,24 @@ public class ResourceIngestionDefinitionAssert
     assertThat(actual.isEnabled()).isEqualTo(enabled);
     return this;
   }
+
+  /**
+   * Asserts that this resource ingestion definition has an enabled state equal to true.
+   *
+   * @return this assertion
+   */
+  public ResourceIngestionDefinitionAssert isEnabled() {
+    assertThat(actual.isEnabled()).isTrue();
+    return this;
+  }
+
+  /**
+   * Asserts that this resource ingestion definition has an enabled state equal to false.
+   *
+   * @return this assertion
+   */
+  public ResourceIngestionDefinitionAssert isDisabled() {
+    assertThat(actual.isEnabled()).isFalse();
+    return this;
+  }
 }

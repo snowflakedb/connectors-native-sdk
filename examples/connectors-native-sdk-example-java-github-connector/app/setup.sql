@@ -7,6 +7,8 @@ EXECUTE IMMEDIATE FROM 'native-connectors-sdk-components/task_reactor.sql';
 -- CUSTOM CONNECTOR OBJECTS
 CREATE OR ALTER VERSIONED SCHEMA STREAMLIT;
 GRANT USAGE ON SCHEMA STREAMLIT TO APPLICATION ROLE ADMIN;
+GRANT USAGE ON SCHEMA STREAMLIT TO APPLICATION ROLE DATA_READER;
+GRANT USAGE ON SCHEMA STREAMLIT TO APPLICATION ROLE VIEWER;
 
 CREATE OR REPLACE STREAMLIT STREAMLIT.EXAMPLE_JAVA_GITHUB_CONNECTOR_ST
     FROM  '/streamlit'
@@ -14,6 +16,39 @@ CREATE OR REPLACE STREAMLIT STREAMLIT.EXAMPLE_JAVA_GITHUB_CONNECTOR_ST
 GRANT USAGE ON STREAMLIT STREAMLIT.EXAMPLE_JAVA_GITHUB_CONNECTOR_ST TO APPLICATION ROLE ADMIN;
 
 -- SNOWFLAKE REFERENCE MECHANISM
+CREATE OR REPLACE PROCEDURE PUBLIC.GET_REFERENCE_CONFIG(ref_name STRING)
+    RETURNS STRING
+    LANGUAGE SQL
+    AS
+        BEGIN
+            CASE (ref_name)
+                WHEN 'GITHUB_EAI_REFERENCE' THEN
+                    RETURN OBJECT_CONSTRUCT(
+                        'type', 'CONFIGURATION',
+                        'payload', OBJECT_CONSTRUCT(
+                            'host_ports', ARRAY_CONSTRUCT('api.github.com'),
+                            'allowed_secrets', 'LIST',
+                            'secret_references', ARRAY_CONSTRUCT('GITHUB_SECRET_REFERENCE')
+                        )
+                    )::STRING;
+                WHEN 'GITHUB_SECRET_REFERENCE' THEN
+                    RETURN OBJECT_CONSTRUCT(
+                        'type', 'CONFIGURATION',
+                        'payload', OBJECT_CONSTRUCT(
+                            'type', 'OAUTH2',
+                            'security_integration', OBJECT_CONSTRUCT(
+                                'oauth_scopes', ARRAY_CONSTRUCT('repo'),
+                                'oauth_token_endpoint', 'https://github.com/login/oauth/access_token',
+                                'oauth_authorization_endpoint', 'https://github.com/login/oauth/authorize'
+                            )
+                        )
+                    )::STRING;
+                ELSE
+                    RETURN '';
+            END CASE;
+        END;
+GRANT USAGE ON PROCEDURE PUBLIC.GET_REFERENCE_CONFIG(STRING) TO APPLICATION ROLE ADMIN;
+
 CREATE OR REPLACE PROCEDURE PUBLIC.REGISTER_REFERENCE(ref_name STRING, operation STRING, ref_or_alias STRING)
     RETURNS STRING
     LANGUAGE SQL
@@ -38,21 +73,15 @@ MERGE INTO STATE.PREREQUISITES AS dest
     USING (SELECT * FROM VALUES
                ('1',
                 'GitHub account',
-                'Prepare a GitHub account, from which particular resources will be fetched.',
+                'Prepare a GitHub account which will be used to fetch the data from repositories',
                 NULL,
                 1
                ),
                ('2',
-                'GitHub personal access token',
-                'Prepare a personal GitHub access token in order to give the connector an access to the account.',
+                'GitHub repositories access',
+                'Make sure your GitHub account can access all repositories which you would like to ingest',
                 NULL,
                 2
-               ),
-               ('3',
-                'External Access Integration',
-                'It is required to create an External Access Integration that allows to connect with the Github API. To do that, you need to create a Secret with the Github personal access token and a Network Rule that allows to connect with __api.github.com:443__ endpoint.',
-                'https://docs.snowflake.com/en/developer-guide/external-network-access/creating-using-external-network-access',
-                3
                )
     ) AS src (id, title, description, documentation_url, position)
     ON dest.id = src.id
@@ -105,7 +134,8 @@ CALL TASK_REACTOR.CREATE_INSTANCE_OBJECTS(
         NULL
     );
 
-CREATE OR REPLACE VIEW EXAMPLE_CONNECTOR_TASK_REACTOR.WORK_SELECTOR_VIEW AS SELECT * FROM EXAMPLE_CONNECTOR_TASK_REACTOR.QUEUE ORDER BY RESOURCE_ID;
+CREATE OR REPLACE VIEW EXAMPLE_CONNECTOR_TASK_REACTOR.WORK_SELECTOR_VIEW
+    AS SELECT * FROM EXAMPLE_CONNECTOR_TASK_REACTOR.QUEUE ORDER BY RESOURCE_ID;
 
 CREATE OR REPLACE PROCEDURE PUBLIC.RUN_SCHEDULER_ITERATION()
     RETURNS VARIANT
@@ -133,3 +163,48 @@ CREATE OR REPLACE PROCEDURE PUBLIC.RESUME_CONNECTOR()
     IMPORTS = ('/connectors-native-sdk.jar', '/connectors-native-sdk-example-java-github-connector.jar')
     HANDLER = 'com.snowflake.connectors.example.lifecycle.resume.ResumeConnectorCustomHandler.resumeConnector';
 GRANT USAGE ON PROCEDURE PUBLIC.RESUME_CONNECTOR() TO APPLICATION ROLE ADMIN;
+
+-----------------RESOURCE MANAGEMENT-----------------
+CREATE OR REPLACE PROCEDURE PUBLIC.CREATE_RESOURCE(
+       name VARCHAR,
+       resource_id VARIANT,
+       ingestion_configurations VARIANT,
+       id VARCHAR DEFAULT NULL,
+       enabled BOOLEAN DEFAULT FALSE,
+       resource_metadata VARIANT DEFAULT NULL)
+    RETURNS VARIANT
+    LANGUAGE JAVA
+    RUNTIME_VERSION = '11'
+    PACKAGES = ('com.snowflake:snowpark:1.11.0')
+    IMPORTS = ('/connectors-native-sdk-example-java-github-connector.jar', '/connectors-native-sdk.jar')
+    HANDLER = 'com.snowflake.connectors.example.ingestion.create.CreateRepoResourceHandler.createResource';
+GRANT USAGE ON PROCEDURE PUBLIC.CREATE_RESOURCE(VARCHAR, VARIANT, VARIANT, VARCHAR, BOOLEAN, VARIANT) TO APPLICATION ROLE ADMIN;
+
+CREATE OR REPLACE PROCEDURE PUBLIC.ENABLE_RESOURCE(resource_ingestion_definition_id VARCHAR)
+    RETURNS VARIANT
+    LANGUAGE JAVA
+    RUNTIME_VERSION = '11'
+    PACKAGES = ('com.snowflake:snowpark:1.11.0')
+    IMPORTS = ('/connectors-native-sdk-example-java-github-connector.jar', '/connectors-native-sdk.jar')
+    HANDLER = 'com.snowflake.connectors.example.ingestion.enable.EnableRepoResourceHandler.enableResource';
+GRANT USAGE ON PROCEDURE PUBLIC.ENABLE_RESOURCE(VARCHAR) TO APPLICATION ROLE ADMIN;
+
+CREATE OR REPLACE PROCEDURE PUBLIC.DISABLE_RESOURCE(resource_ingestion_definition_id VARCHAR)
+    RETURNS VARIANT
+    LANGUAGE JAVA
+    RUNTIME_VERSION = '11'
+    PACKAGES = ('com.snowflake:snowpark:1.11.0')
+    IMPORTS = ('/connectors-native-sdk-example-java-github-connector.jar', '/connectors-native-sdk.jar')
+    HANDLER = 'com.snowflake.connectors.example.ingestion.disable.DisableRepoResourceHandler.disableResource';
+GRANT USAGE ON PROCEDURE PUBLIC.DISABLE_RESOURCE(VARCHAR) TO APPLICATION ROLE ADMIN;
+
+CREATE OR REPLACE PROCEDURE PUBLIC.UPDATE_RESOURCE(
+       resource_ingestion_definition_id VARCHAR,
+       ingestion_configuration VARIANT)
+    RETURNS VARIANT
+    LANGUAGE JAVA
+    RUNTIME_VERSION = '11'
+    PACKAGES = ('com.snowflake:snowpark:1.11.0')
+    IMPORTS = ('/connectors-native-sdk-example-java-github-connector.jar', '/connectors-native-sdk.jar')
+    HANDLER = 'com.snowflake.connectors.example.ingestion.update.UpdateRepoResourceHandler.updateResource';
+GRANT USAGE ON PROCEDURE PUBLIC.UPDATE_RESOURCE(VARCHAR, VARIANT) TO APPLICATION ROLE ADMIN;

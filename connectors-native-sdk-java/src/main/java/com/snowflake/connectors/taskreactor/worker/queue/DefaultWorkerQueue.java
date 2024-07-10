@@ -5,6 +5,7 @@ import static com.snowflake.connectors.taskreactor.ComponentNames.workerQueueTab
 
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.object.ObjectName;
+import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.connectors.taskreactor.queue.QueueItem;
 import com.snowflake.connectors.taskreactor.worker.WorkerId;
 import com.snowflake.snowpark_java.Row;
@@ -14,12 +15,11 @@ import com.snowflake.snowpark_java.types.DataTypes;
 import com.snowflake.snowpark_java.types.StructField;
 import com.snowflake.snowpark_java.types.StructType;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Default implementation of {@link WorkerQueue}. */
 class DefaultWorkerQueue implements WorkerQueue {
 
-  private static final Logger logger = LoggerFactory.getLogger(DefaultWorkerQueue.class);
+  private static final Logger LOG = TaskReactorLogger.getLogger(DefaultWorkerQueue.class);
   private static final StructType STRUCT_TYPE =
       StructType.create(
           new StructField("id", DataTypes.StringType),
@@ -35,7 +35,7 @@ class DefaultWorkerQueue implements WorkerQueue {
 
   @Override
   public void push(QueueItem queueItem, WorkerId workerId) {
-    logger.debug(
+    LOG.debug(
         "Pushing item {} for resource {} to worker {} queue.",
         queueItem.id,
         queueItem.resourceId,
@@ -47,21 +47,18 @@ class DefaultWorkerQueue implements WorkerQueue {
         .createDataFrame(data, STRUCT_TYPE)
         .write()
         .mode(SaveMode.Append)
-        .saveAsTable(queueName.getEscapedName());
+        .saveAsTable(queueName.getValue());
   }
 
   @Override
   public WorkItem fetch(WorkerId workerId) {
-    logger.debug("Fetching item from worker {} queue.", workerId.value());
+    LOG.debug("Fetching item from worker {} queue.", workerId.value());
 
     ObjectName queueName = ObjectName.from(instanceSchema, workerQueueTable(workerId));
     Row[] rows =
-        session
-            .table(queueName.getEscapedName())
-            .select("id", "resource_id", "worker_payload")
-            .collect();
+        session.table(queueName.getValue()).select("id", "resource_id", "worker_payload").collect();
     if (rows.length != 1) {
-      logger.debug(
+      LOG.debug(
           "Failed to fetch item from worker {} queue. Multiple queue items detected.",
           workerId.value());
 
@@ -74,9 +71,9 @@ class DefaultWorkerQueue implements WorkerQueue {
 
   @Override
   public void delete(WorkerId workerId) {
-    logger.debug("Deleting item from worker {} queue.", workerId.value());
+    LOG.debug("Deleting item from worker {} queue.", workerId.value());
 
     ObjectName queueName = ObjectName.from(instanceSchema, workerQueueTable(workerId));
-    session.table(queueName.getEscapedName()).delete();
+    session.table(queueName.getValue()).delete();
   }
 }

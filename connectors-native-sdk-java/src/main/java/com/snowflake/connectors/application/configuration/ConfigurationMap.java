@@ -16,4 +16,11 @@ public interface ConfigurationMap {
    * @return an object of a given class, created by mapping the value
    */
   <T> Optional<T> get(String key, Class<T> clazz);
+
+  /**
+   * Returns the number of existing keys in the configuration
+   *
+   * @return the number of existing keys
+   */
+  int size();
 }

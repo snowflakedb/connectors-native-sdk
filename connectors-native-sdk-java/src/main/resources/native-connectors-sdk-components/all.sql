@@ -22,8 +22,8 @@ EXECUTE IMMEDIATE FROM 'lifecycle/resume.sql';
 EXECUTE IMMEDIATE FROM 'ingestion/resource_ingestion_definition.sql';
 EXECUTE IMMEDIATE FROM 'ingestion/ingestion_process.sql';
 EXECUTE IMMEDIATE FROM 'ingestion/ingestion_definitions_view.sql';
-EXECUTE IMMEDIATE FROM 'ingestion/create_resource.sql';
 EXECUTE IMMEDIATE FROM 'ingestion/ingestion_run.sql';
+EXECUTE IMMEDIATE FROM 'ingestion/resource_management.sql';
 
 -- Observability
 EXECUTE IMMEDIATE FROM 'observability/connector_stats.sql';

@@ -1,7 +1,7 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.application.ingestion.definition;
 
-import static com.snowflake.snowpark_java.Functions.lit;
+import static com.snowflake.connectors.util.sql.SnowparkFunctions.lit;
 
 import com.snowflake.connectors.util.variant.VariantMapperException;
 import com.snowflake.snowpark_java.Column;

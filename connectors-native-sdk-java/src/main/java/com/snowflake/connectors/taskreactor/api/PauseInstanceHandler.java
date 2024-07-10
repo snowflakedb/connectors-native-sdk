@@ -40,7 +40,7 @@ public class PauseInstanceHandler {
    *     #pauseInstance(Identifier) pauseInstance}
    */
   public static Variant pauseInstance(Session session, String instanceSchema) {
-    Identifier identifier = Identifier.fromWithAutoQuoting(instanceSchema);
+    Identifier identifier = Identifier.from(instanceSchema);
     return new PauseInstanceHandlerBuilder(session).build().pauseInstance(identifier).toVariant();
   }
 

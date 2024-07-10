@@ -8,17 +8,18 @@ import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.ass
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.snowflake.connectors.application.configuration.DefaultConfigurationRepository;
-import com.snowflake.connectors.application.status.ConnectorStatusRepository;
 import com.snowflake.connectors.application.status.ConnectorStatusService;
 import com.snowflake.connectors.application.status.DefaultConnectorStatusService;
 import com.snowflake.connectors.application.status.FullConnectorStatus;
+import com.snowflake.connectors.application.status.InMemoryConnectorStatusRepository;
 import com.snowflake.connectors.application.status.exception.InvalidConnectorStatusException;
 import com.snowflake.connectors.common.exception.InMemoryConnectorErrorHelper;
-import com.snowflake.connectors.common.exception.helper.ConnectorErrorHelper;
 import com.snowflake.connectors.common.response.ConnectorResponse;
+import com.snowflake.connectors.common.state.DefaultKeyValueStateRepository;
 import com.snowflake.connectors.common.table.InMemoryDefaultKeyValueTable;
 import com.snowflake.snowpark_java.types.Variant;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class UpdateConnectionConfigurationHandlerTest {
@@ -32,15 +33,20 @@ public class UpdateConnectionConfigurationHandlerTest {
           "key2", "val2",
           "key3", "val3");
 
-  private final ConnectionConfigurationService configurationService =
-      new DefaultConnectionConfigurationService(
-          new DefaultConfigurationRepository(new InMemoryDefaultKeyValueTable()));
+  private ConnectionConfigurationService configurationService;
+  private ConnectorStatusService statusService;
 
-  private final ConnectorStatusService statusService =
-      new DefaultConnectorStatusService(
-          ConnectorStatusRepository.getInstance(new InMemoryDefaultKeyValueTable()));
-
-  private final ConnectorErrorHelper errorHelper = new InMemoryConnectorErrorHelper();
+  @BeforeEach
+  void setUp() {
+    var keyValueTable = new InMemoryDefaultKeyValueTable();
+    var keyValueStateRepository =
+        new DefaultKeyValueStateRepository<>(keyValueTable, FullConnectorStatus.class);
+    var connectorStatusRepository = new InMemoryConnectorStatusRepository(keyValueStateRepository);
+    this.configurationService =
+        new DefaultConnectionConfigurationService(
+            new DefaultConfigurationRepository(keyValueTable));
+    this.statusService = new DefaultConnectorStatusService(connectorStatusRepository);
+  }
 
   @Test
   void shouldUpdateConfig() {
@@ -167,7 +173,7 @@ public class UpdateConnectionConfigurationHandlerTest {
         .withDraftConnectionValidator(config -> ConnectorResponse.success())
         .withCallback(config -> ConnectorResponse.success())
         .withConnectionValidator(ConnectorResponse::success)
-        .withErrorHelper(errorHelper)
+        .withErrorHelper(new InMemoryConnectorErrorHelper())
         .withConnectionConfigurationService(configurationService)
         .withConnectorStatusService(statusService);
   }

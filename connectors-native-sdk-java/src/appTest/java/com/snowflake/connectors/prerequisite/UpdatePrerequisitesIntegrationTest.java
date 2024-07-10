@@ -1,11 +1,11 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.prerequisite;
 
+import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThatResponseMap;
 import static com.snowflake.connectors.util.ConnectorStatus.CONFIGURING;
 import static com.snowflake.connectors.util.ConnectorStatus.ConnectorConfigurationStatus.CONFIGURED;
 import static com.snowflake.connectors.util.ConnectorStatus.ConnectorConfigurationStatus.FINALIZED;
 import static com.snowflake.connectors.util.ConnectorStatus.ConnectorConfigurationStatus.INSTALLED;
-import static com.snowflake.connectors.util.ResponseAssertions.assertThat;
 import static com.snowflake.connectors.util.RowUtil.row;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
 
@@ -31,7 +31,9 @@ class UpdatePrerequisitesIntegrationTest extends BasePrerequisiteTest {
     var response = callProcedure("UPDATE_PREREQUISITE('2', TRUE)");
 
     // then
-    assertThat(response).hasOkResponseCode().hasMessage("Prerequisite updated successfully.");
+    assertThatResponseMap(response)
+        .hasOKResponseCode()
+        .hasMessage("Prerequisite updated successfully.");
     assertPrerequisitesTableContent(row("1", false), row("2", true), row("3", false));
 
     // cleanup
@@ -53,7 +55,7 @@ class UpdatePrerequisitesIntegrationTest extends BasePrerequisiteTest {
         String.format(
             "Invalid connector status. Expected status: [CONFIGURING]. Current status: %s.",
             connectorStatus);
-    assertThat(response)
+    assertThatResponseMap(response)
         .hasResponseCode("INVALID_CONNECTOR_STATUS")
         .hasMessage(expectedErrorMessage);
   }
@@ -68,7 +70,7 @@ class UpdatePrerequisitesIntegrationTest extends BasePrerequisiteTest {
     var response = callProcedure("UPDATE_PREREQUISITE('2', TRUE)");
 
     // then
-    assertThat(response)
+    assertThatResponseMap(response)
         .hasResponseCode("INVALID_CONNECTOR_CONFIGURATION_STATUS")
         .hasMessage(
             "Invalid connector configuration status. Expected one of statuses: [INSTALLED,"
@@ -85,7 +87,7 @@ class UpdatePrerequisitesIntegrationTest extends BasePrerequisiteTest {
     var response = callProcedure("UPDATE_PREREQUISITE('9', TRUE)");
 
     // then
-    assertThat(response)
+    assertThatResponseMap(response)
         .hasResponseCode("PREREQUISITE_NOT_FOUND")
         .hasMessage("Prerequisite with ID: 9 not found.");
   }
@@ -103,8 +105,8 @@ class UpdatePrerequisitesIntegrationTest extends BasePrerequisiteTest {
     var response = callProcedure("MARK_ALL_PREREQUISITES_AS_DONE()");
 
     // then
-    assertThat(response)
-        .hasOkResponseCode()
+    assertThatResponseMap(response)
+        .hasOKResponseCode()
         .hasMessage("All prerequisites have been marked as done.");
     assertPrerequisitesTableContent(row("1", true), row("2", true), row("3", true));
 
@@ -129,7 +131,7 @@ class UpdatePrerequisitesIntegrationTest extends BasePrerequisiteTest {
         String.format(
             "Invalid connector status. Expected status: [CONFIGURING]. Current status: %s.",
             connectorStatus);
-    assertThat(response)
+    assertThatResponseMap(response)
         .hasResponseCode("INVALID_CONNECTOR_STATUS")
         .hasMessage(expectedErrorMessage);
   }
@@ -144,7 +146,7 @@ class UpdatePrerequisitesIntegrationTest extends BasePrerequisiteTest {
     var response = callProcedure("MARK_ALL_PREREQUISITES_AS_DONE()");
 
     // then
-    assertThat(response)
+    assertThatResponseMap(response)
         .hasResponseCode("INVALID_CONNECTOR_CONFIGURATION_STATUS")
         .hasMessage(
             "Invalid connector configuration status. Expected one of statuses: [INSTALLED,"

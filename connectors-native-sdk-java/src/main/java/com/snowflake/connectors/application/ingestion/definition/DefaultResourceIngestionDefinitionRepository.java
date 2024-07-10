@@ -1,9 +1,9 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.application.ingestion.definition;
 
+import static com.snowflake.connectors.util.sql.SnowparkFunctions.lit;
 import static com.snowflake.connectors.util.variant.VariantMapper.mapToVariant;
 import static com.snowflake.snowpark_java.Functions.col;
-import static com.snowflake.snowpark_java.Functions.lit;
 import static com.snowflake.snowpark_java.Functions.sysdate;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;

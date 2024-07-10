@@ -3,28 +3,35 @@ package com.snowflake.connectors.taskreactor.lifecycle;
 
 import static com.snowflake.connectors.taskreactor.commands.queue.Command.CommandType.PAUSE_INSTANCE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.snowflake.connectors.common.object.Identifier;
-import com.snowflake.connectors.taskreactor.InMemoryConfiguredTaskReactorExistenceVerifier;
 import com.snowflake.connectors.taskreactor.InMemoryTaskReactorInstanceComponentProvider;
 import com.snowflake.connectors.taskreactor.TaskReactorExistenceVerifier;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
 import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
 import com.snowflake.connectors.taskreactor.registry.InMemoryInstanceRegistryRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class PauseTaskReactorServiceTest {
 
-  InMemoryTaskReactorInstanceComponentProvider componentProvider =
-      new InMemoryTaskReactorInstanceComponentProvider();
-  TaskReactorExistenceVerifier existenceVerifier =
-      new InMemoryConfiguredTaskReactorExistenceVerifier();
-  InMemoryInstanceRegistryRepository instanceRegistryRepository =
-      new InMemoryInstanceRegistryRepository();
-  PauseTaskReactorService pauseTaskReactorService =
-      new PauseTaskReactorService(
-          componentProvider,
-          new TaskReactorInstanceActionExecutor(existenceVerifier, instanceRegistryRepository));
+  private InMemoryTaskReactorInstanceComponentProvider componentProvider;
+  private InMemoryInstanceRegistryRepository instanceRegistryRepository;
+  private PauseTaskReactorService pauseTaskReactorService;
+
+  @BeforeEach
+  void setUp() {
+    var existenceVerifier = mock(TaskReactorExistenceVerifier.class);
+    when(existenceVerifier.isTaskReactorConfigured()).thenReturn(true);
+    componentProvider = new InMemoryTaskReactorInstanceComponentProvider();
+    instanceRegistryRepository = new InMemoryInstanceRegistryRepository();
+    pauseTaskReactorService =
+        new PauseTaskReactorService(
+            componentProvider,
+            new TaskReactorInstanceActionExecutor(existenceVerifier, instanceRegistryRepository));
+  }
 
   @Test
   void shouldPauseTaskReactorInstance() {

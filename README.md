@@ -1,14 +1,14 @@
 # Native SDK for Connectors
 
-Data is fuel for data clouds. The journey of data begins with transferring it into Snowflake, because of that this is 
+Data is fuel for data clouds. The journey of data begins with transferring it into Snowflake, because of that this is
 essential step for customers.
 
-There are many various ways of importing the data to the Snowflake environment. One of them is by using connectors. 
-A connector is an application that allows data flow from an external source system into Snowflake. A Native Connector 
+There are many various ways of importing the data to the Snowflake environment. One of them is by using connectors.
+A connector is an application that allows data flow from an external source system into Snowflake. A Native Connector
 is a connector built on the foundations of the [Snowflake Native App Framework][Native Apps docs].
 
 **In order to accelerate and standardize the process of developing new Native Connectors, Snowflake would like to introduce
-the Native SDK for Connectors which is a set of libraries, developing tools, example connectors and connector template 
+the Native SDK for Connectors which is a set of libraries, developing tools, example connectors and connector template
 projects.**
 
 ## Key components
@@ -32,34 +32,34 @@ Reach the [official documentation][Native SDK official docs] and [java docs][Nat
 
 #### Task Reactor
 
-This major component is built into Native SDK for Connectors Java library. It consists of `.sql` files and Java classes 
-embedded into the library that helps in managing and executing work asynchronously, mostly the work related to data 
-ingestion. This component offers stability and scalability in work executing. Although this component is dedicated to 
-orchestrating the ingestion tasks, it also can be used for executing non-ingestion tasks that require an asynchronous 
+This major component is built into Native SDK for Connectors Java library. It consists of `.sql` files and Java classes
+embedded into the library that helps in managing and executing work asynchronously, mostly the work related to data
+ingestion. This component offers stability and scalability in work executing. Although this component is dedicated to
+orchestrating the ingestion tasks, it also can be used for executing non-ingestion tasks that require an asynchronous
 way of the execution.
 
 Learn more from the [official documentation][Task Reactor official docs]
 
 ### Native SDK for Connectors Java Test
 
-A separate Java library distributed through the [Maven Central Repository][SDK Test in Maven Central] which consists 
-of Java utils helping in testing the developed Connectors. These utils include custom assertions and in-memory objects 
+A separate Java library distributed through the [Maven Central Repository][SDK Test in Maven Central] which consists
+of Java utils helping in testing the developed Connectors. These utils include custom assertions and in-memory objects
 (mocks) for Java classes used in the Native SDK for Connectors Java library.
 
 ### Connectors Native SDK Template
 
-The template Gradle Java project with inbuilt Native Java SDK that allows the developer to deploy, install, and run the 
-sample, mocked source connector right after downloading the template. The template is filled with some code already which 
-shows how to use the Native SDK for Connectors Java according to the connector flow defined by the Native SDK for Connectors. 
+The template Gradle Java project with inbuilt Native Java SDK that allows the developer to deploy, install, and run the
+sample, mocked source connector right after downloading the template. The template is filled with some code already which
+shows how to use the Native SDK for Connectors Java according to the connector flow defined by the Native SDK for Connectors.
 Reach the [official tutorial][Template tutorial] that will guide through the whole developer flow starting
-from cloning the template project, through the implementation process of key functionalities, ending with the deployed 
+from cloning the template project, through the implementation process of key functionalities, ending with the deployed
 and running connector in the Snowflake environment!
 
 ### Example connectors
 
-These are example projects of connectors that provide the general information on how the connectors, as Native Applications, 
-should be created and deployed to the Snowflake environment. Among these connectors there is the one that is built on the 
-top of the [Connectors Native SDK Template project](#connectors-native-sdk-template), to show in practice how the template 
+These are example projects of connectors that provide the general information on how the connectors, as Native Applications,
+should be created and deployed to the Snowflake environment. Among these connectors there is the one that is built on the
+top of the [Connectors Native SDK Template project](#connectors-native-sdk-template), to show in practice how the template
 should be used to develop a new connector project. There are also some basic examples of connectors that show the
 general concept of the native connectors:
 
@@ -75,10 +75,10 @@ Keep in mind that these basic connectors do not use the [Native SDK for Connecto
 * [Native SDK for Connectors Java Test](#native-sdk-for-connectors-java-test) - [connectors-native-sdk-java-test][Native SDK for Connectors Java Test path]
 * [Connectors Native SDK Template](#connectors-native-sdk-template) - [connectors-native-sdk-template][Connectors Native SDK Template path]
 * [Example Connectors](#example-connectors) - [examples][examples]
-  * Connectors Native SDK Example GitHub Java Connector - [examples/connectors-native-sdk-example-java-github-connector][Connectors Native SDK Example GitHub Java Connector path]
-  * Example GitHub Java Connector - [examples/examples-basic/example-github-java-connector][Example GitHub Java Connector path]
-  * Example GitHub Python Connector - [examples/examples-basic/example-github-python-connector][Example GitHub Python Connector path]
-  * Example Push-Based Java Connector - [examples/examples-basic/example-push-based-java-connector][Example Push-Based Java Connector path]
+    * Connectors Native SDK Example GitHub Java Connector - [examples/connectors-native-sdk-example-java-github-connector][Connectors Native SDK Example GitHub Java Connector path]
+    * Example GitHub Java Connector - [examples/examples-basic/example-github-java-connector][Example GitHub Java Connector path]
+    * Example GitHub Python Connector - [examples/examples-basic/example-github-python-connector][Example GitHub Python Connector path]
+    * Example Push-Based Java Connector - [examples/examples-basic/example-push-based-java-connector][Example Push-Based Java Connector path]
 
 ## Contributing
 Please refer to [CONTRIBUTING.md][contributing].

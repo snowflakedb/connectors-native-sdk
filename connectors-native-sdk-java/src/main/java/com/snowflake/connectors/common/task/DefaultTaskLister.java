@@ -1,8 +1,10 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.common.task;
 
-import static com.snowflake.connectors.util.sql.SqlStringFormatter.quoted;
+import static com.snowflake.connectors.util.sql.SqlTools.asVarchar;
+import static com.snowflake.connectors.util.sql.SqlTools.quoted;
 
+import com.snowflake.connectors.common.object.Identifier.AutoQuoting;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.snowpark_java.Row;
 import com.snowflake.snowpark_java.Session;
@@ -28,7 +30,12 @@ public class DefaultTaskLister implements TaskLister {
 
   @Override
   public Optional<TaskProperties> showTask(ObjectName taskName) {
-    var foundTasks = showTasks(taskName.getSchema().toSqlString(), taskName.getName().getName());
+    var schema = taskName.getSchema();
+    if (schema.isEmpty()) {
+      return Optional.empty();
+    }
+
+    var foundTasks = showTasks(schema.get().getValue(), taskName.getName().getUnquotedValue());
     return foundTasks.stream().findFirst();
   }
 
@@ -39,7 +46,8 @@ public class DefaultTaskLister implements TaskLister {
 
   @Override
   public List<TaskProperties> showTasks(String schema, String like) {
-    return showQueriedTasks(String.format("show tasks like '%s' in schema %s", like, schema));
+    return showQueriedTasks(
+        String.format("show tasks like %s in schema %s", asVarchar(like), schema));
   }
 
   private List<TaskProperties> showQueriedTasks(String query) {
@@ -57,7 +65,7 @@ public class DefaultTaskLister implements TaskLister {
                     quoted("allow_overlapping_execution"))
                 .collect())
         .map(this::mapToProperties)
-        .sorted(Comparator.comparing(task -> task.name().getEscapedName()))
+        .sorted(Comparator.comparing(task -> task.name().getValue()))
         .collect(Collectors.toList());
   }
 
@@ -66,7 +74,7 @@ public class DefaultTaskLister implements TaskLister {
 
     return new TaskProperties.Builder(name, row.getString(2), row.getString(3))
         .withState(row.getString(4))
-        .withWarehouse(row.getString(5))
+        .withWarehouse(row.getString(5), AutoQuoting.ENABLED)
         .withCondition(row.getString(6))
         .withAllowOverlappingExecution(Boolean.parseBoolean(row.getString(7)))
         .build();

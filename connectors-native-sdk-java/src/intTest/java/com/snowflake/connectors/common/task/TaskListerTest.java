@@ -2,6 +2,7 @@
 package com.snowflake.connectors.common.task;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import com.snowflake.connectors.BaseIntegrationTest;
 import com.snowflake.connectors.common.object.ObjectName;
@@ -78,5 +79,11 @@ public class TaskListerTest extends BaseIntegrationTest {
   public void shouldNotShowAnyTask() {
     // expect
     assertThat(taskLister.showTask(ObjectName.from("PUBLIC", "UNKNOWN_TASK_NAME"))).isNotPresent();
+  }
+
+  @Test
+  void shouldHandleTaskWithSpecialCharacters() {
+    // expect
+    assertThatNoException().isThrownBy(() -> taskLister.showTasks("PUBLIC", "a'b\"c❄d"));
   }
 }

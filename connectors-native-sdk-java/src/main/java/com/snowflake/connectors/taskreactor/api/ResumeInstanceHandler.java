@@ -41,7 +41,7 @@ public class ResumeInstanceHandler {
    *     #resumeInstance(Identifier) resumeInstance}
    */
   public static Variant resumeInstance(Session session, String instanceSchema) {
-    Identifier identifier = Identifier.fromWithAutoQuoting(instanceSchema);
+    Identifier identifier = Identifier.from(instanceSchema);
     return new ResumeInstanceHandlerBuilder(session).build().resumeInstance(identifier).toVariant();
   }
 

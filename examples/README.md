@@ -1,7 +1,7 @@
 # Example connectors
 
-The Native SDK for Connectors provides a couple of examples that show a general pattern, recommended by Snowflake, of 
-creating new connectors as a [Native Applications][Native Apps docs]. 
+The Native SDK for Connectors provides a couple of examples that show a general pattern, recommended by Snowflake, of
+creating new connectors as a [Native Applications][Native Apps docs].
 From these examples, you will learn:
 * how to create pull-based connectors ([learn more about pull-based pattern][Pull-based pattern])
 * how to create push-based connectors ([learn more about push-based pattern][Push-based pattern])
@@ -22,8 +22,8 @@ Before approaching example connectors, please take up the following steps or mak
 - Install Java 11
 - Install [SnowSQL][SnowSQL guide]
 - Configure [SnowSQL][SnowSQL guide]
-  - [allow using variables][SnowSQL variables] (`variable_substitution = True`)
-  - [exit on first error][SnowSQL exit on error] (`exit_on_error = True`)
+    - [allow using variables][SnowSQL variables] (`variable_substitution = True`)
+    - [exit on first error][SnowSQL exit on error] (`exit_on_error = True`)
 
 ## File structure
 
@@ -37,13 +37,13 @@ Before approaching example connectors, please take up the following steps or mak
 
 In the [connectors-native-sdk-example-java-github-connector][connectors-native-sdk-example-java-github-connector dir]
 you can find an example that shows how to implement a simple connector application based on the [template][connectors-native-sdk template]
-which uses the [Native SDK for Connectors Java library][connectors-native-sdk-java]. This connector uses GitHub API to 
-retrieve the data about issues from a repository. This example includes all the basic steps of the Native SDK for 
+which uses the [Native SDK for Connectors Java library][connectors-native-sdk-java]. This connector uses GitHub API to
+retrieve the data about issues from a repository. This example includes all the basic steps of the Native SDK for
 Connectors flow.
 
-In the [examples-basic][examples-basic dir] you can find example connectors that had been introduced before the [Native SDK 
+In the [examples-basic][examples-basic dir] you can find example connectors that had been introduced before the [Native SDK
 for Connectors Java library][connectors-native-sdk-java] was created, so that's why you need keep in mind that these examples
-do not use the SDK library. The goal of these connectors is to show the general concept of the connector application. 
+do not use the SDK library. The goal of these connectors is to show the general concept of the connector application.
 You can find there the following examples:
 * [example-github-java-connector][example-github-java-connector dir]
 * [example-github-python-connector][example-github-python-connector dir]

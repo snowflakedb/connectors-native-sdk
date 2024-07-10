@@ -2,7 +2,7 @@
 package com.snowflake.connectors.util;
 
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThat;
-import static com.snowflake.connectors.util.sql.SqlTools.varcharArgument;
+import static com.snowflake.connectors.util.sql.SqlTools.asVarchar;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.snowflake.connectors.BaseIntegrationTest;
@@ -45,7 +45,7 @@ public class SqlToolsTest extends BaseIntegrationTest {
   @Test
   void callProcedureMethodShouldCorrectlyCallProcedurePassArgumentAndParseVariantResponse() {
     // given
-    String[] procArgs = new String[] {varcharArgument("anyTestVarchar"), "1234", "false"};
+    String[] procArgs = new String[] {asVarchar("anyTestVarchar"), "1234", "false"};
 
     // when
     ConnectorResponse response =
@@ -58,7 +58,7 @@ public class SqlToolsTest extends BaseIntegrationTest {
   @Test
   void callPublicProcedureMethodShouldCorrectlyCallProcedureCreatedInPUBLICSchema() {
     // given
-    String[] procArgs = new String[] {varcharArgument("anyTestVarchar"), "1234", "false"};
+    String[] procArgs = new String[] {asVarchar("anyTestVarchar"), "1234", "false"};
 
     // when
     ConnectorResponse response =
@@ -91,7 +91,7 @@ public class SqlToolsTest extends BaseIntegrationTest {
   @Test
   void callProcedureMethodShouldReturnErrorResponseWhenCalledProcedureDoesNotExist() {
     // given
-    String[] procArgs = new String[] {varcharArgument("anyTestVarchar"), "1234", "true"};
+    String[] procArgs = new String[] {asVarchar("anyTestVarchar"), "1234", "true"};
 
     // expect
     String expectedMessage = "Nonexistent procedure " + EXAMPLE_NONEXISTENCE_PROCEDURE + " called";

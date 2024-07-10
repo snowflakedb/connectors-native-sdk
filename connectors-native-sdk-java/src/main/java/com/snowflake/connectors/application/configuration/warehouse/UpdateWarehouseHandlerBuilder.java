@@ -46,7 +46,7 @@ public class UpdateWarehouseHandlerBuilder {
   public UpdateWarehouseHandlerBuilder(Session session) {
     requireNonNull(session);
 
-    this.inputValidator = new DefaultUpdateWarehouseInputValidator(session);
+    this.inputValidator = UpdateWarehouseInputValidator.getInstance(session);
     this.callback = new InternalUpdateWarehouseCallback(session);
     this.sdkCallback = new DefaultUpdateWarehouseSdkCallback(session);
     this.errorHelper =

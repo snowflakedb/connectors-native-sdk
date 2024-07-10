@@ -1,6 +1,8 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.application.scheduler;
 
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.IN_PROGRESS;
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.SCHEDULED;
 import static com.snowflake.connectors.common.IdGenerator.randomId;
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatNoException;
@@ -26,12 +28,12 @@ public class DefaultOnIngestionFinishedCallbackTest {
   @MethodSource("metadataProvider")
   void shouldUpdateStatusOfIngestionProcessWhenCurrentStatusIsInProgress(Variant metadata) {
     // given
-    String processId = processWithStatusExists("IN_PROGRESS");
+    String processId = processWithStatusExists(IN_PROGRESS);
 
     // expect
     assertThatNoException().isThrownBy(() -> callback.onIngestionFinished(processId, metadata));
     assertThat(ingestionProcessRepository.fetch(processId).get())
-        .hasStatus("SCHEDULED")
+        .hasStatus(SCHEDULED)
         .hasMetadata(metadata);
   }
 

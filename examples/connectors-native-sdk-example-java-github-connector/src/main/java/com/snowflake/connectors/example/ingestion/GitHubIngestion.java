@@ -58,7 +58,7 @@ public class GitHubIngestion implements Ingestion<IngestionStatus> {
 
   @Override
   public IngestionStatus performIngestion(WorkItem workItem, IngestionStatus ingestionStatus) {
-    var destinationTable = prepareDestinationTableName().getEscapedName();
+    var destinationTable = prepareDestinationTableName().getValue();
 
     try {
       var rawResults =

@@ -7,11 +7,11 @@ import static com.snowflake.connectors.taskreactor.commands.queue.Command.Comman
 
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.object.ObjectName;
-import com.snowflake.connectors.common.task.InMemoryTaskRepository;
 import com.snowflake.connectors.common.task.TaskDefinition;
 import com.snowflake.connectors.common.task.TaskProperties;
 import com.snowflake.connectors.common.task.TaskRepository;
 import com.snowflake.connectors.taskreactor.ComponentNames;
+import com.snowflake.connectors.taskreactor.InMemoryTaskManagement;
 import com.snowflake.connectors.taskreactor.commands.queue.Command;
 import com.snowflake.connectors.taskreactor.dispatcher.DispatcherTaskManager;
 import com.snowflake.connectors.taskreactor.dispatcher.InMemoryDispatcherTaskProvider;
@@ -28,11 +28,11 @@ import org.junit.jupiter.api.Test;
 
 public class PauseInstanceExecutorTest {
 
-  private static final Identifier INSTANCE_SCHEMA = Identifier.fromWithAutoQuoting("SCHEMA");
+  private static final Identifier INSTANCE_SCHEMA = Identifier.from("SCHEMA");
 
   private final InMemoryInstanceRegistryRepository instanceRegistryRepository =
       new InMemoryInstanceRegistryRepository();
-  private final TaskRepository taskRepository = new InMemoryTaskRepository();
+  private final TaskRepository taskRepository = new InMemoryTaskManagement();
   private final WorkerTaskManager workerTaskManager =
       InMemoryWorkerTaskManagerProvider.getInstance(INSTANCE_SCHEMA, taskRepository);
   private final DispatcherTaskManager dispatcherTaskManager =

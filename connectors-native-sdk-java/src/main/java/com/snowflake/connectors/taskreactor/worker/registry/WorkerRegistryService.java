@@ -10,6 +10,7 @@ import static com.snowflake.connectors.taskreactor.worker.registry.WorkerLifecyc
 import static java.util.stream.Collectors.toList;
 
 import com.snowflake.connectors.common.object.Identifier;
+import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.connectors.taskreactor.worker.WorkerId;
 import com.snowflake.connectors.taskreactor.worker.status.WorkerStatusRepository;
 import com.snowflake.snowpark_java.Session;
@@ -17,12 +18,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Registry of task reactor workers. */
 public class WorkerRegistryService {
 
-  private static final Logger logger = LoggerFactory.getLogger(WorkerRegistryService.class);
+  private static final Logger LOG = TaskReactorLogger.getLogger(WorkerRegistryService.class);
 
   private final WorkerStatusRepository statusRepository;
   private final WorkerRegistry workerRegistry;
@@ -154,7 +154,7 @@ public class WorkerRegistryService {
    * @param workersToAdd number of workers to add
    */
   public void addNewWorkers(int workersToAdd) {
-    logger.debug("Attempting to add {} workers", workersToAdd);
+    LOG.debug("Attempting to add {} workers", workersToAdd);
     long restoredWorkers = restoreUpForDeletionWorkers(workersToAdd);
     int workersToInsert = workersToAdd - (int) restoredWorkers;
     if (workersToInsert > 0) {
@@ -168,7 +168,7 @@ public class WorkerRegistryService {
    * @param workersToDelete number of workers to delete
    */
   public void deleteWorkers(int workersToDelete) {
-    logger.debug("Attempting to delete {} workers", workersToDelete);
+    LOG.debug("Attempting to delete {} workers", workersToDelete);
     int deletedRequestedWorkersCount = deleteRequestedWorkers(workersToDelete);
     int activeWorkersToDelete = workersToDelete - deletedRequestedWorkersCount;
 
@@ -197,7 +197,7 @@ public class WorkerRegistryService {
 
   private void deleteActiveWorkers(int activeWorkersToDelete) {
     if (activeWorkersToDelete < 1) {
-      logger.debug("No active workers will be deleted.");
+      LOG.debug("No active workers will be deleted.");
       return;
     }
     Set<WorkerId> availableWorkers = statusRepository.getAvailableWorkers();

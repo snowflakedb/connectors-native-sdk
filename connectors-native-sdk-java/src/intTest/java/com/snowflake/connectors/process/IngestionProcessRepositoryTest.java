@@ -2,12 +2,16 @@
 package com.snowflake.connectors.process;
 
 import static com.snowflake.connectors.application.ingestion.process.DefaultIngestionProcessRepository.EXPRESSION_LIMIT;
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.FINISHED;
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.IN_PROGRESS;
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.SCHEDULED;
 import static com.snowflake.connectors.common.IdGenerator.randomId;
+import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.INGESTION_PROCESS;
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThat;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.snowflake.connectors.BaseIntegrationTest;
 import com.snowflake.connectors.application.ingestion.process.DefaultIngestionProcessRepository;
@@ -24,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
@@ -47,22 +50,20 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
             resourceIngestionDefinitionId,
             ingestionConfigurationId,
             "DEFAULT",
-            "INITIAL",
+            SCHEDULED,
             metadata);
 
     // then
     var result = repository.fetch(id);
     assertThat(result)
         .isPresent()
-        .hasValueSatisfying(
-            value ->
-                assertThat(value)
-                    .hasResourceIngestionDefinitionId(resourceIngestionDefinitionId)
-                    .hasIngestionConfigurationId(ingestionConfigurationId)
-                    .hasType("DEFAULT")
-                    .hasStatus("INITIAL")
-                    .hasFinishedAtNull(true)
-                    .hasMetadata(metadata));
+        .get(INGESTION_PROCESS)
+        .hasResourceIngestionDefinitionId(resourceIngestionDefinitionId)
+        .hasIngestionConfigurationId(ingestionConfigurationId)
+        .hasType("DEFAULT")
+        .hasStatus(SCHEDULED)
+        .hasFinishedAtNull(true)
+        .hasMetadata(metadata);
   }
 
   @Test
@@ -81,15 +82,13 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
     var result = repository.fetch(id);
     assertThat(result)
         .isPresent()
-        .hasValueSatisfying(
-            value ->
-                assertThat(value)
-                    .hasResourceIngestionDefinitionId(resourceIngestionDefinitionId)
-                    .hasIngestionConfigurationId(ingestionConfigurationId)
-                    .hasType("DEFAULT")
-                    .hasStatus("READY_TO_INGEST")
-                    .hasFinishedAtNull(true)
-                    .hasMetadata(null));
+        .get(INGESTION_PROCESS)
+        .hasResourceIngestionDefinitionId(resourceIngestionDefinitionId)
+        .hasIngestionConfigurationId(ingestionConfigurationId)
+        .hasType("DEFAULT")
+        .hasStatus("READY_TO_INGEST")
+        .hasFinishedAtNull(true)
+        .hasMetadata(null);
   }
 
   @Test
@@ -148,8 +147,9 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
 
     // then
     var result = repository.fetch(id);
-    assertTrue(result.isPresent());
-    assertThat(result.get())
+    assertThat(result)
+        .isPresent()
+        .get(INGESTION_PROCESS)
         .hasResourceIngestionDefinitionId(resourceIngestionDefinitionId)
         .hasIngestionConfigurationId(ingestionConfigurationId)
         .hasType("DEFAULT")
@@ -187,7 +187,7 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
     var resourceIngestionDefinitionId = UUID.randomUUID().toString();
     var ingestionConfigurationId = UUID.randomUUID().toString();
     repository.createProcess(
-        resourceIngestionDefinitionId, ingestionConfigurationId, "DEFAULT", "FINISHED", null);
+        resourceIngestionDefinitionId, ingestionConfigurationId, "DEFAULT", FINISHED, null);
 
     // then
     var ex =
@@ -212,7 +212,7 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
     var ingestionConfigurationId = UUID.randomUUID().toString();
     var id =
         repository.createProcess(
-            resourceIngestionDefinitionId, ingestionConfigurationId, "DEFAULT", "FINISHED", null);
+            resourceIngestionDefinitionId, ingestionConfigurationId, "DEFAULT", FINISHED, null);
 
     // then
     var ex =
@@ -230,19 +230,20 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
     var ingestionConfigurationId = UUID.randomUUID().toString();
     var id =
         repository.createProcess(
-            resourceIngestionDefinitionId, ingestionConfigurationId, "DEFAULT", "INITIAL", null);
+            resourceIngestionDefinitionId, ingestionConfigurationId, "DEFAULT", SCHEDULED, null);
 
     // when
     repository.endProcess(id);
 
     // then
     var result = repository.fetch(id);
-    assertTrue(result.isPresent());
-    assertThat(result.get())
+    assertThat(result)
+        .isPresent()
+        .get(INGESTION_PROCESS)
         .hasResourceIngestionDefinitionId(resourceIngestionDefinitionId)
         .hasIngestionConfigurationId(ingestionConfigurationId)
         .hasType("DEFAULT")
-        .hasStatus("FINISHED")
+        .hasStatus(FINISHED)
         .hasFinishedAtNull(false)
         .hasMetadata(null);
   }
@@ -266,7 +267,7 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
     var ingestionConfigurationId = UUID.randomUUID().toString();
     var id =
         repository.createProcess(
-            resourceIngestionDefinitionId, ingestionConfigurationId, "DEFAULT", "INITIAL", null);
+            resourceIngestionDefinitionId, ingestionConfigurationId, "DEFAULT", SCHEDULED, null);
     session
         .sql(
             String.format(
@@ -290,20 +291,20 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
     var ingestionConfigurationId = UUID.randomUUID().toString();
     var id =
         repository.createProcess(
-            resourceIngestionDefinitionId, ingestionConfigurationId, "DEFAULT", "INITIAL", null);
+            resourceIngestionDefinitionId, ingestionConfigurationId, "DEFAULT", SCHEDULED, null);
 
     // when
     repository.endProcess(resourceIngestionDefinitionId, ingestionConfigurationId, "DEFAULT");
 
     // then
     var result = repository.fetch(id);
-    assertTrue(result.isPresent());
-
-    assertThat(result.get())
+    assertThat(result)
+        .isPresent()
+        .get(INGESTION_PROCESS)
         .hasResourceIngestionDefinitionId(resourceIngestionDefinitionId)
         .hasIngestionConfigurationId(ingestionConfigurationId)
         .hasType("DEFAULT")
-        .hasStatus("FINISHED")
+        .hasStatus(FINISHED)
         .hasFinishedAtNull(false)
         .hasMetadata(null);
   }
@@ -335,7 +336,7 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
     var resourceIngestionDefinitionId = UUID.randomUUID().toString();
     var ingestionConfigurationId = UUID.randomUUID().toString();
     repository.createProcess(
-        resourceIngestionDefinitionId, ingestionConfigurationId, "DEFAULT", "FINISHED", null);
+        resourceIngestionDefinitionId, ingestionConfigurationId, "DEFAULT", FINISHED, null);
 
     // then
     var ex =
@@ -356,7 +357,7 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
     var ingestionConfigurationId = UUID.randomUUID().toString();
     var id =
         repository.createProcess(
-            resourceIngestionDefinitionId, ingestionConfigurationId, "DEFAULT", "FINISHED", null);
+            resourceIngestionDefinitionId, ingestionConfigurationId, "DEFAULT", FINISHED, null);
 
     // then
     var ex = assertThrows(IngestionProcessUpdateException.class, () -> repository.endProcess(id));
@@ -415,7 +416,7 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
         repository.fetchAll(
             ingestionProcesses.stream()
                 .map(IngestionProcess::getResourceIngestionDefinitionId)
-                .collect(Collectors.toList()));
+                .collect(toList()));
     ingestionProcesses.forEach(
         expectedIngestionProcess -> {
           var actual =
@@ -448,10 +449,12 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
     // then
     assertThat(repository.fetch(processWithNull.getId()))
         .isPresent()
-        .hasValueSatisfying(value -> assertThat(value).hasFinishedAtNull(true));
+        .get(INGESTION_PROCESS)
+        .hasFinishedAtNull(true);
     assertThat(repository.fetch(processWithNotNull.getId()))
         .isPresent()
-        .hasValueSatisfying(value -> assertThat(value).hasFinishedAt(DATETIME));
+        .get(INGESTION_PROCESS)
+        .hasFinishedAt(DATETIME);
   }
 
   @Test
@@ -483,7 +486,7 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
             resourceIngestionDefinitionId,
             ingestionConfigurationId,
             type,
-            "SCHEDULED",
+            SCHEDULED,
             now,
             null,
             metadata1);
@@ -493,7 +496,7 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
             resourceIngestionDefinitionId,
             ingestionConfigurationId,
             type,
-            "COMPLETED",
+            FINISHED,
             now,
             now,
             metadata2);
@@ -505,16 +508,14 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
     var insertResult = repository.fetch(processId);
     assertThat(insertResult)
         .isPresent()
-        .hasValueSatisfying(
-            value ->
-                assertThat(value)
-                    .hasResourceIngestionDefinitionId(resourceIngestionDefinitionId)
-                    .hasIngestionConfigurationId(ingestionConfigurationId)
-                    .hasType(type)
-                    .hasStatus("SCHEDULED")
-                    .hasCreatedAt(now)
-                    .hasFinishedAtNull(true)
-                    .hasMetadata(metadata1));
+        .get(INGESTION_PROCESS)
+        .hasResourceIngestionDefinitionId(resourceIngestionDefinitionId)
+        .hasIngestionConfigurationId(ingestionConfigurationId)
+        .hasType(type)
+        .hasStatus(SCHEDULED)
+        .hasCreatedAt(now)
+        .hasFinishedAtNull(true)
+        .hasMetadata(metadata1);
 
     // when
     repository.save(processToUpdate);
@@ -523,16 +524,14 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
     var updateResult = repository.fetch(processId);
     assertThat(updateResult)
         .isPresent()
-        .hasValueSatisfying(
-            value ->
-                assertThat(value)
-                    .hasResourceIngestionDefinitionId(resourceIngestionDefinitionId)
-                    .hasIngestionConfigurationId(ingestionConfigurationId)
-                    .hasType(type)
-                    .hasStatus("COMPLETED")
-                    .hasCreatedAt(now)
-                    .hasFinishedAt(now)
-                    .hasMetadata(metadata2));
+        .get(INGESTION_PROCESS)
+        .hasResourceIngestionDefinitionId(resourceIngestionDefinitionId)
+        .hasIngestionConfigurationId(ingestionConfigurationId)
+        .hasType(type)
+        .hasStatus(FINISHED)
+        .hasCreatedAt(now)
+        .hasFinishedAt(now)
+        .hasMetadata(metadata2);
   }
 
   @Test
@@ -550,13 +549,82 @@ public class IngestionProcessRepositoryTest extends BaseIntegrationTest {
         .withMessage("There were duplicated keys in the collection. Duplicated IDs found [one].");
   }
 
+  @Test
+  void shouldFetchAllActiveProcesses() {
+    // given
+    String definitionId = randomId();
+    String scheduledProcessId = ingestionProcessExists(SCHEDULED, definitionId);
+    String inProgressProcessId = ingestionProcessExists(IN_PROGRESS, definitionId);
+    String completedProcessId = ingestionProcessExists(FINISHED, definitionId);
+    String scheduledProcess2Id = ingestionProcessExists(SCHEDULED, randomId());
+
+    // when
+    List<IngestionProcess> processes = repository.fetchAllActive(definitionId);
+
+    // then
+    List<String> processIds = processes.stream().map(IngestionProcess::getId).collect(toList());
+    assertThat(processIds).containsExactlyInAnyOrder(scheduledProcessId, inProgressProcessId);
+  }
+
+  @Test
+  void shouldFetchLastFinishedProcess() {
+    // given
+    Instant finishedAt1 = Instant.now();
+    Instant finishedAt2 = finishedAt1.plusSeconds(10);
+    String definitionId = randomId();
+    String configurationId = randomId();
+    ingestionProcessExists(FINISHED, definitionId, configurationId, finishedAt1);
+    String lastProcessId =
+        ingestionProcessExists(FINISHED, definitionId, configurationId, finishedAt2);
+
+    // when
+    var result = repository.fetchLastFinished(definitionId, configurationId, "DEFAULT");
+
+    // then
+    assertThat(result).isPresent().get(INGESTION_PROCESS).hasId(lastProcessId);
+  }
+
+  @Test
+  void shouldReturnEmptyWhenLastFinishedProcessDoesNotExist() {
+    // given
+    String definitionId = randomId();
+    String configurationId = randomId();
+
+    // when
+    var result = repository.fetchLastFinished(definitionId, configurationId, "DEFAULT");
+
+    // then
+    assertThat(result).isEmpty();
+  }
+
+  private String ingestionProcessExists(String status, String definitionId) {
+    String id = randomId();
+    var ingestionProcess = ingestionProcess(id, status, definitionId, randomId());
+    repository.save(ingestionProcess);
+    return id;
+  }
+
+  private String ingestionProcessExists(
+      String status, String definitionId, String configurationId, Instant finishedAt) {
+    String id = randomId();
+    var ingestionProcess =
+        ingestionProcess(id, status, definitionId, configurationId).withFinishedAt(finishedAt);
+    repository.save(ingestionProcess);
+    return id;
+  }
+
   private static IngestionProcess ingestionProcessWithId(String id) {
+    return ingestionProcess(id, SCHEDULED, randomId(), randomId());
+  }
+
+  private static IngestionProcess ingestionProcess(
+      String id, String status, String resourceIngestionDefinitionId, String configurationId) {
     return new IngestionProcess(
         id,
-        UUID.randomUUID().toString(),
-        UUID.randomUUID().toString(),
-        "RERUN",
-        "INITIAL",
+        resourceIngestionDefinitionId,
+        configurationId,
+        "DEFAULT",
+        status,
         DATETIME,
         DATETIME,
         new Variant(Map.of("key", "value")));

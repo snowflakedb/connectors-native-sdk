@@ -111,3 +111,12 @@ reinstall_application_from_version_dir:
 reinstall_application_from_app_version:
 	make drop_application
 	make complex_create_app_instance_from_app_version
+
+.PHONY: update_app_instance
+update_app_instance:
+	./gradlew updateAppInstance \
+		-Pconnection=$(CONNECTION) \
+		-PappPackage=$(APP_PACKAGE_NAME) \
+		-Pschema=$(SCHEMA_NAME) \
+		-Pstage=$(STAGE_NAME) \
+		-PappVersion=$(VERSION)

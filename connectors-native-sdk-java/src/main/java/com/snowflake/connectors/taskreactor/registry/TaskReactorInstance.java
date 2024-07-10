@@ -68,11 +68,23 @@ public class TaskReactorInstance {
     TaskReactorInstance that = (TaskReactorInstance) o;
     return isInitialized == that.isInitialized
         && isActive == that.isActive
-        && Objects.equals(instanceName.toSqlString(), that.instanceName.toSqlString());
+        && Objects.equals(instanceName.getValue(), that.instanceName.getValue());
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(instanceName, isInitialized, isActive);
+  }
+
+  @Override
+  public String toString() {
+    return "TaskReactorInstance{"
+        + "instanceName="
+        + instanceName
+        + ", isInitialized="
+        + isInitialized
+        + ", isActive="
+        + isActive
+        + '}';
   }
 }

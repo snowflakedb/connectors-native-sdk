@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 public class WorkerManagerTest {
+
   private final InMemoryWorkerStatusRepository workerStatusRepository =
       new InMemoryWorkerStatusRepository();
   private final InMemoryWorkerRegistry workerRegistry = new InMemoryWorkerRegistry();
@@ -39,7 +40,7 @@ public class WorkerManagerTest {
   private final InMemoryWorkerCombinedView workerCombinedView =
       spy(new InMemoryWorkerCombinedView());
   private final InMemoryWorkerQueueManager workerQueueManager = new InMemoryWorkerQueueManager();
-  private final Identifier instanceSchema = Identifier.fromWithAutoQuoting("SCHEMA");
+  private final Identifier instanceSchema = Identifier.from("SCHEMA");
   private final InMemoryConfigRepository configRepository = new InMemoryConfigRepository();
   private final TaskRepository taskRepository = mock();
   private final WorkerTaskManager workerTaskManager =
@@ -62,7 +63,7 @@ public class WorkerManagerTest {
             "WORK_SELECTOR_TYPE", "PROCEDURE",
             "WORK_SELECTOR", "work-selector-test",
             "EXPIRED_WORK_SELECTOR", "expired-work-selector-test",
-            "WAREHOUSE", "\"escap3d%_warehouse\""));
+            "WAREHOUSE", "\"\\\"escap3d%_warehouse\\\"\""));
   }
 
   @AfterEach

@@ -1,10 +1,13 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.application.ingestion.process;
 
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.FINISHED;
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.IN_PROGRESS;
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.SCHEDULED;
+import static com.snowflake.connectors.util.sql.SnowparkFunctions.lit;
 import static com.snowflake.connectors.util.sql.TimestampUtil.toInstant;
 import static com.snowflake.connectors.util.sql.TimestampUtil.toTimestamp;
 import static com.snowflake.snowpark_java.Functions.col;
-import static com.snowflake.snowpark_java.Functions.lit;
 import static com.snowflake.snowpark_java.Functions.sysdate;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -53,7 +56,6 @@ public class DefaultIngestionProcessRepository
   private static final String UPDATED_AT = "updated_at";
   private static final String FINISHED_AT = "finished_at";
   private static final String METADATA = "METADATA";
-  private static final String FINISHED = "FINISHED";
 
   private static final StructType ID_SCHEMA =
       StructType.create(new StructField(ID, DataTypes.StringType));
@@ -249,6 +251,19 @@ public class DefaultIngestionProcessRepository
   }
 
   @Override
+  public Optional<IngestionProcess> fetchLastFinished(
+      String resourceIngestionDefinitionId, String ingestionConfigurationId, String type) {
+    var where =
+        col(RESOURCE_INGESTION_DEFINITION_ID)
+            .equal_to(lit(resourceIngestionDefinitionId))
+            .and(col(INGESTION_CONFIGURATION_ID).equal_to(lit(ingestionConfigurationId)))
+            .and(col(TYPE).equal_to(lit(type)))
+            .and(col(STATUS).equal_to(lit(FINISHED)));
+    var sort = col(FINISHED_AT).desc();
+    return fetch(where, sort).stream().findFirst();
+  }
+
+  @Override
   public List<IngestionProcess> fetchAll(
       String resourceIngestionDefinitionId, String ingestionConfigurationId, String type) {
     return fetch(
@@ -256,6 +271,14 @@ public class DefaultIngestionProcessRepository
             .equal_to(lit(resourceIngestionDefinitionId))
             .and(col(INGESTION_CONFIGURATION_ID).equal_to(lit(ingestionConfigurationId)))
             .and(col(TYPE).equal_to(lit(type))));
+  }
+
+  @Override
+  public List<IngestionProcess> fetchAllActive(String resourceIngestionDefinitionId) {
+    return fetch(
+        col(RESOURCE_INGESTION_DEFINITION_ID)
+            .equal_to(lit(resourceIngestionDefinitionId))
+            .and(col(STATUS).in(SCHEDULED, IN_PROGRESS)));
   }
 
   @Override
@@ -310,6 +333,10 @@ public class DefaultIngestionProcessRepository
   }
 
   private List<IngestionProcess> fetch(Column condition) {
+    return fetch(condition, col(CREATED_AT).desc());
+  }
+
+  private List<IngestionProcess> fetch(Column condition, Column sort) {
     return StreamSupport.stream(
             Spliterators.spliteratorUnknownSize(
                 session
@@ -324,7 +351,7 @@ public class DefaultIngestionProcessRepository
                         FINISHED_AT,
                         METADATA)
                     .where(condition)
-                    .sort(col(CREATED_AT).desc())
+                    .sort(sort)
                     .toLocalIterator(),
                 Spliterator.ORDERED),
             false)

@@ -100,22 +100,22 @@ public class FinalizeConnectorHandler {
     validateConnectorStatus();
 
     var validateResponse = inputValidator.validate(customConfiguration);
-    if (!validateResponse.isOk()) {
+    if (validateResponse.isNotOk()) {
       return validateResponse;
     }
 
     var validateSourceResponse = sourceValidator.validate(customConfiguration);
-    if (!validateSourceResponse.isOk()) {
+    if (validateSourceResponse.isNotOk()) {
       return validateSourceResponse;
     }
 
     var internalResponse = callback.execute(customConfiguration);
-    if (!internalResponse.isOk()) {
+    if (internalResponse.isNotOk()) {
       return internalResponse;
     }
 
     var sdkCallbackResponse = sdkCallback.execute();
-    if (!sdkCallbackResponse.isOk()) {
+    if (sdkCallbackResponse.isNotOk()) {
       return sdkCallbackResponse;
     }
 

@@ -1,8 +1,6 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.application.configuration.finalization;
 
-import static java.util.Objects.requireNonNull;
-
 import com.snowflake.connectors.application.status.ConnectorStatusService;
 import com.snowflake.connectors.common.exception.helper.ConnectorErrorHelper;
 import com.snowflake.snowpark_java.Session;
@@ -20,14 +18,7 @@ import com.snowflake.snowpark_java.Session;
  *   <li>{@link ConnectorStatusService}
  * </ul>
  */
-public class FinalizeConnectorHandlerTestBuilder {
-
-  private FinalizeConnectorInputValidator inputValidator;
-  private SourceValidator sourceValidator;
-  private FinalizeConnectorCallback callback;
-  private ConnectorErrorHelper errorHelper;
-  private ConnectorStatusService connectorStatusService;
-  private FinalizeConnectorSdkCallback sdkCallback;
+public class FinalizeConnectorHandlerTestBuilder extends FinalizeConnectorHandlerBuilder {
 
   /**
    * Creates a new, empty {@link FinalizeConnectorHandlerTestBuilder}.
@@ -55,14 +46,7 @@ public class FinalizeConnectorHandlerTestBuilder {
    * @throws NullPointerException if the provided session object is null
    */
   public FinalizeConnectorHandlerTestBuilder(Session session) {
-    requireNonNull(session);
-
-    this.inputValidator = new DefaultFinalizeConnectorInputValidator(session);
-    this.sourceValidator = new DefaultSourceValidator(session);
-    this.callback = new InternalFinalizeConnectorCallback(session);
-    this.errorHelper =
-        ConnectorErrorHelper.buildDefault(session, FinalizeConnectorHandler.ERROR_TYPE);
-    this.connectorStatusService = ConnectorStatusService.getInstance(session);
+    super(session);
   }
 
   /**
@@ -130,30 +114,7 @@ public class FinalizeConnectorHandlerTestBuilder {
    */
   public FinalizeConnectorHandlerTestBuilder withSdkCallback(
       FinalizeConnectorSdkCallback sdkCallback) {
-    this.sdkCallback = sdkCallback;
+    this.finalizeConnectorSdkCallback = sdkCallback;
     return this;
-  }
-
-  /**
-   * Builds a new handler instance.
-   *
-   * @return new handler instance
-   * @throws NullPointerException if any property for the new handler is null
-   */
-  public FinalizeConnectorHandler build() {
-    requireNonNull(inputValidator);
-    requireNonNull(sourceValidator);
-    requireNonNull(callback);
-    requireNonNull(errorHelper);
-    requireNonNull(connectorStatusService);
-    requireNonNull(sdkCallback);
-
-    return new FinalizeConnectorHandler(
-        inputValidator,
-        sourceValidator,
-        callback,
-        errorHelper,
-        connectorStatusService,
-        sdkCallback);
   }
 }

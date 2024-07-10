@@ -1,12 +1,12 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.configuration;
 
+import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThatResponseMap;
 import static com.snowflake.connectors.util.ConnectorStatus.CONFIGURING;
 import static com.snowflake.connectors.util.ConnectorStatus.ConnectorConfigurationStatus.CONFIGURED;
 import static com.snowflake.connectors.util.ConnectorStatus.ConnectorConfigurationStatus.CONNECTED;
 import static com.snowflake.connectors.util.ConnectorStatus.ConnectorConfigurationStatus.FINALIZED;
 import static com.snowflake.connectors.util.ConnectorStatus.PAUSED;
-import static com.snowflake.connectors.util.ResponseAssertions.assertThat;
 import static java.lang.String.format;
 
 import com.snowflake.connectors.BaseNativeSdkIntegrationTest;
@@ -43,7 +43,7 @@ public class UpdateConnectionConfigurationTest extends BaseNativeSdkIntegrationT
     var responseSet = configureConnection();
 
     // then
-    assertThat(responseSet).hasOkResponseCode();
+    assertThatResponseMap(responseSet).hasOKResponseCode();
     assertSavedConfiguration(connectionConfig);
     assertExternalStatus(CONFIGURING, CONNECTED);
 
@@ -53,7 +53,7 @@ public class UpdateConnectionConfigurationTest extends BaseNativeSdkIntegrationT
     var responseUpdate = updateConnection();
 
     // then
-    assertThat(responseUpdate).hasOkResponseCode();
+    assertThatResponseMap(responseUpdate).hasOKResponseCode();
     assertSavedConfiguration(newConnectionConfig);
     assertExternalStatus(PAUSED, FINALIZED);
 

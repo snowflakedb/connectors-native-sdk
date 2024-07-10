@@ -96,12 +96,21 @@ public abstract class ResourceIngestionDefinition<I, M, C, D> {
   }
 
   /**
-   * Returns whether the ingestion for the resource be enabled.
+   * Returns whether the ingestion for the resource is enabled.
    *
-   * @return whether the ingestion for the resource be enabled
+   * @return whether the ingestion for the resource is enabled
    */
   public boolean isEnabled() {
     return enabled;
+  }
+
+  /**
+   * Returns whether the ingestion for the resource is disabled.
+   *
+   * @return whether the ingestion for the resource is disabled
+   */
+  public boolean isDisabled() {
+    return !enabled;
   }
 
   /**
@@ -165,6 +174,16 @@ public abstract class ResourceIngestionDefinition<I, M, C, D> {
    */
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
+  }
+
+  /** Sets enabled flag to true */
+  public void setEnabled() {
+    this.enabled = true;
+  }
+
+  /** Sets enabled flag to false */
+  public void setDisabled() {
+    this.enabled = false;
   }
 
   /**
