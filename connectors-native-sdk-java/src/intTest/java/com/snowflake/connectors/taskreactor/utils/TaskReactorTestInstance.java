@@ -73,9 +73,7 @@ public class TaskReactorTestInstance {
         .sql(
             format(
                 "UPDATE %s SET VALUE = '%s' WHERE KEY = '%s'",
-                ObjectName.from(this.name, ComponentNames.CONFIG_TABLE).getEscapedName(),
-                value,
-                key))
+                ObjectName.from(this.name, ComponentNames.CONFIG_TABLE).getValue(), value, key))
         .collect();
   }
 

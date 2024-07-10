@@ -7,7 +7,9 @@ import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceComponentProvider;
 import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
+import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.snowpark_java.Session;
+import org.slf4j.Logger;
 
 /**
  * Service which is used to start the process of pausing the Task Reactor. It inserts PAUSE_INSTANCE
@@ -15,6 +17,8 @@ import com.snowflake.snowpark_java.Session;
  * which handles the command.
  */
 public class PauseTaskReactorService {
+
+  private static final Logger LOG = TaskReactorLogger.getLogger(PauseTaskReactorService.class);
 
   private final TaskReactorInstanceComponentProvider componentProvider;
   private final TaskReactorInstanceActionExecutor taskReactorInstanceActionExecutor;
@@ -44,13 +48,16 @@ public class PauseTaskReactorService {
    * @param instanceSchema name of the Task Reactor instance to be paused
    */
   public void pauseInstance(Identifier instanceSchema) {
+    LOG.info("Started pausing Task Reactor instance: {}", instanceSchema);
     CommandsQueueRepository commandsQueueRepository =
         componentProvider.commandsQueueRepository(instanceSchema);
     commandsQueueRepository.addCommandWithEmptyPayload(PAUSE_INSTANCE);
+    LOG.info("Added PAUSE_INSTANCE command to the command queue (instance: {})", instanceSchema);
   }
 
   /** Pauses all Task Reactor instances defined in Instance Registry */
   public void pauseAllInstances() {
-    taskReactorInstanceActionExecutor.applyToAllExistingTaskReactorInstances(this::pauseInstance);
+    taskReactorInstanceActionExecutor.applyToAllInitializedTaskReactorInstances(
+        this::pauseInstance);
   }
 }

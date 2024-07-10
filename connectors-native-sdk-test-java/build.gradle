@@ -3,11 +3,12 @@ import java.time.LocalDate
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'org.jreleaser' version '1.12.0'
+    id 'org.jreleaser' version '1.13.1'
+    id 'jacoco'
 }
 
 group 'com.snowflake'
-version '2.0.1-SNAPSHOT'
+version '2.1.1-SNAPSHOT'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -18,7 +19,11 @@ java {
 }
 
 repositories {
-    mavenCentral()
+    def artifactoryUrl = System.getenv('MAVEN_ARTIFACTORY_URL')
+    artifactoryUrl != null
+        ? maven { url artifactoryUrl }
+        : mavenCentral()
+
     mavenLocal()
 }
 
@@ -38,6 +43,15 @@ configurations {
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport // report is always generated after tests run
+}
+
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+    reports {
+        xml.required = true
+        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+    }
 }
 
 javadoc {
@@ -155,12 +169,6 @@ jreleaser {
 
     deploy {
         maven {
-            pomchecker {
-                version = '1.11.0'
-                failOnWarning = true
-                failOnError = true
-            }
-
             nexus2 {
                 'mvn-central' {
                     active = 'RELEASE'

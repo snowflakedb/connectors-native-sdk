@@ -1,6 +1,8 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.taskreactor.registry;
 
+import static java.util.stream.Collectors.toList;
+
 import com.snowflake.connectors.common.object.Identifier;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +17,11 @@ public class InMemoryInstanceRegistryRepository implements InstanceRegistryRepos
   @Override
   public List<TaskReactorInstance> fetchAll() {
     return new ArrayList<>(store.values());
+  }
+
+  @Override
+  public List<TaskReactorInstance> fetchAllInitialized() {
+    return store.values().stream().filter(TaskReactorInstance::isInitialized).collect(toList());
   }
 
   @Override
@@ -39,7 +46,18 @@ public class InMemoryInstanceRegistryRepository implements InstanceRegistryRepos
    * @param isActive is the instance active
    */
   public void addInstance(Identifier instanceName, boolean isActive) {
-    store.put(instanceName, new TaskReactorInstance(instanceName, true, isActive));
+    addInstance(instanceName, true, isActive);
+  }
+
+  /**
+   * Adds a new Task Reactor instance.
+   *
+   * @param instanceName instance name
+   * @param isActive is the instance active
+   * @param isInitialized is the instance initialized
+   */
+  public void addInstance(Identifier instanceName, boolean isInitialized, boolean isActive) {
+    store.put(instanceName, new TaskReactorInstance(instanceName, isInitialized, isActive));
   }
 
   /** Clears this repository. */

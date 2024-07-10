@@ -6,6 +6,8 @@ import static org.mockito.Mockito.mock;
 
 import com.snowflake.connectors.application.lifecycle.LifecycleService;
 import com.snowflake.connectors.common.exception.helper.ConnectorErrorHelper;
+import com.snowflake.connectors.taskreactor.InstanceStreamService;
+import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
 import com.snowflake.connectors.taskreactor.lifecycle.ResumeTaskReactorService;
 import org.junit.jupiter.api.Test;
 
@@ -21,8 +23,11 @@ class ResumeConnectorHandlerTestBuilderTest {
                     .withCallback(mock(ResumeConnectorCallback.class))
                     .withErrorHelper(mock(ConnectorErrorHelper.class))
                     .withLifecycleService(mock(LifecycleService.class))
-                    .withResumeConnectorSdkCallback(mock(ResumeConnectorSdkCallback.class))
+                    .withSdkCallback(mock(ResumeConnectorSdkCallback.class))
                     .withResumeTaskReactorService(mock(ResumeTaskReactorService.class))
+                    .withInstanceStreamService(mock(InstanceStreamService.class))
+                    .withTaskReactorInstanceActionExecutor(
+                        mock(TaskReactorInstanceActionExecutor.class))
                     .build());
   }
 }

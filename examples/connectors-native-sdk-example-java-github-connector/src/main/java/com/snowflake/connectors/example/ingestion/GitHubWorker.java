@@ -24,7 +24,7 @@ public class GitHubWorker {
 
     var gitHubIngestion = new GitHubIngestion(session, ingestionRunRepository, callback);
     var workerIdentifier = new WorkerId(workerId);
-    var schemaIdentifier = Identifier.fromWithAutoQuoting(taskReactorSchema);
+    var schemaIdentifier = Identifier.from(taskReactorSchema);
     var worker = IngestionWorker.from(session, gitHubIngestion, workerIdentifier, schemaIdentifier);
 
     try {

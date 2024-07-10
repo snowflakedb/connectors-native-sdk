@@ -7,7 +7,6 @@ import com.snowflake.connectors.application.configuration.connector.ConnectorCon
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.response.ConnectorResponse;
 import com.snowflake.connectors.util.snowflake.AccessTools;
-import com.snowflake.snowpark_java.Session;
 import com.snowflake.snowpark_java.types.Variant;
 import java.util.Optional;
 
@@ -17,15 +16,14 @@ class DefaultUpdateWarehouseInputValidator implements UpdateWarehouseInputValida
   private final AccessTools accessTools;
   private final ConnectorConfigurationService connectorConfiguration;
 
-  DefaultUpdateWarehouseInputValidator(Session session) {
-    this.accessTools = AccessTools.getInstance(session);
-    this.connectorConfiguration = ConnectorConfigurationService.getInstance(session);
+  DefaultUpdateWarehouseInputValidator(
+      AccessTools accessTools, ConnectorConfigurationService connectorConfiguration) {
+    this.accessTools = accessTools;
+    this.connectorConfiguration = connectorConfiguration;
   }
 
   @Override
   public ConnectorResponse validate(Identifier warehouse) {
-    Identifier.validateNullOrEmpty(warehouse);
-
     var currentWarehouse = getCurrentWarehouse();
     if (warehouse.equals(currentWarehouse)) {
       throw new WarehouseAlreadyUsedException(warehouse);
@@ -43,7 +41,7 @@ class DefaultUpdateWarehouseInputValidator implements UpdateWarehouseInputValida
         .map(Variant::asMap)
         .flatMap(config -> Optional.ofNullable(config.get(WAREHOUSE.getPropertyName())))
         .map(Variant::asString)
-        .map(Identifier::fromWithAutoQuoting)
+        .map(Identifier::from)
         .orElse(null);
   }
 }

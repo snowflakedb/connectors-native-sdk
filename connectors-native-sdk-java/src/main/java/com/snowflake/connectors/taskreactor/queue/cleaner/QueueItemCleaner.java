@@ -3,16 +3,17 @@ package com.snowflake.connectors.taskreactor.queue.cleaner;
 
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.taskreactor.config.ConfigRepository;
+import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.connectors.taskreactor.queue.WorkItemQueue;
 import com.snowflake.snowpark_java.Session;
 import java.util.List;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Class responsible for removal of obsolete items from the WorkItemQueue. */
 public class QueueItemCleaner {
 
-  private static final Logger logger = LoggerFactory.getLogger(QueueItemCleaner.class);
+  private static final Logger LOG = TaskReactorLogger.getLogger(QueueItemCleaner.class);
+
   private final ExpiredWorkSelector expiredWorkSelector;
   private final ConfigRepository configRepository;
   private final WorkItemQueue workItemQueue;
@@ -42,7 +43,7 @@ public class QueueItemCleaner {
 
   /** Removes obsolete items from WorkItemQueue. */
   public void clean() {
-    logger.debug("Attempting to clean obsolete items in WorkItemsQueue.");
+    LOG.debug("Attempting to clean obsolete items in WorkItemsQueue.");
     String selectorName = configRepository.getConfig().expiredWorkSelector();
     List<String> ids = expiredWorkSelector.getExpired(selectorName);
 

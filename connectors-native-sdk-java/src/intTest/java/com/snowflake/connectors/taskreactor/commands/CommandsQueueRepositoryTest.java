@@ -42,7 +42,7 @@ public class CommandsQueueRepositoryTest extends BaseTaskReactorIntegrationTest 
 
   @AfterEach
   void cleanUp() {
-    session.table(ObjectName.from(TEST_INSTANCE, COMMANDS_QUEUE).getEscapedName()).delete();
+    session.table(ObjectName.from(TEST_INSTANCE, COMMANDS_QUEUE).getValue()).delete();
   }
 
   @Test
@@ -150,7 +150,7 @@ public class CommandsQueueRepositoryTest extends BaseTaskReactorIntegrationTest 
 
   private Row[] fetchAllCommands() {
     return session
-        .table(ObjectName.from(TEST_INSTANCE, COMMANDS_QUEUE).getEscapedName())
+        .table(ObjectName.from(TEST_INSTANCE, COMMANDS_QUEUE).getValue())
         .select(TYPE, PAYLOAD, SEQ_NO)
         .collect();
   }
@@ -164,7 +164,7 @@ public class CommandsQueueRepositoryTest extends BaseTaskReactorIntegrationTest 
         .sql(
             format(
                 "INSERT INTO %s SELECT '%s', '%s', PARSE_JSON('%s'), %s%n",
-                ObjectName.from(TEST_INSTANCE, COMMANDS_QUEUE).getEscapedName(),
+                ObjectName.from(TEST_INSTANCE, COMMANDS_QUEUE).getValue(),
                 id,
                 type,
                 payload.asJsonString(),

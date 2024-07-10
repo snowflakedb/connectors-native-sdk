@@ -7,6 +7,7 @@ import com.snowflake.connectors.common.response.ConnectorResponse;
  * Callback called during the {@link FinalizeConnectorHandler} execution, may be used to provide
  * custom finalization logic required by the sdk.
  */
+@FunctionalInterface
 public interface FinalizeConnectorSdkCallback {
 
   /**

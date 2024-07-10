@@ -9,13 +9,14 @@ import static com.snowflake.connectors.example.ConnectorObjects.INITIALIZE_INSTA
 import static com.snowflake.connectors.example.ConnectorObjects.SET_WORKERS_NUMBER_PROCEDURE;
 import static com.snowflake.connectors.example.ConnectorObjects.TASK_REACTOR_INSTANCE;
 import static com.snowflake.connectors.example.ConnectorObjects.TASK_REACTOR_SCHEMA;
+import static com.snowflake.connectors.util.sql.SqlTools.asVarchar;
 import static com.snowflake.connectors.util.sql.SqlTools.callProcedure;
-import static com.snowflake.connectors.util.sql.SqlTools.varcharArgument;
 import static java.lang.String.format;
 
 import com.snowflake.connectors.application.configuration.finalization.FinalizeConnectorCallback;
 import com.snowflake.connectors.application.scheduler.SchedulerCreator;
 import com.snowflake.connectors.common.object.ObjectName;
+import com.snowflake.connectors.common.object.Reference;
 import com.snowflake.connectors.common.response.ConnectorResponse;
 import com.snowflake.connectors.example.configuration.utils.Configuration;
 import com.snowflake.snowpark_java.Session;
@@ -34,7 +35,7 @@ import com.snowflake.snowpark_java.types.Variant;
  */
 public class TemplateFinalizeConnectorConfigurationInternal implements FinalizeConnectorCallback {
 
-  private static final String WAREHOUSE_REFERENCE = "reference(\\'WAREHOUSE_REFERENCE\\')";
+  private static final Reference WAREHOUSE_REFERENCE = Reference.from("WAREHOUSE_REFERENCE");
   private static final String NULL_ARG = "null";
 
   private final Session session;
@@ -61,11 +62,9 @@ public class TemplateFinalizeConnectorConfigurationInternal implements FinalizeC
     }
 
     var destinationTableName =
-        ObjectName.from(destinationDatabase.get(), destinationSchema.get(), DATA_TABLE)
-            .getEscapedName();
+        ObjectName.from(destinationDatabase.get(), destinationSchema.get(), DATA_TABLE).getValue();
     var issuesView =
-        ObjectName.from(destinationDatabase.get(), destinationSchema.get(), DATA_VIEW)
-            .getEscapedName();
+        ObjectName.from(destinationDatabase.get(), destinationSchema.get(), DATA_VIEW).getValue();
 
     createDestinationDbObjects(destinationDatabase.get(), destinationSchema.get());
     createSinkTable(destinationTableName);
@@ -145,8 +144,8 @@ public class TemplateFinalizeConnectorConfigurationInternal implements FinalizeC
         session,
         TASK_REACTOR_SCHEMA,
         INITIALIZE_INSTANCE_PROCEDURE,
-        varcharArgument(TASK_REACTOR_INSTANCE),
-        varcharArgument(WAREHOUSE_REFERENCE),
+        asVarchar(TASK_REACTOR_INSTANCE),
+        asVarchar(WAREHOUSE_REFERENCE.getValue()),
         NULL_ARG,
         NULL_ARG,
         NULL_ARG,
@@ -161,8 +160,11 @@ public class TemplateFinalizeConnectorConfigurationInternal implements FinalizeC
     session
         .sql(
             String.format(
-                "CALL %s.%s(%d, '%s')",
-                TASK_REACTOR_SCHEMA, SET_WORKERS_NUMBER_PROCEDURE, 5, TASK_REACTOR_INSTANCE))
+                "CALL %s.%s(%d, %s)",
+                TASK_REACTOR_SCHEMA,
+                SET_WORKERS_NUMBER_PROCEDURE,
+                5,
+                asVarchar(TASK_REACTOR_INSTANCE)))
         .collect();
   }
 }

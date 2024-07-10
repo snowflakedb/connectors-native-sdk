@@ -16,6 +16,13 @@ public interface InstanceRegistryRepository {
   List<TaskReactorInstance> fetchAll();
 
   /**
+   * Fetches all initialized Task Reactor instances registered in the connector
+   *
+   * @return list of instances
+   */
+  List<TaskReactorInstance> fetchAllInitialized();
+
+  /**
    * Fetches a Task Reactor instance with given identifier
    *
    * @param instanceId id of an instance

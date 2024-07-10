@@ -4,6 +4,8 @@ package com.snowflake.connectors.application.integration;
 import static com.snowflake.connectors.application.integration.InvalidIngestionProcessException.ingestionConfigurationDoesNotExist;
 import static com.snowflake.connectors.application.integration.InvalidIngestionProcessException.processDoesNotExist;
 import static com.snowflake.connectors.application.integration.InvalidIngestionProcessException.resourceIngestionDefinitionDoesNotExist;
+import static com.snowflake.connectors.util.sql.SqlTools.asVarchar;
+import static com.snowflake.connectors.util.sql.SqlTools.asVariant;
 
 import com.snowflake.connectors.application.ingestion.definition.IngestionConfiguration;
 import com.snowflake.connectors.application.ingestion.definition.ResourceIngestionDefinitionRepository;
@@ -107,8 +109,8 @@ public class SchedulerTaskReactorOnIngestionScheduled implements OnIngestionSche
   private void insertItemIntoTaskReactorQueue(String processId, Variant payload) {
     String query =
         String.format(
-            "INSERT INTO %s.QUEUE (RESOURCE_ID, WORKER_PAYLOAD) SELECT '%s', PARSE_JSON('%s')",
-            taskReactorName.toSqlString(), processId, payload.asJsonString());
+            "INSERT INTO %s.QUEUE (RESOURCE_ID, WORKER_PAYLOAD) SELECT %s, %s",
+            taskReactorName.getValue(), asVarchar(processId), asVariant(payload));
     session.sql(query).collect();
   }
 

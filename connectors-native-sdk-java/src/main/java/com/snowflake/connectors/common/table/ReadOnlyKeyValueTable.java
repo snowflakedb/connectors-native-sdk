@@ -1,8 +1,8 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.common.table;
 
+import static com.snowflake.connectors.util.sql.SnowparkFunctions.lit;
 import static com.snowflake.snowpark_java.Functions.col;
-import static com.snowflake.snowpark_java.Functions.lit;
 
 import com.snowflake.snowpark_java.Column;
 import com.snowflake.snowpark_java.Row;

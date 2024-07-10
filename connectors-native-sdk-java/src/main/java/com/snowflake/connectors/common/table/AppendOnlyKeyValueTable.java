@@ -1,8 +1,8 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.common.table;
 
+import static com.snowflake.connectors.util.sql.SnowparkFunctions.lit;
 import static com.snowflake.snowpark_java.Functions.col;
-import static com.snowflake.snowpark_java.Functions.lit;
 import static com.snowflake.snowpark_java.Functions.row_number;
 import static com.snowflake.snowpark_java.Window.partitionBy;
 import static java.util.Objects.requireNonNull;
@@ -11,7 +11,10 @@ import com.snowflake.snowpark_java.Column;
 import com.snowflake.snowpark_java.Row;
 import com.snowflake.snowpark_java.Session;
 import com.snowflake.snowpark_java.WindowSpec;
-import com.snowflake.snowpark_java.types.*;
+import com.snowflake.snowpark_java.types.DataTypes;
+import com.snowflake.snowpark_java.types.StructField;
+import com.snowflake.snowpark_java.types.StructType;
+import com.snowflake.snowpark_java.types.Variant;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Arrays;

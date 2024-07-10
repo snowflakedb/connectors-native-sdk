@@ -21,12 +21,12 @@ import com.snowflake.snowpark_java.Session;
  */
 public class FinalizeConnectorHandlerBuilder {
 
-  private FinalizeConnectorInputValidator inputValidator;
-  private SourceValidator sourceValidator;
-  private FinalizeConnectorCallback callback;
-  private ConnectorErrorHelper errorHelper;
-  private final ConnectorStatusService connectorStatusService;
-  private final FinalizeConnectorSdkCallback finalizeConnectorSdkCallback;
+  FinalizeConnectorInputValidator inputValidator;
+  SourceValidator sourceValidator;
+  FinalizeConnectorCallback callback;
+  ConnectorErrorHelper errorHelper;
+  ConnectorStatusService connectorStatusService;
+  FinalizeConnectorSdkCallback finalizeConnectorSdkCallback;
 
   /**
    * Creates a new {@link FinalizeConnectorHandlerBuilder}.
@@ -67,6 +67,9 @@ public class FinalizeConnectorHandlerBuilder {
     this.inputValidator = inputValidator;
     return this;
   }
+
+  /** Constructor used by the test builder implementation. */
+  FinalizeConnectorHandlerBuilder() {}
 
   /**
    * Sets the source validator used to build the handler instance.

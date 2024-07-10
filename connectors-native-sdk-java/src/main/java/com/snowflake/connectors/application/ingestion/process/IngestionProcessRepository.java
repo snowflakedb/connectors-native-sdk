@@ -14,7 +14,7 @@ public interface IngestionProcessRepository {
    * @param resourceIngestionDefinitionId resource ingestion definition id
    * @param ingestionConfigurationId ingestion configuration id
    * @param type process type
-   * @param status initial process status
+   * @param status {@link IngestionProcessStatuses initial process status}
    * @param metadata process metadata
    * @return id of the created process
    */
@@ -29,7 +29,7 @@ public interface IngestionProcessRepository {
    * Updates the status of an ingestion process with the specified id.
    *
    * @param processId process id
-   * @param status new process status
+   * @param status {@link IngestionProcessStatuses new process status}
    */
   void updateStatus(String processId, String status);
 
@@ -89,6 +89,17 @@ public interface IngestionProcessRepository {
   Optional<IngestionProcess> fetch(String processId);
 
   /**
+   * Fetches an ingestion process with the latest finishedAt date and status = FINISHED
+   *
+   * @param resourceIngestionDefinitionId resource ingestion definition id
+   * @param ingestionConfigurationId ingestion configuration id
+   * @param type process type
+   * @return ingestion process with the specified id
+   */
+  Optional<IngestionProcess> fetchLastFinished(
+      String resourceIngestionDefinitionId, String ingestionConfigurationId, String type);
+
+  /**
    * Fetches all ingestion processes with the specified resource ingestion definition id, ingestion
    * configuration, and process type.
    *
@@ -99,4 +110,14 @@ public interface IngestionProcessRepository {
    */
   List<IngestionProcess> fetchAll(
       String resourceIngestionDefinitionId, String ingestionConfigurationId, String type);
+
+  /**
+   * Fetches all ingestion processes with the specified resource ingestion definition id and
+   * statuses: {@link IngestionProcessStatuses#SCHEDULED}, {@link
+   * IngestionProcessStatuses#IN_PROGRESS}.
+   *
+   * @param resourceIngestionDefinitionId resource ingestion definition id
+   * @return a list containing processes matching the specified criteria
+   */
+  List<IngestionProcess> fetchAllActive(String resourceIngestionDefinitionId);
 }

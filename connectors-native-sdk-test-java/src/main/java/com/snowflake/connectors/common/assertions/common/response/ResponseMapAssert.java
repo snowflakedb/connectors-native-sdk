@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.snowflake.snowpark_java.types.Variant;
 import java.util.Map;
 import org.assertj.core.api.AbstractMapAssert;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.MapAssert;
 
 /** AssertJ based assertions for a map representing a variant response. */
@@ -76,6 +77,18 @@ public class ResponseMapAssert
    */
   public ResponseMapAssert isJson(String json) {
     assertThat(actual.toString()).isEqualTo(json);
+    return this;
+  }
+
+  /**
+   * Asserts that this response has a json field with the specified value
+   *
+   * @param fieldName name of the json field
+   * @param expectedValue value of the field
+   * @return this assertion
+   */
+  public ResponseMapAssert hasField(String fieldName, String expectedValue) {
+    Assertions.assertThat(variantAsString(actual.get(fieldName))).isEqualTo(expectedValue);
     return this;
   }
 }

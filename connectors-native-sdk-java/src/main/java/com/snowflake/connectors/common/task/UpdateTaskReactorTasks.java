@@ -2,6 +2,7 @@
 package com.snowflake.connectors.common.task;
 
 import com.snowflake.connectors.common.object.Identifier;
+import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceComponentProvider;
 import com.snowflake.connectors.taskreactor.registry.InstanceRegistryRepository;
 import com.snowflake.snowpark_java.Session;
@@ -34,6 +35,7 @@ public interface UpdateTaskReactorTasks {
     return new DefaultUpdateTaskReactorTasks(
         InstanceRegistryRepository.getInstance(session),
         TaskReactorInstanceComponentProvider.getInstance(session),
-        TaskRepository.getInstance(session));
+        TaskRepository.getInstance(session),
+        TaskReactorInstanceActionExecutor.getInstance(session));
   }
 }

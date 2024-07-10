@@ -26,7 +26,7 @@ public class Application {
   }
 
   public static File getAppDir() {
-    return getFileRelativeToProjectRoot("src/appTest/resources/test-native-sdk-app");
+    return getFileRelativeToProjectRoot("src/testApps/test-native-sdk-app");
   }
 
   private static File getFileRelativeToProjectRoot(String relativePath) {
@@ -53,8 +53,9 @@ public class Application {
     LOG.info("Initializing application...");
     var command =
         String.format(
-            "make build_and_create_app_version APP_PACKAGE_NAME=%s VERSION=%s",
-            APP_PACKAGE_NAME, APP_VERSION);
+            "make build_and_create_app_version APP_PACKAGE_NAME=%s VERSION=%s"
+                + " CONNECTORS_NATIVE_SDK_VERSION=%s",
+            APP_PACKAGE_NAME, APP_VERSION, "+");
     runCommand(command, getAppDir());
   }
 
@@ -128,7 +129,8 @@ public class Application {
 
   public void grantUsageOnWarehouse(String warehouse) {
     session
-        .sql(String.format("GRANT USAGE ON WAREHOUSE %s TO APPLICATION " + instanceName, warehouse))
+        .sql(
+            String.format("GRANT USAGE ON WAREHOUSE %s TO APPLICATION %s", warehouse, instanceName))
         .collect();
   }
 
@@ -136,7 +138,13 @@ public class Application {
     session
         .sql(
             String.format(
-                "REVOKE USAGE ON WAREHOUSE %s FROM APPLICATION " + instanceName, warehouse))
+                "REVOKE USAGE ON WAREHOUSE %s FROM APPLICATION %s", warehouse, instanceName))
+        .collect();
+  }
+
+  public void setDebugMode(boolean enable) {
+    session
+        .sql(String.format("ALTER APPLICATION %s SET DEBUG_MODE = %s", instanceName, enable))
         .collect();
   }
 }

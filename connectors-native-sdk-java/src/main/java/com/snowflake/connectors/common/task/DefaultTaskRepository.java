@@ -30,7 +30,7 @@ public class DefaultTaskRepository implements TaskRepository {
     query.add(
         String.format(
             "%s task %s identifier('%s')",
-            create, exists, definition.properties().name().getEscapedName()));
+            create, exists, definition.properties().name().getValue()));
     query.add(String.format("schedule = '%s'", definition.properties().schedule()));
     query.add(
         String.format(
@@ -87,7 +87,7 @@ public class DefaultTaskRepository implements TaskRepository {
     if (!result.endsWith("successfully created.")) {
       throw new TaskCreationException(
           String.format(
-              "Creation of task %s failed with message: %s", taskName.getEscapedName(), result));
+              "Creation of task %s failed with message: %s", taskName.getValue(), result));
     }
   }
 }

@@ -1,8 +1,8 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.application.configuration.finalization;
 
+import static com.snowflake.connectors.util.sql.SqlTools.asVariant;
 import static com.snowflake.connectors.util.sql.SqlTools.callPublicProcedure;
-import static com.snowflake.connectors.util.sql.SqlTools.variantArgument;
 
 import com.snowflake.connectors.common.response.ConnectorResponse;
 import com.snowflake.snowpark_java.Session;
@@ -20,6 +20,6 @@ class DefaultFinalizeConnectorInputValidator implements FinalizeConnectorInputVa
   @Override
   public ConnectorResponse validate(Variant configuration) {
     return callPublicProcedure(
-        session, "FINALIZE_CONNECTOR_CONFIGURATION_VALIDATE", variantArgument(configuration));
+        session, "FINALIZE_CONNECTOR_CONFIGURATION_VALIDATE", asVariant(configuration));
   }
 }

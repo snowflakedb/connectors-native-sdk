@@ -5,11 +5,11 @@ import com.snowflake.connectors.common.exception.helper.ConnectorErrorHelper;
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.response.ConnectorResponse;
 import com.snowflake.connectors.common.task.UpdateTaskReactorTasks;
+import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.snowpark_java.Session;
 import com.snowflake.snowpark_java.types.Variant;
 import java.util.function.Supplier;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Handler for the Task Reactor instance warehouse update. A new instance of the handler must be
@@ -17,7 +17,8 @@ import org.slf4j.LoggerFactory;
  */
 public class UpdateWarehouseInstanceHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(UpdateWarehouseInstanceHandler.class);
+  private static final Logger LOG =
+      TaskReactorLogger.getLogger(UpdateWarehouseInstanceHandler.class);
 
   private final UpdateTaskReactorTasks updateTaskReactorTasks;
   private final ConnectorErrorHelper errorHelper;
@@ -76,11 +77,10 @@ public class UpdateWarehouseInstanceHandler {
   }
 
   private ConnectorResponse updateWarehouseBody(String warehouseName, String instanceSchema) {
-    log.debug(
+    LOG.info(
         "Starting updating warehouse: '{}' for instance: '{}'.", warehouseName, instanceSchema);
 
-    updateTaskReactorTasks.updateInstance(
-        instanceSchema, Identifier.fromWithAutoQuoting(warehouseName));
+    updateTaskReactorTasks.updateInstance(instanceSchema, Identifier.from(warehouseName));
     return ConnectorResponse.success(
         String.format("Warehouse '%s' has been added to the command queue", warehouseName));
   }

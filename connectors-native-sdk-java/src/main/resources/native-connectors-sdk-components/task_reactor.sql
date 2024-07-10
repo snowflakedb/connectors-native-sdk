@@ -249,18 +249,18 @@ CREATE OR REPLACE PROCEDURE TASK_REACTOR.CREATE_INSTANCE_OBJECTS(
     LANGUAGE SQL
         AS
         $$
-            DECLARE
-            is_instance_registered BOOLEAN DEFAULT 0<(SELECT COUNT(1) FROM TASK_REACTOR_INSTANCES.INSTANCE_REGISTRY WHERE INSTANCE_NAME = UPPER(:instance_schema_name)); creating_tr_instance_exception EXCEPTION (-20005, 'Something unexpected went wrong while creating a new instance of task reactor. No instance has been created.'); BEGIN
+        DECLARE
+            is_instance_registered BOOLEAN DEFAULT 0<(SELECT COUNT(1) FROM TASK_REACTOR_INSTANCES.INSTANCE_REGISTRY WHERE INSTANCE_NAME = UPPER(:instance_schema_name));
+        BEGIN
             -- instance schema is created and procedure existence checks are done only when instance is not registered yet
-            IF(NOT :is_instance_registered)
-              THEN
-            call TASK_REACTOR.create_instance_schema(
-                    :instance_schema_name
-                );
-            call TASK_REACTOR.validate_procedure_existence(
-                    :worker_procedure_name,
-                    'WORKER_PROCEDURE'
-                );
+            IF(NOT :is_instance_registered) THEN
+                call TASK_REACTOR.create_instance_schema(
+                        :instance_schema_name
+                    );
+                call TASK_REACTOR.validate_procedure_existence(
+                        :worker_procedure_name,
+                        'WORKER_PROCEDURE'
+                    );
 
                 IF (:work_selector_type = 'PROCEDURE') THEN
                     call TASK_REACTOR.validate_procedure_existence(
@@ -274,7 +274,7 @@ CREATE OR REPLACE PROCEDURE TASK_REACTOR.CREATE_INSTANCE_OBJECTS(
             IF (:expired_work_selector_name IS NULL) THEN
                 expired_work_selector_name := 'TASK_REACTOR.EMPTY_EXPIRED_WORK_SELECTOR';
                 CREATE OR REPLACE VIEW TASK_REACTOR.EMPTY_EXPIRED_WORK_SELECTOR AS
-            SELECT NULL AS ID WHERE 1 = 0;
+                    SELECT NULL AS ID WHERE 1 = 0;
             END IF;
 
             -- create or update instance objects
@@ -313,20 +313,10 @@ CREATE OR REPLACE PROCEDURE TASK_REACTOR.CREATE_INSTANCE_OBJECTS(
             );
 
             -- register new instance only if all instance objects are created
-            IF(NOT :is_instance_registered)
-              THEN
-            INSERT INTO TASK_REACTOR_INSTANCES.INSTANCE_REGISTRY (INSTANCE_NAME)
-            VALUES (UPPER(:instance_schema_name)); END IF; EXCEPTION
-            WHEN STATEMENT_ERROR OR EXPRESSION_ERROR THEN
-                CASE
-                    WHEN SQLCODE in (-20001, -20002, -20003) THEN DROP SCHEMA identifier (:instance_schema_name); RAISE; WHEN SQLCODE in (-20004) THEN
-                        RAISE; ELSE
-                        DROP SCHEMA identifier(:instance_schema_name);
-                        RAISE;
-                END CASE;
-            WHEN OTHER THEN
-                DROP SCHEMA identifier(:instance_schema_name);
-                RAISE creating_tr_instance_exception;
+            IF(NOT :is_instance_registered) THEN
+                INSERT INTO TASK_REACTOR_INSTANCES.INSTANCE_REGISTRY (INSTANCE_NAME)
+                    VALUES (UPPER(:instance_schema_name));
+            END IF;
         END;
         $$;
 

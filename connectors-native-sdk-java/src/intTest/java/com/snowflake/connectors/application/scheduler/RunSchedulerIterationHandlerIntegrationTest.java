@@ -1,6 +1,8 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.application.scheduler;
 
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.IN_PROGRESS;
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.SCHEDULED;
 import static com.snowflake.connectors.common.IdGenerator.randomId;
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThat;
 
@@ -26,13 +28,13 @@ public class RunSchedulerIterationHandlerIntegrationTest extends BaseIntegration
   @Test
   void shouldRunSchedulerIteration() {
     // given
-    var id = processWithStatusExists("SCHEDULED");
+    var id = processWithStatusExists(SCHEDULED);
 
     // when
     handler.runIteration();
 
     // then
-    assertProcessHasStatus(id, "IN_PROGRESS");
+    assertProcessHasStatus(id, IN_PROGRESS);
   }
 
   private String processWithStatusExists(String status) {

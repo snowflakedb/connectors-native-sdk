@@ -21,7 +21,7 @@ class TaskReactorInstanceTroubleshootingDataService {
   TaskReactorInstanceTroubleshootingDataService(Session session, Identifier instanceName) {
     this.session = session;
     this.instanceName = instanceName;
-    this.categoryPrefix = format("task_reactor:%s:", instanceName.toSqlString());
+    this.categoryPrefix = format("task_reactor:%s:", instanceName.getValue());
   }
 
   DataFrame getTroubleshootingData(long fromTimestamp, long toTimestamp) {
@@ -37,14 +37,14 @@ class TaskReactorInstanceTroubleshootingDataService {
     return session.sql(
         format(
             "select '%sconfig' as category, TO_VARIANT(OBJECT_CONSTRUCT(*)) as data FROM %s.config",
-            categoryPrefix, instanceName.toSqlString()));
+            categoryPrefix, instanceName.getValue()));
   }
 
   private DataFrame getDispatcherQueueCount() {
     return session.sql(
         format(
             "select '%sdispatcher_queue_count', count(*) from %s.queue",
-            categoryPrefix, instanceName.toSqlString()));
+            categoryPrefix, instanceName.getValue()));
   }
 
   private DataFrame getWorkerRegistry() {
@@ -52,7 +52,7 @@ class TaskReactorInstanceTroubleshootingDataService {
         format(
             "select '%sworker_registry' as category, TO_VARIANT(OBJECT_CONSTRUCT(*)) FROM"
                 + " %s.worker_registry",
-            categoryPrefix, instanceName.toSqlString()));
+            categoryPrefix, instanceName.getValue()));
   }
 
   private DataFrame getWorkerStatus(long from, long to) {
@@ -61,7 +61,7 @@ class TaskReactorInstanceTroubleshootingDataService {
             "select '%sworker_status' as category, TO_VARIANT(OBJECT_CONSTRUCT(*)) FROM"
                 + " %s.worker_status WHERE timestamp BETWEEN   to_timestamp_ntz(%s) AND"
                 + " to_timestamp_ntz(%s)",
-            categoryPrefix, instanceName.toSqlString(), from, to));
+            categoryPrefix, instanceName.getValue(), from, to));
   }
 
   private DataFrame getWorkerQueueCount() {
@@ -75,9 +75,7 @@ class TaskReactorInstanceTroubleshootingDataService {
             categoryPrefix);
     String query =
         workerIds.stream()
-            .map(
-                workerId ->
-                    format(singleQueueSelect, workerId, instanceName.toSqlString(), workerId))
+            .map(workerId -> format(singleQueueSelect, workerId, instanceName.getValue(), workerId))
             .collect(Collectors.joining(",", queryPrefix, "))"));
 
     return session.sql(query);
@@ -90,7 +88,7 @@ class TaskReactorInstanceTroubleshootingDataService {
                 format(
                     "select * from %s.worker_registry where status in ('ACTIVE',"
                         + " 'UP_FOR_DELETION')",
-                    instanceName.toSqlString()))
+                    instanceName.getValue()))
             .select("worker_id")
             .collect();
     return Arrays.stream(result).map(row -> row.getLong(0)).collect(Collectors.toList());
@@ -98,7 +96,7 @@ class TaskReactorInstanceTroubleshootingDataService {
 
   private DataFrame getTasksInfo() {
     String queryId =
-        executeAndGetLastQueryId(format("show tasks in schema %s", instanceName.toSqlString()));
+        executeAndGetLastQueryId(format("show tasks in schema %s", instanceName.getValue()));
     return session.sql(
         format(
             "SELECT '%stask', TO_VARIANT(OBJECT_CONSTRUCT(*)) FROM TABLE(RESULT_SCAN('%s'))",

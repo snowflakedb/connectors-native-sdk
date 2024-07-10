@@ -10,6 +10,7 @@ import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.connectors.common.task.TaskRepository;
 import com.snowflake.connectors.taskreactor.commands.processor.CommandsProcessor;
+import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.connectors.taskreactor.queue.QueueItem;
 import com.snowflake.connectors.taskreactor.queue.WorkItemQueue;
 import com.snowflake.connectors.taskreactor.queue.cleaner.QueueItemCleaner;
@@ -22,9 +23,12 @@ import com.snowflake.connectors.taskreactor.worker.status.WorkerStatusRepository
 import com.snowflake.snowpark_java.Session;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
 
 /** Main task reactor task dispatcher. */
 public class Dispatcher {
+
+  private static final Logger LOG = TaskReactorLogger.getLogger(Dispatcher.class);
 
   private final Identifier instanceSchema;
   private final WorkerStatusRepository workerStatusRepository;
@@ -91,6 +95,7 @@ public class Dispatcher {
    * @return work items dispatching result
    */
   public String execute() {
+    LOG.trace("Dispatcher started working (instance: {})", instanceSchema.getValue());
     commandsProcessor.processCommands();
     instanceStreamService.recreateStreamsIfRequired(instanceSchema);
     workerManager.reconcileWorkersNumber();
@@ -124,6 +129,9 @@ public class Dispatcher {
     List<QueueItem> selectedQueueItems = queueItemSelector.getSelectedItemsFromQueue();
 
     if (selectedQueueItems.isEmpty()) {
+      LOG.trace(
+          "Work Selector selected no items for processing (instance: {})",
+          instanceSchema.getValue());
       return "Work Selector selected no items for processing. Exiting.";
     }
 
@@ -139,6 +147,12 @@ public class Dispatcher {
   }
 
   private void dispatchItem(QueueItem item, WorkerId workerId) {
+    LOG.info(
+        "Dispatching workItem (id: {}, resourceId: {}) to worker (workerId: {}) (instance: {})",
+        item.id,
+        item.resourceId,
+        workerId,
+        instanceSchema.getValue());
     ObjectName workerTask = ObjectName.from(instanceSchema, workerTask(workerId));
 
     workerQueue.push(item, workerId);

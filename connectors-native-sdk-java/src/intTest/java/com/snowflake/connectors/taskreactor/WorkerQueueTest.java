@@ -20,7 +20,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class WorkerQueueTest extends BaseIntegrationTest {
-  private static final Identifier schema = Identifier.fromWithAutoQuoting("TEST_SCHEMA");
+
+  private static final Identifier schema = Identifier.from("TEST_SCHEMA");
   private static final WorkerId workerId = new WorkerId(1);
   private static String tableName;
   private static WorkerQueue workerQueue;
@@ -28,9 +29,9 @@ public class WorkerQueueTest extends BaseIntegrationTest {
   @BeforeAll
   static void beforeAll() {
     workerQueue = WorkerQueue.getInstance(session, schema);
-    tableName = String.format("%s.%s.%s", DATABASE_NAME, schema.toSqlString(), "WORKER_QUEUE_1");
+    tableName = String.format("%s.%s.%s", DATABASE_NAME, schema.getValue(), "WORKER_QUEUE_1");
     session
-        .sql(String.format("CREATE SCHEMA %s.%s", DATABASE_NAME, schema.toSqlString()))
+        .sql(String.format("CREATE SCHEMA %s.%s", DATABASE_NAME, schema.getValue()))
         .toLocalIterator();
     session
         .sql(
@@ -49,7 +50,7 @@ public class WorkerQueueTest extends BaseIntegrationTest {
   static void afterAll() {
     session.sql(String.format("DROP TABLE %s", tableName)).toLocalIterator();
     session
-        .sql(String.format("DROP SCHEMA %s.%s", DATABASE_NAME, schema.toSqlString()))
+        .sql(String.format("DROP SCHEMA %s.%s", DATABASE_NAME, schema.getValue()))
         .toLocalIterator();
   }
 

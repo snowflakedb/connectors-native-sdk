@@ -4,33 +4,41 @@ package com.snowflake.connectors.taskreactor.lifecycle;
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThat;
 import static com.snowflake.connectors.taskreactor.ComponentNames.DISPATCHER_TASK;
 import static com.snowflake.connectors.taskreactor.commands.queue.Command.CommandType.RESUME_INSTANCE;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.connectors.common.task.TaskDefinition;
 import com.snowflake.connectors.common.task.TaskProperties;
 import com.snowflake.connectors.common.task.TaskRepository;
-import com.snowflake.connectors.taskreactor.InMemoryConfiguredTaskReactorExistenceVerifier;
 import com.snowflake.connectors.taskreactor.InMemoryTaskReactorInstanceComponentProvider;
 import com.snowflake.connectors.taskreactor.TaskReactorExistenceVerifier;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
 import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
 import com.snowflake.connectors.taskreactor.registry.InMemoryInstanceRegistryRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class ResumeTaskReactorServiceTest {
 
-  InMemoryTaskReactorInstanceComponentProvider componentProvider =
-      new InMemoryTaskReactorInstanceComponentProvider();
-  TaskReactorExistenceVerifier existenceVerifier =
-      new InMemoryConfiguredTaskReactorExistenceVerifier();
-  InMemoryInstanceRegistryRepository instanceRegistryRepository =
-      new InMemoryInstanceRegistryRepository();
-  TaskRepository taskRepository = componentProvider.taskRepository();
-  ResumeTaskReactorService resumeTaskReactorService =
-      new ResumeTaskReactorService(
-          componentProvider,
-          new TaskReactorInstanceActionExecutor(existenceVerifier, instanceRegistryRepository));
+  private InMemoryTaskReactorInstanceComponentProvider componentProvider;
+  private InMemoryInstanceRegistryRepository instanceRegistryRepository;
+  private TaskRepository taskRepository;
+  private ResumeTaskReactorService resumeTaskReactorService;
+
+  @BeforeEach
+  public void setUp() {
+    var existenceVerifier = mock(TaskReactorExistenceVerifier.class);
+    when(existenceVerifier.isTaskReactorConfigured()).thenReturn(true);
+    componentProvider = new InMemoryTaskReactorInstanceComponentProvider();
+    instanceRegistryRepository = new InMemoryInstanceRegistryRepository();
+    taskRepository = componentProvider.taskRepository();
+    resumeTaskReactorService =
+        new ResumeTaskReactorService(
+            componentProvider,
+            new TaskReactorInstanceActionExecutor(existenceVerifier, instanceRegistryRepository));
+  }
 
   @Test
   void shouldResumeTaskReactorInstance() {

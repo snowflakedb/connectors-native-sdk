@@ -90,20 +90,20 @@ public class UpdateWarehouseHandler {
 
   private ConnectorResponse updateWarehouseBody(String warehouseName) {
     validateConnectorStatus();
-    var warehouse = Identifier.fromWithAutoQuoting(warehouseName);
+    var warehouse = Identifier.from(warehouseName);
 
     var validationResult = inputValidator.validate(warehouse);
-    if (!validationResult.isOk()) {
+    if (validationResult.isNotOk()) {
       return validationResult;
     }
 
     var internalResult = callback.execute(warehouse);
-    if (!internalResult.isOk()) {
+    if (internalResult.isNotOk()) {
       return internalResult;
     }
 
     var sdkResult = sdkCallback.execute(warehouse);
-    if (!sdkResult.isOk()) {
+    if (sdkResult.isNotOk()) {
       return sdkResult;
     }
 
@@ -118,8 +118,7 @@ public class UpdateWarehouseHandler {
   private void saveWarehouse(Identifier warehouse) {
     var newConfiguration = connectorConfigurationService.getConfiguration().asMap();
     newConfiguration.put(
-        ConnectorConfigurationKey.WAREHOUSE.getPropertyName(),
-        new Variant(warehouse.toSqlString()));
+        ConnectorConfigurationKey.WAREHOUSE.getPropertyName(), warehouse.getVariantValue());
 
     connectorConfigurationService.updateConfiguration(new Variant(newConfiguration));
   }

@@ -1,9 +1,14 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.application.ingestion.process;
 
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.FINISHED;
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.IN_PROGRESS;
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.SCHEDULED;
+
 import com.snowflake.snowpark_java.types.Variant;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +77,10 @@ public class InMemoryIngestionProcessRepository
 
   @Override
   public void endProcess(String processId) {
-    throw new UnsupportedOperationException();
+    IngestionProcess process =
+        fetch(processId).orElseThrow(() -> new IngestionProcessUpdateException(0L));
+    IngestionProcess updatedProcess = process.withStatus(FINISHED).withFinishedAt(Instant.now());
+    repository.put(processId, updatedProcess);
   }
 
   @Override
@@ -87,20 +95,54 @@ public class InMemoryIngestionProcessRepository
   }
 
   @Override
+  public Optional<IngestionProcess> fetchLastFinished(
+      String resourceIngestionDefinitionId, String ingestionConfigurationId, String type) {
+    return repository.values().stream()
+        .filter(
+            process ->
+                resourceIngestionDefinitionId.equals(process.getResourceIngestionDefinitionId()))
+        .filter(process -> ingestionConfigurationId.equals(process.getIngestionConfigurationId()))
+        .filter(process -> type.equals(process.getType()))
+        .filter(process -> FINISHED.equals(process.getStatus()))
+        .max(Comparator.comparing(IngestionProcess::getFinishedAt));
+  }
+
+  @Override
   public List<IngestionProcess> fetchAll(
       String resourceIngestionDefinitionId, String ingestionConfigurationId, String type) {
-    throw new UnsupportedOperationException();
+    return repository.values().stream()
+        .filter(
+            process ->
+                resourceIngestionDefinitionId.equals(process.getResourceIngestionDefinitionId()))
+        .filter(process -> ingestionConfigurationId.equals(process.getIngestionConfigurationId()))
+        .filter(process -> type.equals(process.getType()))
+        .collect(Collectors.toList());
   }
 
   @Override
   public List<IngestionProcess> fetchAll(List<String> resourceIngestionDefinitionIds) {
-    throw new UnsupportedOperationException();
+    return repository.values().stream()
+        .filter(
+            process ->
+                resourceIngestionDefinitionIds.contains(process.getResourceIngestionDefinitionId()))
+        .collect(Collectors.toList());
   }
 
   @Override
   public List<IngestionProcess> fetchAll(String status) {
     return repository.values().stream()
         .filter(process -> status.equals(process.getStatus()))
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<IngestionProcess> fetchAllActive(String resourceIngestionDefinitionId) {
+    List<String> statuses = List.of(SCHEDULED, IN_PROGRESS);
+    return repository.values().stream()
+        .filter(
+            process ->
+                resourceIngestionDefinitionId.equals(process.getResourceIngestionDefinitionId()))
+        .filter(process -> statuses.contains(process.getStatus()))
         .collect(Collectors.toList());
   }
 
@@ -117,5 +159,14 @@ public class InMemoryIngestionProcessRepository
   /** Clears the repository. */
   public void clear() {
     repository.clear();
+  }
+
+  /**
+   * Returns repository.
+   *
+   * @return collection for repository
+   */
+  public Map<String, IngestionProcess> getRepository() {
+    return repository;
   }
 }

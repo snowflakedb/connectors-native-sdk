@@ -1,6 +1,7 @@
 # Copyright (c) 2024 Snowflake Inc.
 
 import json
+import streamlit as st
 from native_sdk_api.connector_response import ConnectorResponse
 from snowflake.snowpark.context import get_active_session
 
@@ -28,6 +29,10 @@ def variant_argument(arguments: dict):
 
 def variant_list_argument(arguments: list):
     return "PARSE_JSON('" + json.dumps(arguments) + "')"
+
+
+def empty_variant_argument():
+    return "OBJECT_CONSTRUCT()"
 
 
 def __to_procedure_input(arguments: list):

@@ -1,3 +1,9 @@
+pluginManagement {
+    repositories {
+        maven { url System.getenv('GRADLE_PLUGINS_ARTIFACTORY_URL') }
+    }
+}
+
 rootProject.name = 'connectors-native-sdk'
 
 include 'connectors-native-sdk'

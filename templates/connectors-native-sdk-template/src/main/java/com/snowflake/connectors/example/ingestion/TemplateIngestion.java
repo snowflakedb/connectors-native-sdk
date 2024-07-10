@@ -65,7 +65,7 @@ public class TemplateIngestion implements Ingestion<IngestionStatus> {
 
   @Override
   public IngestionStatus performIngestion(WorkItem workItem, IngestionStatus ingestionStatus) {
-    var destinationTable = prepareDestinationTableName().getEscapedName();
+    var destinationTable = prepareDestinationTableName().getValue();
 
     try {
       // TODO: IMPLEMENT ME ingestion: The following data generates some random data to be stored.

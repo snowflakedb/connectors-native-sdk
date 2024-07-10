@@ -20,11 +20,14 @@ import com.snowflake.snowpark_java.Session;
  */
 public class ConfigureConnectorHandlerBuilder {
 
-  private ConfigureConnectorInputValidator inputValidator;
-  private ConfigureConnectorCallback callback;
-  private ConnectorErrorHelper errorHelper;
-  private final ConnectorConfigurationService connectorConfigurationService;
-  private final ConnectorStatusService connectorStatusService;
+  ConfigureConnectorInputValidator inputValidator;
+  ConfigureConnectorCallback callback;
+  ConnectorErrorHelper errorHelper;
+  ConnectorConfigurationService connectorConfigurationService;
+  ConnectorStatusService connectorStatusService;
+
+  /** Constructor used by the test builder implementation. */
+  ConfigureConnectorHandlerBuilder() {}
 
   /**
    * Creates a new {@link ConfigureConnectorHandlerBuilder}.

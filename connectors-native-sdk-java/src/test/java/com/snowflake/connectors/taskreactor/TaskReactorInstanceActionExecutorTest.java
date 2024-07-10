@@ -2,6 +2,8 @@
 package com.snowflake.connectors.taskreactor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.taskreactor.registry.InMemoryInstanceRegistryRepository;
@@ -14,23 +16,25 @@ public class TaskReactorInstanceActionExecutorTest {
   private static final Identifier INSTANCE_1 = Identifier.from("NeverGonnaGiveYouUp");
   private static final Identifier INSTANCE_2 = Identifier.from("NeverGonnaLetYouDown");
   private static final Identifier INSTANCE_3 = Identifier.from("NeverGonnaRunAroundAndDesertYou");
+  private static final Identifier INSTANCE_4 = Identifier.from("NeverGonnaMakeYouCry");
 
   @Test
-  void shouldExecuteActionForAllConfiguredInstances() {
+  void shouldExecuteActionForAllInitializedInstances() {
     // given
     var instanceRegistry = new InMemoryInstanceRegistryRepository();
-    var executor =
-        new TaskReactorInstanceActionExecutor(
-            new InMemoryConfiguredTaskReactorExistenceVerifier(), instanceRegistry);
+    var existenceVerifier = mock(TaskReactorExistenceVerifier.class);
+    when(existenceVerifier.isTaskReactorConfigured()).thenReturn(true);
+    var executor = new TaskReactorInstanceActionExecutor(existenceVerifier, instanceRegistry);
 
-    instanceRegistry.addInstance(INSTANCE_1, true);
-    instanceRegistry.addInstance(INSTANCE_2, true);
-    instanceRegistry.addInstance(INSTANCE_3, false);
+    instanceRegistry.addInstance(INSTANCE_1, true, true);
+    instanceRegistry.addInstance(INSTANCE_2, true, true);
+    instanceRegistry.addInstance(INSTANCE_3, true, false);
+    instanceRegistry.addInstance(INSTANCE_4, false, false);
 
     List<Identifier> invokedActions = new ArrayList<>();
 
     // when
-    executor.applyToAllExistingTaskReactorInstances(invokedActions::add);
+    executor.applyToAllInitializedTaskReactorInstances(invokedActions::add);
 
     // then
     assertThat(invokedActions).containsExactlyInAnyOrder(INSTANCE_1, INSTANCE_2, INSTANCE_3);
@@ -39,15 +43,16 @@ public class TaskReactorInstanceActionExecutorTest {
   @Test
   void shouldDoNothingWhenTaskReactorIsNotConfigured() {
     // given
+    var existenceVerifier = mock(TaskReactorExistenceVerifier.class);
+    when(existenceVerifier.isTaskReactorConfigured()).thenReturn(false);
     var executor =
         new TaskReactorInstanceActionExecutor(
-            new InMemoryNotConfiguredTaskReactorExistenceVerifier(),
-            new InMemoryInstanceRegistryRepository());
+            existenceVerifier, new InMemoryInstanceRegistryRepository());
 
     List<Identifier> invokedActions = new ArrayList<>();
 
     // when
-    executor.applyToAllExistingTaskReactorInstances(invokedActions::add);
+    executor.applyToAllInitializedTaskReactorInstances(invokedActions::add);
 
     // then
     assertThat(invokedActions).isEmpty();
@@ -56,15 +61,16 @@ public class TaskReactorInstanceActionExecutorTest {
   @Test
   void shouldDoNothingWhenTaskReactorIsConfiguredButThereAreNoInstances() {
     // given
+    var existenceVerifier = mock(TaskReactorExistenceVerifier.class);
+    when(existenceVerifier.isTaskReactorConfigured()).thenReturn(true);
     var executor =
         new TaskReactorInstanceActionExecutor(
-            new InMemoryConfiguredTaskReactorExistenceVerifier(),
-            new InMemoryInstanceRegistryRepository());
+            existenceVerifier, new InMemoryInstanceRegistryRepository());
 
     List<Identifier> invokedActions = new ArrayList<>();
 
     // when
-    executor.applyToAllExistingTaskReactorInstances(invokedActions::add);
+    executor.applyToAllInitializedTaskReactorInstances(invokedActions::add);
 
     // then
     assertThat(invokedActions).isEmpty();

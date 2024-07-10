@@ -97,7 +97,7 @@ public class ConnectionConfigurationHandler {
     validateConnectorStatus();
 
     var inputValidationResponse = inputValidator.validate(config);
-    if (!inputValidationResponse.isOk()) {
+    if (inputValidationResponse.isNotOk()) {
       return inputValidationResponse;
     }
 
@@ -107,7 +107,7 @@ public class ConnectionConfigurationHandler {
     connectionConfigurationService.updateConfiguration(updatedConfig);
 
     var callbackResponse = callback.execute(updatedConfig);
-    if (!callbackResponse.isOk()) {
+    if (callbackResponse.isNotOk()) {
       return callbackResponse;
     }
 

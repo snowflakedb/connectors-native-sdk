@@ -11,7 +11,7 @@ public class InvalidIdentifierException extends ConnectorException {
   /** Error code of the exception, used in the underlying {@link #getResponse() response}. */
   public static final String RESPONSE_CODE = "INVALID_IDENTIFIER";
 
-  private static final String MESSAGE = "%s is not a valid Snowflake identifier";
+  private static final String MESSAGE = "'%s' is not a valid Snowflake identifier";
 
   /**
    * Creates a new {@link InvalidIdentifierException}.

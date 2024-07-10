@@ -1,6 +1,7 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.example.configuration.connection;
 
+import static com.snowflake.connectors.util.sql.SqlTools.asVarchar;
 import static java.lang.String.format;
 
 import com.snowflake.connectors.application.configuration.connection.ConnectionConfigurationCallback;
@@ -41,10 +42,10 @@ public class TemplateConnectionConfigurationCallback implements ConnectionConfig
         .sql(
             format(
                 "ALTER PROCEDURE %s SET "
-                    + "SECRETS=('%s' = %s) "
+                    + "SECRETS=(%s = %s) "
                     + "EXTERNAL_ACCESS_INTEGRATIONS=(%s)",
                 procedureName,
-                "secret variable name",
+                asVarchar("secret variable name"),
                 configMap.get("key from config with secret name").asString(),
                 configMap.get("key from config with external access name").asString()))
         .collect();

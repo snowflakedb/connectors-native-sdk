@@ -5,6 +5,7 @@ import com.snowflake.connectors.application.status.ConnectorStatus;
 import com.snowflake.connectors.application.status.ConnectorStatusService;
 import com.snowflake.connectors.application.status.exception.InvalidConnectorStatusException;
 import com.snowflake.connectors.common.response.ConnectorResponse;
+import com.snowflake.connectors.util.snowflake.PrivilegeTools;
 import com.snowflake.connectors.util.snowflake.RequiredPrivilegesMissingException;
 import com.snowflake.snowpark_java.Session;
 import java.util.function.Supplier;
@@ -70,6 +71,7 @@ public interface LifecycleService {
    */
   static LifecycleService getInstance(Session session, ConnectorStatus statusAfterRollback) {
     var statusService = ConnectorStatusService.getInstance(session);
-    return new DefaultLifecycleService(session, statusService, statusAfterRollback);
+    var privilegeTools = PrivilegeTools.getInstance(session);
+    return new DefaultLifecycleService(privilegeTools, statusService, statusAfterRollback);
   }
 }

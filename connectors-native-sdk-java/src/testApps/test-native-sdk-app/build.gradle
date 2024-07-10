@@ -1,0 +1,482 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.snowflake'
+version = '1.0-SNAPSHOT'
+
+ext {
+    sdkVersion = System.getenv("SDK_VERSION") ?: '+'
+}
+
+repositories {
+    def artifactoryUrl = System.getenv('MAVEN_ARTIFACTORY_URL')
+    artifactoryUrl != null
+        ? maven { url artifactoryUrl }
+        : mavenCentral()
+
+    mavenLocal()
+}
+
+dependencies {
+    compileOnly "com.snowflake:connectors-native-sdk:$sdkVersion"
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation "com.snowflake:connectors-native-sdk-test:$sdkVersion"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+/**
+ * Copyright (c) 2024 Snowflake Inc.
+ *
+ * **********************************************
+ *           CONNECTOR LIFECYCLE TASKS
+ * **********************************************
+ */
+import java.util.function.Supplier
+
+String defaultBuildDir = './sf_build'
+String defaultSrcDir = './app'
+String libraryName = 'connectors-native-sdk'
+String defaultArtifactName = "${project.name}.jar"
+String sdkComponentsDirName = 'native-connectors-sdk-components'
+
+project.tasks.register("copyInternalComponents") {
+    it.group = 'Snowflake'
+    it.description = "Copies jar artifact and all files from directory that contains internal custom connector components to connector build directory."
+    doLast() {
+        copyInternalComponents(defaultSrcDir, defaultArtifactName, defaultBuildDir)
+    }
+}
+
+project.tasks.register('copySdkComponents') {
+    it.group = 'Snowflake'
+    it.description = "Copies .sql files from ${sdkComponentsDirName} directory to the connector build file."
+    doLast {
+        copySdkComponents(libraryName, defaultBuildDir, sdkComponentsDirName)
+    }
+}
+
+project.tasks.register('prepareAppPackage') {
+    it.group = 'Snowflake'
+    it.description = 'Creates APPLICATION PACKAGE, SCHEMA and STAGE for connector artifacts deployment.'
+    doLast {
+        prepareAppPackage()
+    }
+}
+
+project.tasks.register('deployConnector') {
+    it.group = 'Snowflake'
+    it.description = 'Put all files from given directory to the chosen stage with usage of snowsql tool.'
+    doLast {
+        deployConnector(defaultBuildDir)
+    }
+}
+
+project.tasks.register('createNewVersion') {
+    it.group = 'Snowflake'
+    it.description = 'Creates new application VERSION from given version directory.'
+    doLast {
+        createNewVersion()
+    }
+}
+
+project.tasks.register('createAppInstance') {
+    it.group = 'Snowflake'
+    it.description = 'Creates new APPLICATION INSTANCE from given VERSION.'
+    doLast {
+        createAppInstance()
+    }
+}
+
+/*
+* **********************************************
+*              TASK MAIN LOGIC
+* **********************************************
+*/
+
+private void copyInternalComponents(String defaultSrcDir, String defaultArtifactName, String defaultBuildDir) {
+    TaskLogger.info("Starting 'copyInternalComponents' task...")
+    def localSrcDir = getCommandArgument('srcDir', { defaultSrcDir })
+    def artifact = getCommandArgument('artifact', { defaultArtifactName })
+    def targetDir = getCommandArgument('targetDir', { defaultBuildDir })
+
+    Utils.isDirectoryOrExit(localSrcDir)
+    buildLocalJavaArtifact()
+    project.copy {
+        String originalArtifactName = "${project.name}-${project.version}.jar"
+        TaskLogger.info("Copying jar artifact [$originalArtifactName] of local project to [${targetDir}] as [$artifact].")
+        from layout.projectDirectory.file("build/libs/${originalArtifactName}")
+        into layout.projectDirectory.dir(targetDir.replace("./", ""))
+        rename("^.*${project.name}-${project.version}.jar.*\$", artifact)
+    }
+    project.copy {
+        TaskLogger.info("Copying all files from local source directory [${defaultSrcDir}] to connector build directory [$targetDir].")
+        from layout.projectDirectory.dir(localSrcDir.replace("./", ""))
+        into layout.projectDirectory.dir(targetDir.replace("./", ""))
+    }
+    TaskLogger.success("Local projects' jar artifact and all files from [${localSrcDir}] copied to [$defaultBuildDir] directory.")
+}
+
+private void copySdkComponents(String libraryName, String defaultBuildDir, String sdkComponentsDirName) {
+    TaskLogger.info("Starting 'copySdkComponents' task...")
+    def targetDir = getCommandArgument('targetDir', { defaultBuildDir })
+
+    try {
+        project.copy {
+            TaskLogger.info("Copying [${sdkComponentsDirName}] directory with .sql files to '${targetDir}'")
+            from project.zipTree(project.configurations.compileClasspath.find {
+                it.name.startsWith(libraryName)
+            })
+            into targetDir
+            include "${sdkComponentsDirName}/**"
+        }
+    } catch (IllegalArgumentException e) {
+        Utils.exitWithErrorLog("Unable to find [${libraryName}] in the compile classpath. Make sure that the library is " +
+            "published to Maven local repository and the proper dependency is added to the build.gradle file.")
+    }
+    project.copy {
+        TaskLogger.info("Copying [${libraryName}] jar file to [${targetDir}]")
+        from configurations.compileClasspath.find {
+            it.name.startsWith(libraryName)
+        }
+        into targetDir
+        rename("^.*${libraryName}.*\$", "${libraryName}.jar")
+    }
+    TaskLogger.success("Copying sdk components finished successfully.")
+}
+
+private void prepareAppPackage() {
+    TaskLogger.info("Starting 'prepareAppPackage' task...")
+    def appPackage = getCommandArgument("appPackage")
+    def schema = getCommandArgument("schema")
+    def stage = getCommandArgument("stage")
+    def connection = getCommandArgument("connection")
+
+    SnowsqlQueryScript script = SnowsqlQueryScript.createScript(connection)
+    if (checkIfAppPackageExists(appPackage, connection)) {
+        decideToRecreateOrExit(appPackage, connection, script)
+    }
+    TaskLogger.info("Starting to create a new APPLICATION PACKAGE, SCHEMA and STAGE.")
+    script.addQuery("CREATE APPLICATION PACKAGE IF NOT EXISTS ${appPackage} DISTRIBUTION = INTERNAL;")
+    script.addQuery("CREATE SCHEMA ${appPackage}.${schema};")
+    script.addQuery("CREATE STAGE ${appPackage}.${schema}.${stage};")
+    script.executeAndDelete()
+    TaskLogger.info("Stage [${appPackage}.${schema}.${stage}] created in app package [${appPackage}]")
+    TaskLogger.success("Application package prepared for deployment successfully.")
+}
+
+private void deployConnector(String defaultBuildDir) {
+    TaskLogger.info("Starting 'deployConnector' task...")
+    def buildDirPath = getCommandArgument("buildDirPath", { defaultBuildDir })
+    def connection = getCommandArgument("connection")
+    def appPackage = getCommandArgument("appPackage")
+    def schema = getCommandArgument("schema")
+    def stage = getCommandArgument("stage")
+    def appVersion = getCommandArgument("appVersion", { getVersionFromManifest(buildDirPath) })
+
+    SnowsqlQueryScript queriesScript = SnowsqlQueryScript.createScript(connection)
+    File buildDir = new File(buildDirPath)
+    if (buildDir.exists() && buildDir.isDirectory()) {
+        TaskLogger.info("Discovering files to be deployed in [$buildDirPath] directory.")
+        preparePutFileQueries(buildDir, queriesScript, appPackage, schema, stage, appVersion, buildDirPath)
+    } else {
+        Utils.exitWithErrorLog("File [${buildDir}] does not exist or is not a directory.")
+    }
+    TaskLogger.info("Putting discovered files to [${appVersion}] directory on [${appPackage}.${schema}.${stage}] stage.")
+    queriesScript.executeAndDelete()
+    TaskLogger.success("Connector deployment process finished successfully. " +
+        "Version directory can be found at [@${appPackage}.${schema}.${stage}/${appVersion}].")
+}
+
+private void createNewVersion() {
+    TaskLogger.info("Starting 'createAppInstance' task...")
+    def connection = getCommandArgument("connection")
+    def versionDirPath = getCommandArgument("versionDirPath")
+    def appVersion = getCommandArgument("appVersion")
+    def appPackage = getCommandArgument("appPackage")
+
+    TaskLogger.info("Creating new application version [${appVersion}] from version directory [${versionDirPath}].")
+    String query = """ALTER APPLICATION PACKAGE ${appPackage}
+                         ADD VERSION "${appVersion}"
+                         USING '${versionDirPath}';"""
+    Process command = new ProcessBuilder(["snowsql", "-c", connection, "-q", query]).redirectErrorStream(true).start()
+    Utils.executeStandardSnowsqlCommand(command)
+    TaskLogger.success("Version [${appVersion}] cretead successfully.")
+}
+
+private void createAppInstance() {
+    TaskLogger.info("Starting 'createAppInstance' task...")
+    def connection = getCommandArgument("connection")
+    def appPackage = getCommandArgument("appPackage")
+    def instanceNameSuffix = getCommandArgument("instanceNameSuffix", { "" })
+    def versionDirPath = java.util.Optional.ofNullable(getCommandArgument("versionDirPath", { null }))
+    def appVersion = java.util.Optional.ofNullable(getCommandArgument("appVersion", { null }))
+    def instanceName = getCommandArgument("instanceName", { appPackage + (instanceNameSuffix.isBlank() ? "_INSTANCE" : "_${instanceNameSuffix}") })
+
+    String query = createFromAppVersionOrVersionDir(instanceName, appPackage, versionDirPath, appVersion)
+    Process command = new ProcessBuilder("snowsql", "-c", connection, "-q", query).redirectErrorStream(true).start()
+    Utils.executeStandardSnowsqlCommand(command)
+    TaskLogger.success("Application instance [${instanceName}] created successfully.")
+}
+
+/*
+* **********************************************
+*                 TASK UTILS
+* **********************************************
+*/
+
+private String createFromAppVersionOrVersionDir(String instanceName, String appPackage, java.util.Optional<String> versionDirPath, java.util.Optional<String> appVersion) {
+    String createFromAppPackageQuery = """CREATE APPLICATION ${instanceName}
+                        FROM APPLICATION PACKAGE ${appPackage}
+                        USING ${versionDirPath.orElse("")};"""
+    String createFromAppVersionQuery = """CREATE APPLICATION ${instanceName}
+                        FROM APPLICATION PACKAGE ${appPackage}
+                        USING VERSION "${appVersion.orElse("")}";"""
+    String infoLog
+    String query
+
+    versionDirPath.ifPresent(dirPath -> {
+        infoLog = "Creating APPLICATION instance from version directory [${dirPath}.]"
+        query = createFromAppPackageQuery
+    })
+    appVersion.ifPresent(version -> {
+        infoLog = "Creating APPLICATION instance from VERSION [${version}.]"
+        query = createFromAppVersionQuery
+    })
+    if (infoLog == null && query == null) {
+        Utils.exitWithErrorLog("Neither [appVersion] nor [versionDirPath] parameter was specified.")
+    }
+    TaskLogger.info(infoLog)
+    return query
+}
+
+private boolean checkIfAppPackageExists(String appPackage, String connection) {
+    TaskLogger.info("Checking if application package [${appPackage}] already exists.")
+    String query = "SHOW DATABASES LIKE '${appPackage}';"
+    Process command = new ProcessBuilder(["snowsql", "-c", connection, "-q", query]).redirectErrorStream(true).start()
+    def commandOutput = Utils.executeStandardSnowsqlCommand(command)
+    return commandOutput.stream()
+        .filter { it.contains("1 Row(s) produced.") }
+        .count() == 1
+}
+
+private void decideToRecreateOrExit(String appPackage, String connection, SnowsqlQueryScript script) {
+    String dropAppPackageDecision = Utils.getUserInput("Application package [${appPackage}] already exists. Do you want to drop it and recreate? [y/n]")
+    switch (dropAppPackageDecision) {
+        case "y":
+            TaskLogger.info("Decided to drop current application package.")
+            String query = "DROP APPLICATION PACKAGE IF EXISTS ${appPackage};"
+            script.addQuery(query)
+            break
+        case "n":
+            script.deleteScript()
+            Utils.exitGracefully("Application package [${appPackage}] preparation process stopped.")
+            break
+        default:
+            decideToRecreateOrExit(appPackage, connection, script)
+    }
+}
+
+private void preparePutFileQueries(File dirToSearch, SnowsqlQueryScript script, String appPackage, String schema, String stage, String appVersion, String buildDirPath) {
+    def filesInside = dirToSearch.listFiles().toList()
+    filesInside.each {
+        if (it.isDirectory()) {
+            preparePutFileQueries(it, script, appPackage, schema, stage, appVersion, buildDirPath)
+        } else {
+            TaskLogger.info("Discovered file: [.${it.path - buildDirPath}].")
+            String query = """PUT file://${it.path.replace("./", "")}
+                @${appPackage}.${schema}.${stage}/${appVersion}${(it.path - buildDirPath).replace(it.name, "")}
+                AUTO_COMPRESS = FALSE
+                OVERWRITE = FALSE;"""
+            script.addQuery(query)
+        }
+    }
+}
+
+private void buildLocalJavaArtifact() {
+    TaskLogger.info("Building local jar artifact from local project.")
+    var process = new ProcessBuilder(["./gradlew", "build"]).redirectErrorStream(true).start()
+    Utils.executeCommand(process, "BUILD FAILED in", { Utils.exitWithErrorLog("Gradle build failed. Cannot create a jar artifact.") })
+}
+
+private String getCommandArgument(String propertyName) {
+    if (project.hasProperty(propertyName)) {
+        return project.property(propertyName).toString()
+    }
+    Utils.exitWithErrorLog("Parameter '${propertyName}' is required. Add [-P${propertyName}=\"<value>\"] to the command.")
+}
+
+private String getCommandArgument(String propertyName, Supplier<String> defaultValue) {
+    return project.hasProperty(propertyName) ?
+        project.property(propertyName) : defaultValue.get()
+}
+
+private String getVersionFromManifest(String buildDirPath) {
+    TaskLogger.info("No value assigned to 'appVersion' parameter. Fetching version from manifest file.")
+    File manifestFile = findManifestInDir(buildDirPath)
+    def lines = manifestFile.readLines()
+    String appVersion
+    try {
+        appVersion = lines.subList(lines.indexOf("version:"), lines.size())
+            .findAll { it.contains("name:") }
+            .first()
+            .with { it.substring(it.indexOf('"') + 1, it.lastIndexOf('"')) }
+    } catch (IndexOutOfBoundsException e) {
+        Utils.exitWithErrorLog("'version:' property not found in the manifest file.")
+    } catch (NoSuchElementException e) {
+        Utils.exitWithErrorLog("'name:' key for 'version:' property not found in the manifest file.")
+    }
+    allowVersionFromManifestOrExit(appVersion)
+    return appVersion
+}
+
+private void allowVersionFromManifestOrExit(String appVersion) {
+    String useVersionFromManifestDecision = Utils.getUserInput("Found version [${appVersion}] in the manifest file. Do you want to use this version? [y/n]")
+    switch (useVersionFromManifestDecision) {
+        case "y":
+            TaskLogger.info("Using version [$appVersion] from manifest file as a version directory name.")
+            break
+        case "n":
+            Utils.exitGracefully("Run the task once again and choose the version with [-PappVersion] parameter.")
+            break
+        default:
+            allowVersionFromManifestOrExit(appVersion)
+    }
+}
+
+private File findManifestInDir(String buildDirPath) {
+    File buildDir = new File(buildDirPath)
+    Utils.isDirectoryOrExit(buildDirPath)
+    String manifestFilePath = buildDir.listFiles()
+        .toList()
+        .stream()
+        .filter { it.getName().contains("manifest.yml") || it.getName().contains("manifest.yaml") }
+        .map { it.getPath() }
+        .findFirst()
+        .orElseGet { Utils.exitWithErrorLog("Manifest file does not exist in [${buildDirPath}].") }
+    TaskLogger.info("Manifest file found in connector build directory [$manifestFilePath].")
+    return new File(manifestFilePath)
+}
+
+class TaskLogger {
+
+    private static String redText = "\u001B[31m"
+    private static String lightBlueText = "\u001B[96m"
+    private static String greenText = "\u001B[92m"
+    private static String blueText = "\u001B[36m"
+    private static String yellowText = "\u001B[93m"
+    private static String defaultText = "\u001B[0m"
+
+    static void error(String log) {
+        println("${redText}[ERROR]: ${log}${defaultText}")
+    }
+
+    static void info(String log) {
+        println("${lightBlueText}[INFO]: ${log}${defaultText}")
+    }
+
+    static void success(String log) {
+        println("${greenText}[SUCCESS]: ${log}${defaultText}")
+    }
+
+    static void external(String log) {
+        println("${blueText}[EXTERNAL_LOG]: ${log}${defaultText}")
+    }
+
+    static void input(String log) {
+        println("${yellowText}[INPUT_REQUIRED]: ${log}${defaultText}")
+    }
+}
+
+class SnowsqlQueryScript {
+
+    private String connection
+    private File script
+
+    private SnowsqlQueryScript(String connection, File script) {
+        this.connection = connection
+        this.script = script
+    }
+
+    static SnowsqlQueryScript createScript(String connectionName) {
+        File queriesScript = new File("./queriesScript.sql")
+        queriesScript.delete()
+        queriesScript.createNewFile()
+        return new SnowsqlQueryScript(connectionName, queriesScript)
+    }
+
+    void addQuery(String query) {
+        this.script.with {
+            it.append("${query}\n")
+        }
+    }
+
+    void executeAndDelete() {
+        var process = new ProcessBuilder(["snowsql", "-c", this.connection, "-f", this.script.path]).redirectErrorStream(true).start()
+        String errorTriggerLine = "If the error message is unclear"
+        Utils.executeCommand(process, errorTriggerLine,
+            {
+                this.script.delete()
+                Utils.exitWithErrorLog("Encountered an error while using snowsql. Check snowsql logs in order to find error root cause.")
+            })
+        deleteScript()
+    }
+
+    void deleteScript() {
+        script.delete()
+    }
+}
+
+class Utils {
+
+    static void isDirectoryOrExit(String path) {
+        File buildDir = new File(path)
+        if (!buildDir.isDirectory() || !buildDir.exists()) {
+            exitWithErrorLog("File [${buildDir}] does not exist or is not a directory.")
+        }
+    }
+
+    static void exitWithErrorLog(String log) {
+        TaskLogger.error(log)
+        TaskLogger.error("Task execution failed.")
+        throw new StopExecutionException()
+    }
+
+    static void exitGracefully(String log) {
+        TaskLogger.success(log)
+        throw new StopExecutionException()
+    }
+
+    static List<String> executeCommand(Process command, String errorLine, Runnable onErrorAction) {
+        var reader = new BufferedReader(new InputStreamReader(command.getInputStream()))
+        List<String> commandOutput = new LinkedList<>()
+        String line
+        boolean encounteredError
+        while ((line = reader.readLine()) != null) {
+            TaskLogger.external(line)
+            commandOutput.add(line)
+            if (line.contains(errorLine)) {
+                encounteredError = true
+            }
+        }
+        if (encounteredError) {
+            onErrorAction.run()
+        }
+        return commandOutput
+    }
+
+    static List<String> executeStandardSnowsqlCommand(Process command) {
+        return executeCommand(command,
+            "If the error message is unclear",
+            { exitWithErrorLog("Encountered an error while using snowsql. Check snowsql logs in order to find error root cause.") })
+    }
+
+    static String getUserInput(String displayedMessage) {
+        Scanner scanner = new Scanner(System.in)
+        TaskLogger.input(displayedMessage)
+        return scanner.next()
+    }
+}

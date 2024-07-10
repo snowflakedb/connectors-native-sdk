@@ -3,3 +3,4 @@ channels:
   - snowflake
 dependencies:
   - snowflake-native-apps-permission
+  - streamlit=1.31.1

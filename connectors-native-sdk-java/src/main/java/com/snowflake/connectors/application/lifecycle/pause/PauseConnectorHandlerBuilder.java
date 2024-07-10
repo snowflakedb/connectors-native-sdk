@@ -26,7 +26,7 @@ public class PauseConnectorHandlerBuilder {
   private PauseConnectorCallback callback;
   private ConnectorErrorHelper errorHelper;
   private final LifecycleService lifecycleService;
-  private final PauseConnectorSdkCallback pauseConnectorSdkCallback;
+  private final PauseConnectorSdkCallback sdkCallback;
   private final PauseTaskReactorService pauseTaskReactorService;
 
   /**
@@ -51,7 +51,7 @@ public class PauseConnectorHandlerBuilder {
     this.callback = new InternalPauseConnectorCallback(session);
     this.errorHelper = ConnectorErrorHelper.buildDefault(session, PauseConnectorHandler.ERROR_TYPE);
     this.lifecycleService = LifecycleService.getInstance(session, STARTED);
-    this.pauseConnectorSdkCallback = DefaultPauseConnectorSdkCallback.getInstance(session);
+    this.sdkCallback = DefaultPauseConnectorSdkCallback.getInstance(session);
     this.pauseTaskReactorService = PauseTaskReactorService.getInstance(session);
   }
 
@@ -107,7 +107,7 @@ public class PauseConnectorHandlerBuilder {
         callback,
         errorHelper,
         lifecycleService,
-        pauseConnectorSdkCallback,
+        sdkCallback,
         pauseTaskReactorService);
   }
 }

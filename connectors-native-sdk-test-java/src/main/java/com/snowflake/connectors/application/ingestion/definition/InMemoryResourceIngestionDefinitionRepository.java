@@ -92,7 +92,11 @@ public class InMemoryResourceIngestionDefinitionRepository<
     if (resources.isEmpty()) {
       return;
     }
-
     resources.forEach(this::save);
+  }
+
+  /** Clears the repository. */
+  public void clear() {
+    repository.clear();
   }
 }

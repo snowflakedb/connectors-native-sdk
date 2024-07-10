@@ -27,7 +27,7 @@ public class UpdateTaskReactorTasksTest extends BaseTaskReactorIntegrationTest {
 
   @AfterEach
   void cleanUp() {
-    session.table(ObjectName.from(TEST_INSTANCE, COMMANDS_QUEUE).getEscapedName()).delete();
+    session.table(ObjectName.from(TEST_INSTANCE, COMMANDS_QUEUE).getValue()).delete();
   }
 
   @AfterAll
@@ -58,9 +58,7 @@ public class UpdateTaskReactorTasksTest extends BaseTaskReactorIntegrationTest {
             String.format(
                 "INSERT INTO TASK_REACTOR_INSTANCES.INSTANCE_REGISTRY (INSTANCE_NAME,"
                     + " IS_INITIALIZED, IS_ACTIVE) VALUES ('%s', %s, %s)",
-                instance.instanceName().toSqlString(),
-                instance.isInitialized(),
-                instance.isActive()))
+                instance.instanceName().getValue(), instance.isInitialized(), instance.isActive()))
         .collect();
   }
 }

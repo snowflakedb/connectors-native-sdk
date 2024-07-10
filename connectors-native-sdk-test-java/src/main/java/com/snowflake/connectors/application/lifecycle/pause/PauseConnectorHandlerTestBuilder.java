@@ -19,6 +19,8 @@ import com.snowflake.snowpark_java.Session;
  *   <li>{@link PauseConnectorCallback}
  *   <li>{@link ConnectorErrorHelper}
  *   <li>{@link LifecycleService}
+ *   <li>{@link PauseConnectorSdkCallback}
+ *   <li>{@link PauseTaskReactorService}
  * </ul>
  */
 public class PauseConnectorHandlerTestBuilder {
@@ -27,7 +29,7 @@ public class PauseConnectorHandlerTestBuilder {
   private PauseConnectorCallback callback;
   private ConnectorErrorHelper errorHelper;
   private LifecycleService lifecycleService;
-  private PauseConnectorSdkCallback pauseConnectorSdkCallback;
+  private PauseConnectorSdkCallback sdkCallback;
   private PauseTaskReactorService pauseTaskReactorService;
 
   /**
@@ -51,6 +53,8 @@ public class PauseConnectorHandlerTestBuilder {
    *   <li>a default implementation of {@link LifecycleService}, with {@link
    *       com.snowflake.connectors.application.status.ConnectorStatus#STARTED STARTED} state as
    *       post-rollback status
+   *   <li>a default implementation of {@link PauseConnectorSdkCallback}
+   *   <li>a default implementation of {@link PauseTaskReactorService}
    * </ul>
    *
    * @param session Snowpark session object
@@ -63,6 +67,7 @@ public class PauseConnectorHandlerTestBuilder {
     this.callback = new InternalPauseConnectorCallback(session);
     this.errorHelper = ConnectorErrorHelper.buildDefault(session, PauseConnectorHandler.ERROR_TYPE);
     this.lifecycleService = LifecycleService.getInstance(session, STARTED);
+    this.sdkCallback = DefaultPauseConnectorSdkCallback.getInstance(session);
     this.pauseTaskReactorService = PauseTaskReactorService.getInstance(session);
   }
 
@@ -114,12 +119,11 @@ public class PauseConnectorHandlerTestBuilder {
   /**
    * Sets the internal sdk callback used to build the handler instance.
    *
-   * @param pauseConnectorSdkCallback internal sdk callback
+   * @param sdkCallback internal sdk callback
    * @return this builder
    */
-  public PauseConnectorHandlerTestBuilder withSdkCallback(
-      PauseConnectorSdkCallback pauseConnectorSdkCallback) {
-    this.pauseConnectorSdkCallback = pauseConnectorSdkCallback;
+  public PauseConnectorHandlerTestBuilder withSdkCallback(PauseConnectorSdkCallback sdkCallback) {
+    this.sdkCallback = sdkCallback;
     return this;
   }
 
@@ -146,6 +150,7 @@ public class PauseConnectorHandlerTestBuilder {
     requireNonNull(callback);
     requireNonNull(errorHelper);
     requireNonNull(lifecycleService);
+    requireNonNull(sdkCallback);
     requireNonNull(pauseTaskReactorService);
 
     return new PauseConnectorHandler(
@@ -153,7 +158,7 @@ public class PauseConnectorHandlerTestBuilder {
         callback,
         errorHelper,
         lifecycleService,
-        pauseConnectorSdkCallback,
+        sdkCallback,
         pauseTaskReactorService);
   }
 }

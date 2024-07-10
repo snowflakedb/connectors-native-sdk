@@ -46,4 +46,16 @@ public class ConnectorResponseAssert
     assertThat(actual.getMessage()).isEqualTo(message);
     return this;
   }
+
+  /**
+   * Asserts that this connector response contains additional payload with name.
+   *
+   * @param payload key of additional payload
+   * @param value value for key of payload
+   * @return this assertion
+   */
+  public ConnectorResponseAssert hasAdditionalPayload(String payload, String value) {
+    assertThat(actual.getAdditionalPayload().get(payload).asString()).isEqualTo(value);
+    return this;
+  }
 }

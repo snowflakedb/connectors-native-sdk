@@ -1,7 +1,7 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.prerequisite;
 
-import static com.snowflake.connectors.util.ResponseAssertions.assertThat;
+import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThatResponseMap;
 
 import com.snowflake.connectors.BaseNativeSdkIntegrationTest;
 import com.snowflake.snowpark_java.Row;
@@ -16,6 +16,7 @@ class BasePrerequisiteTest extends BaseNativeSdkIntegrationTest {
   @Override
   public void beforeAll() throws IOException {
     super.beforeAll();
+    executeInApp("TRUNCATE TABLE IF EXISTS STATE.PREREQUISITES");
     executeInApp(
         "INSERT INTO STATE.PREREQUISITES (ID, TITLE, DESCRIPTION, POSITION) VALUES "
             + " ('1', 'example', 'example', 3), "
@@ -34,14 +35,14 @@ class BasePrerequisiteTest extends BaseNativeSdkIntegrationTest {
 
   protected void markAllPrerequisitesAsDone() {
     var result = callProcedure("MARK_ALL_PREREQUISITES_AS_DONE()");
-    assertThat(result).hasOkResponseCode();
+    assertThatResponseMap(result).hasOKResponseCode();
   }
 
   protected void updateIndexedPrerequisites(List<Boolean> values) {
     for (int i = 1; i <= values.size(); i++) {
       boolean value = values.get(i - 1);
       var result = callProcedure(String.format("UPDATE_PREREQUISITE('%s', %s)", i, value));
-      assertThat(result).hasOkResponseCode();
+      assertThatResponseMap(result).hasOKResponseCode();
     }
   }
 }

@@ -1,8 +1,6 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.application.configuration.connector;
 
-import static java.util.Objects.requireNonNull;
-
 import com.snowflake.connectors.application.status.ConnectorStatusService;
 import com.snowflake.connectors.common.exception.helper.ConnectorErrorHelper;
 import com.snowflake.snowpark_java.Session;
@@ -20,13 +18,7 @@ import com.snowflake.snowpark_java.Session;
  *   <li>{@link ConnectorStatusService}
  * </ul>
  */
-public class ConfigureConnectorHandlerTestBuilder {
-
-  private ConfigureConnectorInputValidator inputValidator;
-  private ConfigureConnectorCallback callback;
-  private ConnectorErrorHelper errorHelper;
-  private ConnectorConfigurationService connectorConfigurationService;
-  private ConnectorStatusService connectorStatusService;
+public class ConfigureConnectorHandlerTestBuilder extends ConfigureConnectorHandlerBuilder {
 
   /**
    * Creates a new, empty {@link ConfigureConnectorHandlerTestBuilder}.
@@ -54,14 +46,7 @@ public class ConfigureConnectorHandlerTestBuilder {
    * @throws NullPointerException if the provided session object is null
    */
   public ConfigureConnectorHandlerTestBuilder(Session session) {
-    requireNonNull(session);
-
-    this.inputValidator = new DefaultConfigureConnectorInputValidator(session);
-    this.callback = new InternalConfigureConnectorCallback(session);
-    this.errorHelper =
-        ConnectorErrorHelper.buildDefault(session, ConfigureConnectorHandler.ERROR_TYPE);
-    this.connectorConfigurationService = ConnectorConfigurationService.getInstance(session);
-    this.connectorStatusService = ConnectorStatusService.getInstance(session);
+    super(session);
   }
 
   /**
@@ -72,7 +57,7 @@ public class ConfigureConnectorHandlerTestBuilder {
    */
   public ConfigureConnectorHandlerTestBuilder withInputValidator(
       ConfigureConnectorInputValidator inputValidator) {
-    this.inputValidator = inputValidator;
+    super.withInputValidator(inputValidator);
     return this;
   }
 
@@ -83,7 +68,7 @@ public class ConfigureConnectorHandlerTestBuilder {
    * @return this builder
    */
   public ConfigureConnectorHandlerTestBuilder withCallback(ConfigureConnectorCallback callback) {
-    this.callback = callback;
+    super.withCallback(callback);
     return this;
   }
 
@@ -94,7 +79,7 @@ public class ConfigureConnectorHandlerTestBuilder {
    * @return this builder
    */
   public ConfigureConnectorHandlerTestBuilder withErrorHelper(ConnectorErrorHelper errorHelper) {
-    this.errorHelper = errorHelper;
+    super.withErrorHelper(errorHelper);
     return this;
   }
 
@@ -120,26 +105,5 @@ public class ConfigureConnectorHandlerTestBuilder {
       ConnectorStatusService connectorStatusService) {
     this.connectorStatusService = connectorStatusService;
     return this;
-  }
-
-  /**
-   * Builds a new handler instance.
-   *
-   * @return new handler instance
-   * @throws NullPointerException if any property for the new handler is null
-   */
-  public ConfigureConnectorHandler build() {
-    requireNonNull(inputValidator);
-    requireNonNull(callback);
-    requireNonNull(errorHelper);
-    requireNonNull(connectorConfigurationService);
-    requireNonNull(connectorStatusService);
-
-    return new ConfigureConnectorHandler(
-        inputValidator,
-        callback,
-        errorHelper,
-        connectorConfigurationService,
-        connectorStatusService);
   }
 }

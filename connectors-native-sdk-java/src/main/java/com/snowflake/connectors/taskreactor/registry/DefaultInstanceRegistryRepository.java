@@ -1,8 +1,8 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.taskreactor.registry;
 
+import static com.snowflake.connectors.util.sql.SnowparkFunctions.lit;
 import static com.snowflake.snowpark_java.Functions.col;
-import static com.snowflake.snowpark_java.Functions.lit;
 import static java.util.stream.Collectors.toList;
 
 import com.snowflake.connectors.common.object.Identifier;
@@ -35,8 +35,19 @@ class DefaultInstanceRegistryRepository implements InstanceRegistryRepository {
   }
 
   @Override
+  public List<TaskReactorInstance> fetchAllInitialized() {
+    Row[] collect =
+        session
+            .table(TABLE_NAME)
+            .select(INSTANCE_NAME, IS_INITIALIZED, IS_ACTIVE)
+            .where(col(IS_INITIALIZED).equal_to(lit(true)))
+            .collect();
+    return Arrays.stream(collect).map(this::mapToInstance).collect(toList());
+  }
+
+  @Override
   public TaskReactorInstance fetch(Identifier instance) {
-    Column instanceEqualsCondition = col(INSTANCE_NAME).equal_to(lit(instance.toSqlString()));
+    Column instanceEqualsCondition = col(INSTANCE_NAME).equal_to(lit(instance.getValue()));
     Row[] result =
         session
             .table(TABLE_NAME)
@@ -58,7 +69,7 @@ class DefaultInstanceRegistryRepository implements InstanceRegistryRepository {
 
   private void setIsActive(Identifier instance, boolean isActive) {
     Map<Column, Column> assignments = Map.of(col(IS_ACTIVE), lit(isActive));
-    Column instanceEqualsCondition = col(INSTANCE_NAME).equal_to(lit(instance.toSqlString()));
+    Column instanceEqualsCondition = col(INSTANCE_NAME).equal_to(lit(instance.getValue()));
 
     session.table(TABLE_NAME).update(assignments, instanceEqualsCondition);
   }

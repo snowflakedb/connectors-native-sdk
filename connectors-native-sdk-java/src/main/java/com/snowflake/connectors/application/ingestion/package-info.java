@@ -1,2 +1,2 @@
-/** Backend implementation of ingestion resource creation. */
+/** Backend implementation of ingestion management. */
 package com.snowflake.connectors.application.ingestion;

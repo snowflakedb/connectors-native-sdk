@@ -2,6 +2,7 @@
 package com.snowflake.connectors.common.task;
 
 import com.snowflake.connectors.common.object.Identifier;
+import com.snowflake.connectors.common.object.Identifier.AutoQuoting;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.connectors.common.object.Reference;
 import java.util.Objects;
@@ -122,14 +123,36 @@ public class TaskProperties {
     /**
      * Sets the warehouse used to build task properties.
      *
-     * @param warehouse warehouse
+     * <p>The provided String can be a warehouse identifier or a reference. If a warehouse
+     * identifier is provided - a new identifier instance is created without any auto quoting.
+     *
+     * @param warehouse warehouse identifier or reference
      * @return this builder
      */
     public Builder withWarehouse(String warehouse) {
-      if (Reference.validate(warehouse)) {
+      if (Reference.isValid(warehouse)) {
         return withWarehouse(Reference.of(warehouse));
       }
-      return withWarehouse(Identifier.fromWithAutoQuoting(warehouse));
+
+      return withWarehouse(Identifier.from(warehouse));
+    }
+
+    /**
+     * Sets the warehouse used to build task properties.
+     *
+     * @param warehouse warehouse identifier or reference
+     * @return this builder
+     */
+    public Builder withWarehouse(String warehouse, AutoQuoting autoQuoting) {
+      if (warehouse == null) {
+        return withWarehouse((Identifier) null);
+      }
+
+      if (Reference.isValid(warehouse)) {
+        return withWarehouse(Reference.of(warehouse));
+      }
+
+      return withWarehouse(Identifier.from(warehouse, autoQuoting));
     }
 
     /**
@@ -238,9 +261,9 @@ public class TaskProperties {
    */
   public String warehouse() {
     if (warehouseReference != null) {
-      return warehouseReference.value();
+      return warehouseReference.getValue();
     } else if (warehouseIdentifier != null) {
-      return warehouseIdentifier.toSqlString();
+      return warehouseIdentifier.getValue();
     }
 
     return null;

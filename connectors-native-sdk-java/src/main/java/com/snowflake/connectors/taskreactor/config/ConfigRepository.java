@@ -41,7 +41,7 @@ public interface ConfigRepository {
    * @return a new repository instance
    */
   static ConfigRepository getInstance(Session session, Identifier instanceName) {
-    String tableName = String.format("%s.%s", instanceName.toSqlString(), CONFIG_TABLE);
+    String tableName = String.format("%s.%s", instanceName.getValue(), CONFIG_TABLE);
     KeyValueTable repository = new DefaultKeyValueTable(session, tableName);
 
     return new DefaultConfigRepository(repository);

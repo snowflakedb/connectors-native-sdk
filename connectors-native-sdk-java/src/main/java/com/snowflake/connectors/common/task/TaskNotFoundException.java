@@ -18,6 +18,6 @@ public class TaskNotFoundException extends ConnectorException {
    * @param taskName task object name
    */
   public TaskNotFoundException(ObjectName taskName) {
-    super(RESPONSE_CODE, String.format(MESSAGE, taskName.getEscapedName()));
+    super(RESPONSE_CODE, String.format(MESSAGE, taskName.getValue()));
   }
 }

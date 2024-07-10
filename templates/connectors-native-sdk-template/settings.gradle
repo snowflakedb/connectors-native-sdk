@@ -1,1 +1,10 @@
+pluginManagement {
+    repositories {
+        def artifactoryUrl = System.getenv('GRADLE_PLUGINS_ARTIFACTORY_URL')
+        artifactoryUrl != null
+            ? maven { url artifactoryUrl }
+            : gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'connectors-native-sdk-template'

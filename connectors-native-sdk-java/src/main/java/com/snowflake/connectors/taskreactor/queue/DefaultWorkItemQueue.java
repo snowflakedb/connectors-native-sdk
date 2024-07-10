@@ -3,14 +3,15 @@ package com.snowflake.connectors.taskreactor.queue;
 
 import static com.snowflake.connectors.taskreactor.ComponentNames.QUEUE_TABLE;
 import static com.snowflake.connectors.taskreactor.ComponentNames.WORKER_COMBINED_VIEW;
+import static com.snowflake.connectors.util.sql.SnowparkFunctions.lit;
 import static com.snowflake.connectors.util.sql.SqlTools.asCommaSeparatedSqlList;
 import static com.snowflake.snowpark_java.Functions.col;
-import static com.snowflake.snowpark_java.Functions.lit;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.object.ObjectName;
+import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.connectors.taskreactor.worker.queue.WorkItem;
 import com.snowflake.connectors.util.sql.MergeStatementValidator;
 import com.snowflake.snowpark_java.Column;
@@ -23,12 +24,11 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Default implementation of {@link WorkItemQueue}. */
 public class DefaultWorkItemQueue implements WorkItemQueue {
 
-  private static final Logger logger = LoggerFactory.getLogger(DefaultWorkItemQueue.class);
+  private static final Logger LOG = TaskReactorLogger.getLogger(DefaultWorkItemQueue.class);
 
   private final Session session;
   private final Identifier instanceSchema;
@@ -42,7 +42,7 @@ public class DefaultWorkItemQueue implements WorkItemQueue {
 
   @Override
   public List<QueueItem> fetchNotProcessedAndCancelingItems() {
-    logger.debug("Fetching currently not processed and canceling items.");
+    LOG.debug("Fetching currently not processed and canceling items.");
 
     Row[] rawRows =
         session
@@ -52,7 +52,7 @@ public class DefaultWorkItemQueue implements WorkItemQueue {
                         + " %s queue WHERE NOT EXISTS (SELECT 1 FROM %s.%s queues WHERE"
                         + " queue.RESOURCE_ID = queues.RESOURCE_ID) OR"
                         + " queue.DISPATCHER_OPTIONS:cancelOngoingExecution = true",
-                    queueName.getEscapedName(), instanceSchema.toSqlString(), WORKER_COMBINED_VIEW))
+                    queueName.getValue(), instanceSchema.getValue(), WORKER_COMBINED_VIEW))
             .select("ID", "TIMESTAMP", "RESOURCE_ID", "DISPATCHER_OPTIONS", "WORKER_PAYLOAD")
             .collect();
     return Arrays.stream(rawRows).map(QueueItem::fromRow).collect(toList());
@@ -61,8 +61,7 @@ public class DefaultWorkItemQueue implements WorkItemQueue {
   @Override
   public void push(List<WorkItem> workItems) {
     if (workItems.isEmpty()) {
-      logger.debug(
-          "Skip pushing items to queue {}, due to lack of work items.", queueName.getEscapedName());
+      LOG.debug("Skip pushing items to queue {}, due to lack of work items.", queueName.getValue());
       return;
     }
 
@@ -78,7 +77,7 @@ public class DefaultWorkItemQueue implements WorkItemQueue {
                 + " ('1' = '1') WHEN NOT MATCHED THEN INSERT (\"ID\", \"RESOURCE_ID\","
                 + " \"WORKER_PAYLOAD\", \"TIMESTAMP\") VALUES (source.id, source.resource_id,"
                 + " source.worker_payload, SYSDATE()) ",
-            queueName.getEscapedName(), rows);
+            queueName.getValue(), rows);
 
     try {
       PreparedStatement preparedStatement = connection.prepareStatement(query);
@@ -91,9 +90,9 @@ public class DefaultWorkItemQueue implements WorkItemQueue {
 
       preparedStatement.executeUpdate();
     } catch (SQLException e) {
-      logger.error(
+      LOG.error(
           "Failed to push items to queue {}. Merge statement failed with exception:",
-          queueName.getEscapedName(),
+          queueName.getValue(),
           e);
       throw new WorkItemQueueException(e);
     }
@@ -101,7 +100,7 @@ public class DefaultWorkItemQueue implements WorkItemQueue {
 
   @Override
   public void cancelOngoingExecutions(List<String> resourceIds) {
-    logger.debug("Pushing {} items to WorkItemQueue to cancel properties.", resourceIds.size());
+    LOG.debug("Pushing {} items to WorkItemQueue to cancel properties.", resourceIds.size());
 
     String parsedIds = asCommaSeparatedSqlList(resourceIds);
 
@@ -111,22 +110,21 @@ public class DefaultWorkItemQueue implements WorkItemQueue {
                 "INSERT INTO %s (RESOURCE_ID, DISPATCHER_OPTIONS)"
                     + " SELECT VALUE, PARSE_JSON('{\"cancelOngoingExecution\": true}') FROM"
                     + " TABLE(FLATTEN(PARSE_JSON('[%s]')))",
-                queueName.getEscapedName(), parsedIds))
+                queueName.getValue(), parsedIds))
         .toLocalIterator();
   }
 
   @Override
   public void delete(List<String> ids) {
     if (ids.isEmpty()) {
-      logger.debug("There are no work items to be removed from the WorkItemQueue.");
+      LOG.debug("There are no work items to be removed from the WorkItemQueue.");
       return;
     }
-    logger.debug("Removing {} items from WorkItemQueue.", ids.size());
+    LOG.debug("Removing {} items from WorkItemQueue.", ids.size());
 
     String parsedIds = asCommaSeparatedSqlList(ids);
     session
-        .sql(
-            String.format("DELETE FROM %s WHERE ID IN (%s)", queueName.getEscapedName(), parsedIds))
+        .sql(String.format("DELETE FROM %s WHERE ID IN (%s)", queueName.getValue(), parsedIds))
         .toLocalIterator();
   }
 
@@ -134,6 +132,6 @@ public class DefaultWorkItemQueue implements WorkItemQueue {
   public void deleteBefore(String resourceId, Timestamp timestamp) {
     Column condition =
         col("RESOURCE_ID").equal_to(lit(resourceId)).and(col("TIMESTAMP").leq(lit(timestamp)));
-    session.table(queueName.getEscapedName()).delete(condition);
+    session.table(queueName.getValue()).delete(condition);
   }
 }

@@ -188,6 +188,16 @@ public class ConnectorResponse {
   }
 
   /**
+   * Adds a new key-value pair to additional payload
+   *
+   * @return this ConnectorResponse instance
+   */
+  public ConnectorResponse withAdditionalPayload(String key, Variant value) {
+    additionalPayload.put(key, value);
+    return this;
+  }
+
+  /**
    * Returns the properties of this response in a Map.
    *
    * @return properties of this response in a Map
@@ -253,6 +263,15 @@ public class ConnectorResponse {
    */
   public boolean isOk() {
     return is(OK_CODE);
+  }
+
+  /**
+   * Returns whether the code of this response is not equal to {@code OK}.
+   *
+   * @return whether the code of this response is not equal to {@code OK}
+   */
+  public boolean isNotOk() {
+    return !isOk();
   }
 
   private void validateResponse(String responseCode, String message) {
