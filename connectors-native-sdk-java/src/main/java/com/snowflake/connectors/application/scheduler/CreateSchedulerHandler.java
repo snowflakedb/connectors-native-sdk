@@ -24,8 +24,7 @@ public class CreateSchedulerHandler {
    * @param errorHelper connector error helper
    * @param schedulerCreator scheduler creator
    */
-  public CreateSchedulerHandler(
-      ConnectorErrorHelper errorHelper, SchedulerCreator schedulerCreator) {
+  CreateSchedulerHandler(ConnectorErrorHelper errorHelper, SchedulerCreator schedulerCreator) {
     this.errorHelper = errorHelper;
     this.schedulerCreator = schedulerCreator;
   }
@@ -46,9 +45,18 @@ public class CreateSchedulerHandler {
    *     #createScheduler() createScheduler}
    */
   public static Variant createScheduler(Session session) {
-    var schedulerCreator = SchedulerCreator.getInstance(session);
-    var errorHelper = ConnectorErrorHelper.buildDefault(session, ERROR_TYPE);
-    return new CreateSchedulerHandler(errorHelper, schedulerCreator).createScheduler().toVariant();
+    var schedulerHandler = CreateSchedulerHandler.builder(session).build();
+    return schedulerHandler.createScheduler().toVariant();
+  }
+
+  /**
+   * Returns a new instance of {@link CreateSchedulerHandlerBuilder}.
+   *
+   * @param session Snowpark session object
+   * @return a new builder instance
+   */
+  public static CreateSchedulerHandlerBuilder builder(Session session) {
+    return new CreateSchedulerHandlerBuilder(session);
   }
 
   /**

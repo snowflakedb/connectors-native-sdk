@@ -23,6 +23,6 @@ class DefaultConnectionConfigurationInputValidator
     return callPublicProcedure(
         session,
         "SET_CONNECTION_CONFIGURATION_VALIDATE",
-        SqlTools.variantArgument(connectionConfiguration));
+        SqlTools.asVariant(connectionConfiguration));
   }
 }

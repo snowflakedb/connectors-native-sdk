@@ -20,6 +20,6 @@ public class InaccessibleWarehouseException extends ConnectorException {
    * @param warehouse warehouse name
    */
   public InaccessibleWarehouseException(Identifier warehouse) {
-    super(RESPONSE_CODE, format(MESSAGE, warehouse.toSqlString()));
+    super(RESPONSE_CODE, format(MESSAGE, warehouse.getValue()));
   }
 }

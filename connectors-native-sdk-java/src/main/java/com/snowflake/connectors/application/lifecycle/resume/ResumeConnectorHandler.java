@@ -7,6 +7,7 @@ import static com.snowflake.connectors.application.status.ConnectorStatus.STARTI
 
 import com.snowflake.connectors.application.lifecycle.LifecycleService;
 import com.snowflake.connectors.common.exception.helper.ConnectorErrorHelper;
+import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.response.ConnectorResponse;
 import com.snowflake.connectors.taskreactor.InstanceStreamService;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
@@ -28,7 +29,7 @@ public class ResumeConnectorHandler {
   private final ResumeConnectorCallback callback;
   private final ConnectorErrorHelper errorHelper;
   private final LifecycleService lifecycleService;
-  private final ResumeConnectorSdkCallback resumeConnectorSdkCallback;
+  private final ResumeConnectorSdkCallback sdkCallback;
   private final InstanceStreamService instanceStreamService;
   private final TaskReactorInstanceActionExecutor taskReactorInstanceActionExecutor;
   private final ResumeTaskReactorService resumeTaskReactorService;
@@ -38,7 +39,7 @@ public class ResumeConnectorHandler {
       ResumeConnectorCallback callback,
       ConnectorErrorHelper errorHelper,
       LifecycleService lifecycleService,
-      ResumeConnectorSdkCallback resumeConnectorSdkCallback,
+      ResumeConnectorSdkCallback sdkCallback,
       InstanceStreamService instanceStreamService,
       TaskReactorInstanceActionExecutor taskReactorInstanceActionExecutor,
       ResumeTaskReactorService resumeTaskReactorService) {
@@ -46,7 +47,7 @@ public class ResumeConnectorHandler {
     this.callback = callback;
     this.errorHelper = errorHelper;
     this.lifecycleService = lifecycleService;
-    this.resumeConnectorSdkCallback = resumeConnectorSdkCallback;
+    this.sdkCallback = sdkCallback;
     this.instanceStreamService = instanceStreamService;
     this.taskReactorInstanceActionExecutor = taskReactorInstanceActionExecutor;
     this.resumeTaskReactorService = resumeTaskReactorService;
@@ -85,6 +86,9 @@ public class ResumeConnectorHandler {
    *   <li>connector status check
    *   <li>{@link ResumeConnectorStateValidator#validate()}
    *   <li>{@link ResumeConnectorCallback#execute()}
+   *   <li>{@link ResumeConnectorSdkCallback#execute()}
+   *   <li>{@link InstanceStreamService#recreateStreams(Identifier)} executed for all Task Reactor
+   *       instances
    *   <li>connector status update
    * </ul>
    *
@@ -104,25 +108,24 @@ public class ResumeConnectorHandler {
     lifecycleService.validateStatus(PAUSED, STARTING);
 
     var validationResult = stateValidator.validate();
-    if (!validationResult.isOk()) {
+    if (validationResult.isNotOk()) {
       return validationResult;
     }
 
     lifecycleService.updateStatus(STARTING);
 
     ConnectorResponse internalResult = lifecycleService.withRollbackHandling(callback::execute);
-    if (!internalResult.isOk()) {
+    if (internalResult.isNotOk()) {
       return internalResult;
     }
 
-    ConnectorResponse callbackResult =
-        lifecycleService.withRollbackHandling(resumeConnectorSdkCallback::execute);
-    if (!internalResult.isOk()) {
+    ConnectorResponse callbackResult = lifecycleService.withRollbackHandling(sdkCallback::execute);
+    if (callbackResult.isNotOk()) {
       return callbackResult;
     }
 
     resumeTaskReactorService.resumeAllInstances();
-    taskReactorInstanceActionExecutor.applyToAllExistingTaskReactorInstances(
+    taskReactorInstanceActionExecutor.applyToAllInitializedTaskReactorInstances(
         instanceStreamService::recreateStreams);
 
     lifecycleService.updateStatus(STARTED);

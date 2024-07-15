@@ -2,7 +2,6 @@
 package com.snowflake.connectors.taskreactor;
 
 import com.snowflake.connectors.common.object.Identifier;
-import com.snowflake.connectors.common.task.InMemoryTaskRepository;
 import com.snowflake.connectors.common.task.TaskRepository;
 import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
 import com.snowflake.connectors.taskreactor.commands.queue.InMemoryCommandsQueueRepository;
@@ -15,9 +14,20 @@ import java.util.Map;
 public class InMemoryTaskReactorInstanceComponentProvider
     implements TaskReactorInstanceComponentProvider {
 
-  private final Map<Identifier, InMemoryCommandsQueueRepository> commandsQueueRepositories =
-      new HashMap<>();
-  private final TaskRepository taskRepository = new InMemoryTaskRepository();
+  private final Map<Identifier, InMemoryCommandsQueueRepository> commandsQueueRepositories;
+  private final TaskRepository taskRepository;
+
+  public InMemoryTaskReactorInstanceComponentProvider() {
+    this.commandsQueueRepositories = new HashMap<>();
+    this.taskRepository = new InMemoryTaskManagement();
+  }
+
+  public InMemoryTaskReactorInstanceComponentProvider(
+      Map<Identifier, InMemoryCommandsQueueRepository> commandsQueueRepositories,
+      TaskRepository taskRepository) {
+    this.commandsQueueRepositories = commandsQueueRepositories;
+    this.taskRepository = taskRepository;
+  }
 
   @Override
   public CommandsQueueRepository commandsQueueRepository(Identifier instanceSchema) {
@@ -37,5 +47,14 @@ public class InMemoryTaskReactorInstanceComponentProvider
    */
   public TaskRepository taskRepository() {
     return taskRepository;
+  }
+
+  /**
+   * Returns the commands queue repositories.
+   *
+   * @return commands queue repositories
+   */
+  public Map<Identifier, InMemoryCommandsQueueRepository> commandsQueueRepositories() {
+    return commandsQueueRepositories;
   }
 }

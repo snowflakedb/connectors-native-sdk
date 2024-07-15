@@ -14,6 +14,10 @@ integration_test: clean
 application_test: clean
 	./gradlew appTest -i
 
+.PHONY: upgrade_test
+upgrade_test: clean
+	./gradlew upgradeTest -i
+
 .PHONY: spotbugs
 spotbugs: clean
 	./gradlew spotbugsMain spotbugsTest spotbugsAppTest spotbugsIntTest

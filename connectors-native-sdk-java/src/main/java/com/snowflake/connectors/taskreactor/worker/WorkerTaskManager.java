@@ -1,6 +1,8 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.taskreactor.worker;
 
+import static com.snowflake.connectors.util.sql.SqlTools.asVarchar;
+
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.connectors.common.task.TaskDefinition;
@@ -9,13 +11,13 @@ import com.snowflake.connectors.common.task.TaskRepository;
 import com.snowflake.connectors.taskreactor.ComponentNames;
 import com.snowflake.connectors.taskreactor.config.ConfigRepository;
 import com.snowflake.connectors.taskreactor.config.TaskReactorConfig;
+import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.snowpark_java.Session;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class WorkerTaskManager {
 
-  private static final Logger logger = LoggerFactory.getLogger(WorkerTaskManager.class);
+  private static final Logger LOG = TaskReactorLogger.getLogger(WorkerTaskManager.class);
 
   private final Identifier instanceSchema;
   private final ConfigRepository configRepository;
@@ -48,7 +50,7 @@ public class WorkerTaskManager {
    * @param workerId worker id
    */
   public void createWorkerTask(WorkerId workerId) {
-    logger.debug("Creating new worker for id {}.", workerId);
+    LOG.debug("Creating new worker for id {}.", workerId);
 
     ObjectName taskName = ObjectName.from(instanceSchema, ComponentNames.workerTask(workerId));
     TaskReactorConfig config = configRepository.getConfig();
@@ -57,7 +59,8 @@ public class WorkerTaskManager {
 
     String procedure =
         String.format(
-            "CALL %s(%d, '%s')", workerProcedure, workerId.value(), instanceSchema.getName());
+            "CALL %s(%d, %s)",
+            workerProcedure, workerId.value(), asVarchar(instanceSchema.getValue()));
     TaskProperties taskProperties =
         new TaskProperties.Builder(taskName, procedure, "1 MINUTE")
             .withWarehouse(warehouse)
@@ -75,7 +78,7 @@ public class WorkerTaskManager {
    * @param workerId worker id
    */
   public void dropWorkerTask(WorkerId workerId) {
-    logger.debug("Removing worker with id {}.", workerId);
+    LOG.debug("Removing worker with id {}.", workerId);
 
     ObjectName workerTask = ObjectName.from(instanceSchema, ComponentNames.workerTask(workerId));
     taskRepository.fetch(workerTask).drop();
@@ -91,7 +94,7 @@ public class WorkerTaskManager {
    * @param warehouseName new warehouse name
    */
   public void alterWarehouse(WorkerId workerId, String warehouseName) {
-    logger.debug("Altering warehouse of worker with id {}.", workerId);
+    LOG.debug("Altering warehouse of worker with id {}.", workerId);
 
     var workerTaskInstance = ObjectName.from(instanceSchema, ComponentNames.workerTask(workerId));
     var workerTask = taskRepository.fetch(workerTaskInstance);
@@ -104,7 +107,7 @@ public class WorkerTaskManager {
    * @param workerId worker id
    */
   public void suspendWorkerTaskIfExists(WorkerId workerId) {
-    logger.debug("Suspending worker with id {}.", workerId);
+    LOG.debug("Suspending worker with id {}.", workerId);
 
     ObjectName workerTask = ObjectName.from(instanceSchema, ComponentNames.workerTask(workerId));
     taskRepository.fetch(workerTask).suspendIfExists();
@@ -116,7 +119,7 @@ public class WorkerTaskManager {
    * @param workerId worker id
    */
   public void resumeWorkerTask(WorkerId workerId) {
-    logger.debug("Resuming worker with id {}.", workerId);
+    LOG.debug("Resuming worker with id {}.", workerId);
 
     ObjectName workerTask = ObjectName.from(instanceSchema, ComponentNames.workerTask(workerId));
     taskRepository.fetch(workerTask).resume();

@@ -2,13 +2,12 @@
 package com.snowflake.connectors;
 
 import com.snowflake.snowpark_java.Session;
-import java.io.IOException;
 import org.junit.jupiter.api.BeforeAll;
 
 public class BaseIntegrationTest extends BaseTest {
 
   @BeforeAll
-  static void beforeAll() throws IOException {
+  static void beforeAll() {
     prepareDatabaseObjects(session);
   }
 

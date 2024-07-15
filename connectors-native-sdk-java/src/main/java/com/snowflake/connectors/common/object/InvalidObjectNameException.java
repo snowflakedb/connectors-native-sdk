@@ -11,7 +11,7 @@ public class InvalidObjectNameException extends ConnectorException {
   /** Error code of the exception, used in the underlying {@link #getResponse() response}. */
   public static final String RESPONSE_CODE = "INVALID_OBJECT_NAME";
 
-  private static final String MESSAGE = "%s is not a valid Snowflake object name";
+  private static final String MESSAGE = "'%s' is not a valid Snowflake object name";
 
   /**
    * Creates a new {@link InvalidObjectNameException}.

@@ -24,7 +24,7 @@ public class IngestionProcess {
    * @param resourceIngestionDefinitionId resource ingestion definition id
    * @param ingestionConfigurationId ingestion configuration id
    * @param type process type
-   * @param status process status
+   * @param status {@link IngestionProcessStatuses process status}
    * @param createdAt timestamp of the process creation
    * @param finishedAt timestamp of the process end
    * @param metadata additional process metadata
@@ -123,7 +123,7 @@ public class IngestionProcess {
   /**
    * Returns a copy of this process with the specified status set.
    *
-   * @param newStatus new process status
+   * @param newStatus {@link IngestionProcessStatuses new process status}
    * @return a copy of this process with the specified status set
    */
   public IngestionProcess withStatus(String newStatus) {

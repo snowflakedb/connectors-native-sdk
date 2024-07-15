@@ -28,7 +28,7 @@ public class ResumeConnectorHandlerBuilder {
   private ResumeConnectorCallback callback;
   private ConnectorErrorHelper errorHelper;
   private final LifecycleService lifecycleService;
-  private final ResumeConnectorSdkCallback resumeConnectorSdkCallback;
+  private final ResumeConnectorSdkCallback sdkCallback;
   private final InstanceStreamService instanceStreamService;
   private final TaskReactorInstanceActionExecutor taskReactorInstanceActionExecutor;
   private final ResumeTaskReactorService resumeTaskReactorService;
@@ -56,7 +56,7 @@ public class ResumeConnectorHandlerBuilder {
     this.errorHelper =
         ConnectorErrorHelper.buildDefault(session, ResumeConnectorHandler.ERROR_TYPE);
     this.lifecycleService = LifecycleService.getInstance(session, PAUSED);
-    this.resumeConnectorSdkCallback = DefaultResumeConnectorSdkCallback.getInstance(session);
+    this.sdkCallback = DefaultResumeConnectorSdkCallback.getInstance(session);
     this.resumeTaskReactorService = ResumeTaskReactorService.getInstance(session);
     this.instanceStreamService = InstanceStreamService.getInstance(session);
     this.taskReactorInstanceActionExecutor = TaskReactorInstanceActionExecutor.getInstance(session);
@@ -107,13 +107,17 @@ public class ResumeConnectorHandlerBuilder {
     requireNonNull(callback);
     requireNonNull(errorHelper);
     requireNonNull(lifecycleService);
+    requireNonNull(sdkCallback);
+    requireNonNull(instanceStreamService);
+    requireNonNull(taskReactorInstanceActionExecutor);
+    requireNonNull(resumeTaskReactorService);
 
     return new ResumeConnectorHandler(
         stateValidator,
         callback,
         errorHelper,
         lifecycleService,
-        resumeConnectorSdkCallback,
+        sdkCallback,
         instanceStreamService,
         taskReactorInstanceActionExecutor,
         resumeTaskReactorService);

@@ -1,12 +1,12 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.prerequisite;
 
+import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThatResponseMap;
 import static com.snowflake.connectors.util.ConnectorStatus.CONFIGURING;
 import static com.snowflake.connectors.util.ConnectorStatus.ConnectorConfigurationStatus.CONFIGURED;
 import static com.snowflake.connectors.util.ConnectorStatus.ConnectorConfigurationStatus.FINALIZED;
 import static com.snowflake.connectors.util.ConnectorStatus.ConnectorConfigurationStatus.INSTALLED;
 import static com.snowflake.connectors.util.ConnectorStatus.ConnectorConfigurationStatus.PREREQUISITES_DONE;
-import static com.snowflake.connectors.util.ResponseAssertions.assertThat;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
 
 import com.snowflake.connectors.util.ConnectorStatus;
@@ -27,7 +27,9 @@ class CompletePrerequisitesStepIntegrationTest extends BasePrerequisiteTest {
     var result = callProcedure("COMPLETE_PREREQUISITES_STEP()");
 
     // then
-    assertThat(result).hasOkResponseCode().hasMessage("Prerequisites step completed successfully.");
+    assertThatResponseMap(result)
+        .hasOKResponseCode()
+        .hasMessage("Prerequisites step completed successfully.");
     assertExternalStatus(CONFIGURING, PREREQUISITES_DONE);
   }
 
@@ -48,7 +50,9 @@ class CompletePrerequisitesStepIntegrationTest extends BasePrerequisiteTest {
     var result = callProcedure("COMPLETE_PREREQUISITES_STEP()");
 
     // then
-    assertThat(result).hasOkResponseCode().hasMessage("Prerequisites step completed successfully.");
+    assertThatResponseMap(result)
+        .hasOKResponseCode()
+        .hasMessage("Prerequisites step completed successfully.");
     assertExternalStatus(CONFIGURING, configurationStatus);
   }
 
@@ -61,7 +65,7 @@ class CompletePrerequisitesStepIntegrationTest extends BasePrerequisiteTest {
     var result = callProcedure("COMPLETE_PREREQUISITES_STEP()");
 
     // then:
-    assertThat(result)
+    assertThatResponseMap(result)
         .hasResponseCode("INVALID_CONNECTOR_CONFIGURATION_STATUS")
         .hasMessage(
             "Invalid connector configuration status. Expected one of statuses: [INSTALLED,"
@@ -83,6 +87,8 @@ class CompletePrerequisitesStepIntegrationTest extends BasePrerequisiteTest {
         String.format(
             "Invalid connector status. Expected status: [CONFIGURING]. Current status: %s.",
             connectorStatus);
-    assertThat(result).hasResponseCode("INVALID_CONNECTOR_STATUS").hasMessage(expectedErrorMessage);
+    assertThatResponseMap(result)
+        .hasResponseCode("INVALID_CONNECTOR_STATUS")
+        .hasMessage(expectedErrorMessage);
   }
 }

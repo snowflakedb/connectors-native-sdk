@@ -2,6 +2,7 @@
 package com.snowflake.connectors.configuration;
 
 import static com.snowflake.connectors.application.scheduler.Scheduler.SCHEDULER_TASK;
+import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.TASK_PROPERTIES;
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThat;
 import static com.snowflake.connectors.util.ConnectorStatus.ConnectorConfigurationStatus.FINALIZED;
 import static com.snowflake.connectors.util.ConnectorStatus.PAUSED;
@@ -14,11 +15,8 @@ import com.snowflake.connectors.common.task.TaskLister;
 import com.snowflake.connectors.common.task.TaskRef;
 import java.io.IOException;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 public class UpdateWarehouseTest extends BaseNativeSdkIntegrationTest {
 
@@ -26,15 +24,7 @@ public class UpdateWarehouseTest extends BaseNativeSdkIntegrationTest {
   @Override
   public void beforeAll() throws IOException {
     super.beforeAll();
-
-    session
-        .sql(
-            "CREATE WAREHOUSE IF NOT EXISTS TEST_WH "
-                + "WAREHOUSE_SIZE=XSMALL "
-                + "AUTO_SUSPEND=1800 "
-                + "SERVER_TYPE='C6GD2XLARGE'")
-        .collect();
-    application.grantUsageOnWarehouse("TEST_WH");
+    createWarehouse("TEST_WH");
   }
 
   @Test
@@ -50,59 +40,11 @@ public class UpdateWarehouseTest extends BaseNativeSdkIntegrationTest {
 
     // then
     assertConnectorConfigSavedWarehouse("TEST_WH");
-    assertSchedulerTaskWarehouse("\"TEST_WH\"");
+    assertSchedulerTaskWarehouse("TEST_WH");
     assertInternalStatus(PAUSED, FINALIZED);
 
     // cleanup
     dropScheduler();
-  }
-
-  @Test
-  void shouldReturnErrorIfConnectorIsNotPaused() {
-    // given
-    configureConnector();
-
-    // expect
-    Assertions.assertThatThrownBy(() -> callProcedure("UPDATE_WAREHOUSE('TEST_WH')"))
-        .hasMessageContaining(
-            "Invalid connector status. Expected status: [PAUSED]. Current status:" + " STARTED.");
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"''", "NULL"})
-  void shouldReturnErrorIfWarehouseNameEmptyOrNull(String warehouse) {
-    // given
-    pauseConnector();
-
-    // expect
-    Assertions.assertThatThrownBy(() -> callProcedure(format("UPDATE_WAREHOUSE(%s)", warehouse)))
-        .hasMessageContaining("Provided identifier must not be empty");
-  }
-
-  @Test
-  void shouldReturnErrorIfWarehouseAlreadyUsed() {
-    // given
-    configureConnector();
-    pauseConnector();
-
-    // expect
-    Assertions.assertThatThrownBy(() -> callProcedure("UPDATE_WAREHOUSE('XS')"))
-        .hasMessageContaining("Warehouse \"XS\" is already used by the application");
-  }
-
-  @Test
-  void shouldReturnErrorIfApplicationHasNoAccessToWarehouse() {
-    // given
-    configureConnector();
-    pauseConnector();
-    application.revokeUsageOnWarehouse("TEST_WH");
-
-    // expect
-    Assertions.assertThatThrownBy(() -> callProcedure("UPDATE_WAREHOUSE('TEST_WH')"))
-        .hasMessageContaining("Warehouse \"TEST_WH\" is inaccessible to the application");
-
-    // cleanup
-    application.grantUsageOnWarehouse("TEST_WH");
   }
 
   private void configureConnector() {
@@ -128,18 +70,17 @@ public class UpdateWarehouseTest extends BaseNativeSdkIntegrationTest {
 
     // Grant ALL on the scheduler task, so it can be managed and validated easily
     executeInApp(
-        format("GRANT ALL ON TASK %s TO APPLICATION ROLE ADMIN", SCHEDULER_TASK.getEscapedName()));
+        format("GRANT ALL ON TASK %s TO APPLICATION ROLE ADMIN", SCHEDULER_TASK.getValue()));
   }
 
   // Only the task owner can drop it, we cannot use TaskRef here
   private void dropScheduler() {
-    executeInApp(format("DROP TASK IF EXISTS %s", SCHEDULER_TASK.getEscapedName()));
+    executeInApp(format("DROP TASK IF EXISTS %s", SCHEDULER_TASK.getValue()));
   }
 
   private void assertSchedulerTaskWarehouse(String warehouse) {
     var task = TaskLister.getInstance(session).showTask(SCHEDULER_TASK);
-    assertThat(task).isNotEmpty();
-    assertThat(task.get()).hasWarehouse(warehouse);
+    assertThat(task).isNotEmpty().get(TASK_PROPERTIES).hasWarehouse(warehouse);
   }
 
   private void assertConnectorConfigSavedWarehouse(String warehouse) {

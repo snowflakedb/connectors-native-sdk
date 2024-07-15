@@ -25,7 +25,7 @@ public class TaskReactorTelemetry {
    * @param value attribute value
    */
   public static void setTaskReactorInstanceNameSpanAttribute(Identifier value) {
-    Telemetry.setSpanAttribute(TASK_REACTOR_INSTANCE_SPAN_ATTRIBUTE, value.getName());
+    Telemetry.setSpanAttribute(TASK_REACTOR_INSTANCE_SPAN_ATTRIBUTE, value.getValue());
   }
 
   /**

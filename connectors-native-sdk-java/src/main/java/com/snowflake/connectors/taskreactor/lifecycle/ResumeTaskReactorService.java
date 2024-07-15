@@ -8,7 +8,9 @@ import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceComponentProvider;
 import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
 import com.snowflake.connectors.taskreactor.dispatcher.DispatcherTaskManager;
+import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.snowpark_java.Session;
+import org.slf4j.Logger;
 
 /**
  * Service which is used to start the process of resuming the Task Reactor which was paused. It
@@ -16,6 +18,8 @@ import com.snowflake.snowpark_java.Session;
  * Task Reactor instances are actually resumed by dispatcher which handles the command.
  */
 public class ResumeTaskReactorService {
+
+  private static final Logger LOG = TaskReactorLogger.getLogger(ResumeTaskReactorService.class);
 
   private final TaskReactorInstanceComponentProvider componentProvider;
   private final TaskReactorInstanceActionExecutor taskReactorInstanceActionExecutor;
@@ -45,6 +49,7 @@ public class ResumeTaskReactorService {
    * @param instanceSchema name of the Task Reactor instance to be resumed
    */
   public void resumeInstance(Identifier instanceSchema) {
+    LOG.info("Started resuming Task Reactor instance: {}", instanceSchema);
     CommandsQueueRepository commandsQueueRepository =
         componentProvider.commandsQueueRepository(instanceSchema);
     DispatcherTaskManager dispatcherTaskManager =
@@ -52,10 +57,12 @@ public class ResumeTaskReactorService {
 
     commandsQueueRepository.addCommandWithEmptyPayload(RESUME_INSTANCE);
     dispatcherTaskManager.resumeDispatcherTask();
+    LOG.info("Added RESUME_INSTANCE command to the command queue (instance: {})", instanceSchema);
   }
 
   /** Resumes all Task Reactor instances defined in Instance Registry */
   public void resumeAllInstances() {
-    taskReactorInstanceActionExecutor.applyToAllExistingTaskReactorInstances(this::resumeInstance);
+    taskReactorInstanceActionExecutor.applyToAllInitializedTaskReactorInstances(
+        this::resumeInstance);
   }
 }

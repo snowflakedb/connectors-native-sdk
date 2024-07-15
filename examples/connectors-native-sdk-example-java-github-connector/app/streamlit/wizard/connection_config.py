@@ -2,46 +2,63 @@
 
 import streamlit as st
 import wizard.wizard_step as ws
-from utils.sf_utils import validate_identifier, validate_fully_qualified_object_name
 from utils.ui_utils import show_vertical_space, show_error, show_error_response
-from native_sdk_api.connector_status import is_connection_configured
-from native_sdk_api.connection_config import (
-    set_connection_configuration,
-    get_connection_configuration
+from native_sdk_api.connection_config import set_connection_configuration
+from utils.permission_sdk_utils import (
+    request_github_eai_ref,
+    get_github_eai_ref,
+    get_github_secret_ref
 )
 
 
 def connection_config_page():
-    load_current_config()
-
     st.header("Connect to GitHub API")
-    st.caption(
-        "To setup the GitHub API connection you need to provide the following objects, created in "
-        "your Snowflake account"
-    )
+
+    st.caption("Before setting up the GitHub API connection you have to:")
+    st.caption(" 1. Create a new GitHub app in your account")
+    st.caption(" 2. Install the app in your GitHub account")
+    st.caption(" 3. Copy the client ID and client secret from your GitHub app")
+    st.caption("")
+    st.caption("Refer to the example quickstart for more information about GitHub apps setup")
+
     st.divider()
 
     st.subheader("External access integration")
-    input_col, _ = st.columns([2, 1])
+    eai_ref = get_github_eai_ref()
+    input_col, btn_col = st.columns([2, 1])
     with input_col:
-        st.text_input("", key="ext_acc_int", label_visibility="collapsed")
+        st.text_input(
+            "",
+            value=(eai_ref[0] if eai_ref else ""),
+            key="ext_acc_int",
+            disabled=True,
+            label_visibility="collapsed"
+        )
+    with btn_col:
+        st.button(
+            "Request access",
+            on_click=request_github_eai_ref
+        )
     st.caption(
-        "Name of the external access integration, which will be used to connect to the GitHub API. "
-        "The following privileges must be granted to the app, in order to use the integration:"
+        "Reference to an external access integration, which will be used to connect to the GitHub "
+        "API. The reference will be automatically created during the OAuth authorization process"
     )
-    st.caption("- `USAGE` on the database in which the integration is located")
-    st.caption("- `USAGE` on the schema in which the integration is located")
-    st.caption("- `READ` on the secret used in the integration")
-    st.caption("- `USAGE` on the integration")
     show_vertical_space(3)
 
     st.subheader("Secret")
+    secret_ref = get_github_secret_ref()
     input_col, _ = st.columns([2, 1])
     with input_col:
-        st.text_input("", key="secret", label_visibility="collapsed")
+        st.text_input(
+            "",
+            value=(secret_ref[0] if secret_ref else ""),
+            key="secret",
+            disabled=True,
+            label_visibility="collapsed"
+        )
     st.caption(
-        "Fully qualified name of the secret containing the GitHub API token, used to create the "
-        "external access integration provided above"
+        "Reference to the secret containing the GitHub API token, it will be created automatically "
+        "while creating the external access integration requested above"
     )
     st.divider()
 
@@ -54,29 +71,16 @@ def connection_config_page():
         )
 
 
-def load_current_config():
-    if is_connection_configured():
-        current_config = get_connection_configuration()
-
-        if not st.session_state.get("ext_acc_int"):
-            st.session_state["ext_acc_int"] = current_config.get("external_access_integration", "")
-        if not st.session_state.get("secret"):
-            st.session_state["secret"] = current_config.get("secret", "")
-
-
 def finish_config():
-    if not validate_identifier(st.session_state["ext_acc_int"]):
-        show_error("Invalid object name provided for the external access integration")
+    if not get_github_eai_ref():
+        show_error("External access integration reference was not set in the application")
         return
-    if not validate_fully_qualified_object_name(st.session_state["secret"]):
-        show_error("Invalid object name provided for the secret")
+    if not get_github_secret_ref():
+        show_error("Secret reference was not set in the application")
         return
 
     try:
-        response = set_connection_configuration(
-            external_access_integration=st.session_state["ext_acc_int"],
-            secret=st.session_state["secret"]
-        )
+        response = set_connection_configuration()
 
         if response.is_ok():
             ws.change_step(ws.FINALIZE_CONFIG)

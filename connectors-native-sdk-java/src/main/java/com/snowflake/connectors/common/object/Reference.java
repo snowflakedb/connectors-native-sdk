@@ -1,41 +1,50 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.common.object;
 
+import static java.lang.String.format;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
+
+import java.util.Objects;
 import java.util.regex.Pattern;
 
-/** Representation of Snowflake reference */
+/**
+ * Representation of a Snowflake object reference.
+ *
+ * <p>Read more about object references at Snowflake <a
+ * href="https://docs.snowflake.com/en/sql-reference/references">here</a> and <a
+ * href="https://docs.snowflake.com/en/developer-guide/native-apps/requesting-refs">here</a>.
+ */
 public class Reference {
 
-  private static final Pattern REFERENCE_PATTERN = Pattern.compile("^reference\\('(.+)'\\)$");
-  private final String referenceName;
+  /** Raw regex pattern of a valid reference. */
+  private static final String PATTERN_RAW =
+      format("^reference\\('%s'\\)$", Identifier.UNQUOTED_PATTERN_RAW);
+
+  /** Compiled regex pattern of a valid reference. */
+  private static final Pattern PATTERN = Pattern.compile(PATTERN_RAW, CASE_INSENSITIVE);
+
+  private final String name;
   private final String value;
 
-  private Reference(String referenceName, String value) {
-    this.referenceName = referenceName;
+  private Reference(String name, String value) {
+    this.name = name;
     this.value = value;
   }
 
   /**
-   * Creates new Reference object with empty parameters.
+   * Creates a new reference instance from the provided String.
    *
-   * @return new Reference object with empty parameters
-   */
-  public static Reference empty() {
-    return new Reference(null, fromName(""));
-  }
-
-  /**
-   * Creates new Reference object from provided string.
-   *
-   * @param reference exact string of reference.
-   * @return Reference object with wrapped name inside.
+   * @param reference reference String
+   * @return new reference instance
    */
   public static Reference of(String reference) {
-    if (reference == null || reference.isEmpty()) {
-      return Reference.empty();
-    } else if (validate(reference)) {
-      String referenceName =
-          REFERENCE_PATTERN
+    if (reference == null) {
+      throw new InvalidReferenceException(null);
+    }
+
+    if (isValid(reference)) {
+      var referenceName =
+          PATTERN
               .matcher(reference)
               .results()
               .findFirst()
@@ -49,36 +58,35 @@ public class Reference {
   }
 
   /**
-   * Creates new Reference object from provided name and wraps value with: reference('').
+   * Creates a new reference instance from the provided reference name.
    *
-   * @param referenceName reference name .
-   * @return Reference object with reference name wrapped in reference('').
+   * <p>The provided name is wrapped in the {@code reference('%s')} String before the instance
+   * creation.
+   *
+   * @param referenceName reference name
+   * @return new reference instance
    */
   public static Reference from(String referenceName) {
-    if (referenceName == null || referenceName.isEmpty()) {
-      return Reference.empty();
-    } else if (!validate(referenceName)) {
-      return new Reference(referenceName, fromName(referenceName));
+    if (referenceName == null) {
+      throw new InvalidReferenceNameException(null);
     }
 
-    throw new InvalidReferenceException(referenceName);
+    var reference = format("reference('%s')", referenceName);
+    if (isValid(reference)) {
+      return new Reference(referenceName, reference);
+    }
+
+    throw new InvalidReferenceNameException(referenceName);
   }
 
   /**
-   * Validates the provided string against the reference pattern
+   * Returns whether the provided String is a valid reference.
    *
-   * @param reference string to validate
-   * @return Whether the provided string is a valid Snowflake reference
+   * @param reference String to check
+   * @return whether the provided String is a valid reference
    */
-  public static boolean validate(String reference) {
-    if (reference == null) {
-      return false;
-    }
-    return REFERENCE_PATTERN.matcher(reference).matches();
-  }
-
-  private static String fromName(String referenceName) {
-    return String.format("reference('%s')", referenceName);
+  public static boolean isValid(String reference) {
+    return reference != null && PATTERN.matcher(reference).matches();
   }
 
   /**
@@ -86,16 +94,42 @@ public class Reference {
    *
    * @return reference name
    */
-  public String referenceName() {
-    return referenceName;
+  public String getName() {
+    return name;
   }
 
   /**
    * Returns the reference value.
    *
+   * <p>The returned value has the {@code reference('name')} form.
+   *
    * @return reference value
    */
-  public String value() {
+  public String getValue() {
     return value;
+  }
+
+  @Override
+  public String toString() {
+    return format("Reference[value = %s, name = %s]", value, name);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    var that = (Reference) o;
+    return Objects.equals(value, that.value) && Objects.equals(name, that.name);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(value, name);
   }
 }

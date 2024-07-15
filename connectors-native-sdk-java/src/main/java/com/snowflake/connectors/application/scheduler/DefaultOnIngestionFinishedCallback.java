@@ -1,6 +1,9 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.application.scheduler;
 
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.IN_PROGRESS;
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.SCHEDULED;
+
 import com.snowflake.connectors.application.ingestion.process.CrudIngestionProcessRepository;
 import com.snowflake.connectors.application.ingestion.process.IngestionProcess;
 import com.snowflake.snowpark_java.types.Variant;
@@ -22,8 +25,8 @@ class DefaultOnIngestionFinishedCallback implements OnIngestionFinishedCallback 
             .orElseThrow(() -> new RuntimeException("Process does not exist"));
 
     IngestionProcess updatedProcess = ingestionProcess.withMetadata(metadata);
-    if ("IN_PROGRESS".equals(ingestionProcess.getStatus())) {
-      updatedProcess = updatedProcess.withStatus("SCHEDULED");
+    if (IN_PROGRESS.equals(ingestionProcess.getStatus())) {
+      updatedProcess = updatedProcess.withStatus(SCHEDULED);
     }
 
     ingestionProcessRepository.save(updatedProcess);

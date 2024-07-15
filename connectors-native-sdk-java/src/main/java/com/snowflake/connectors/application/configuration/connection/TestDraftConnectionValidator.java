@@ -1,8 +1,8 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.application.configuration.connection;
 
+import static com.snowflake.connectors.util.sql.SqlTools.asVariant;
 import static com.snowflake.connectors.util.sql.SqlTools.callPublicProcedure;
-import static com.snowflake.connectors.util.sql.SqlTools.variantArgument;
 
 import com.snowflake.connectors.common.response.ConnectorResponse;
 import com.snowflake.snowpark_java.Session;
@@ -19,6 +19,6 @@ class TestDraftConnectionValidator implements DraftConnectionValidator {
 
   @Override
   public ConnectorResponse validate(Variant configuration) {
-    return callPublicProcedure(session, "TEST_DRAFT_CONNECTION", variantArgument(configuration));
+    return callPublicProcedure(session, "TEST_DRAFT_CONNECTION", asVariant(configuration));
   }
 }

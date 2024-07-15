@@ -2,9 +2,9 @@
 package com.snowflake.connectors.common.table;
 
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThat;
+import static com.snowflake.connectors.util.sql.SnowparkFunctions.lit;
 import static com.snowflake.connectors.util.variant.VariantMapper.mapToVariant;
 import static com.snowflake.snowpark_java.Functions.col;
-import static com.snowflake.snowpark_java.Functions.lit;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

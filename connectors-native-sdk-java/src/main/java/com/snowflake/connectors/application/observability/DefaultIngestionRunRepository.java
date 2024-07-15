@@ -3,8 +3,8 @@ package com.snowflake.connectors.application.observability;
 
 import static com.snowflake.connectors.application.observability.IngestionRun.IngestionStatus.IN_PROGRESS;
 import static com.snowflake.connectors.application.observability.IngestionRun.IngestionStatus.valueOf;
+import static com.snowflake.connectors.util.sql.SnowparkFunctions.lit;
 import static com.snowflake.snowpark_java.Functions.col;
-import static com.snowflake.snowpark_java.Functions.lit;
 import static com.snowflake.snowpark_java.Functions.sysdate;
 import static java.util.stream.Collectors.toList;
 import static net.snowflake.client.jdbc.internal.org.jsoup.internal.StringUtil.isBlank;

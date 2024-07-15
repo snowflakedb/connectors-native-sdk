@@ -1,9 +1,9 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors;
 
+import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThatResponseMap;
 import static com.snowflake.connectors.util.ConnectorStatus.CONFIGURING;
 import static com.snowflake.connectors.util.ConnectorStatus.ConnectorConfigurationStatus.INSTALLED;
-import static com.snowflake.connectors.util.ResponseAssertions.assertThat;
 import static java.lang.String.format;
 
 import com.snowflake.connectors.application.Application;
@@ -28,6 +28,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 public class BaseNativeSdkIntegrationTest {
 
   protected static final String WAREHOUSE = "XS";
+  private static final String TASK_REACTOR_INSTANCE_NAME = "TR_INSTANCE";
 
   protected Session session;
   protected Application application;
@@ -39,6 +40,8 @@ public class BaseNativeSdkIntegrationTest {
     executeInApp("TRUNCATE TABLE IF EXISTS STATE.INGESTION_RUN");
     executeInApp("TRUNCATE TABLE IF EXISTS STATE.INGESTION_PROCESS");
     executeInApp("TRUNCATE TABLE IF EXISTS STATE.RESOURCE_INGESTION_DEFINITION");
+    executeInApp("UPDATE TASK_REACTOR_INSTANCES.INSTANCE_REGISTRY SET IS_INITIALIZED = false");
+    executeInApp("DROP TASK IF EXISTS TR_INSTANCE.DISPATCHER_TASK");
     setConnectorStatus(CONFIGURING, INSTALLED);
   }
 
@@ -52,6 +55,7 @@ public class BaseNativeSdkIntegrationTest {
 
     application.grantUsageOnWarehouse(WAREHOUSE);
     application.grantExecuteTaskPrivilege();
+    application.setDebugMode(true);
   }
 
   @AfterAll
@@ -60,12 +64,19 @@ public class BaseNativeSdkIntegrationTest {
   }
 
   protected Map<String, Variant> callProcedure(String procedureQuery) {
-    Variant response = callProcedureRaw(procedureQuery);
+    return callProcedure(procedureQuery, "PUBLIC");
+  }
+
+  protected Map<String, Variant> callProcedure(String procedureQuery, String schema) {
+    Variant response = callProcedureRaw(procedureQuery, schema);
     return response == null ? new HashMap<>() : response.asMap();
   }
 
-  protected Variant callProcedureRaw(String procedureQuery) {
-    return session.sql("CALL PUBLIC." + procedureQuery).collect()[0].getVariant(0);
+  protected Variant callProcedureRaw(String procedureQuery, String schema) {
+    return session
+        .sql(String.format("CALL %s.%s", schema, procedureQuery))
+        .collect()[0]
+        .getVariant(0);
   }
 
   protected Row[] executeInApp(String query) {
@@ -103,8 +114,8 @@ public class BaseNativeSdkIntegrationTest {
 
   protected void assertExternalStatus(String expectedStatus, String expectedConfigurationStatus) {
     var response = callProcedure("GET_CONNECTOR_STATUS()");
-    assertThat(response)
-        .hasOkResponseCode()
+    assertThatResponseMap(response)
+        .hasOKResponseCode()
         .hasField("status", expectedStatus)
         .hasField("configurationStatus", expectedConfigurationStatus);
   }
@@ -117,7 +128,7 @@ public class BaseNativeSdkIntegrationTest {
   protected void assertInternalStatus(String expectedStatus, String expectedConfigurationStatus) {
     var query = "SELECT value FROM STATE.APP_STATE WHERE KEY = 'connector_status'";
     var status = executeInApp(query)[0].getVariant(0).asMap();
-    assertThat(status)
+    assertThatResponseMap(status)
         .hasField("status", expectedStatus)
         .hasField("configurationStatus", expectedConfigurationStatus);
   }
@@ -139,6 +150,11 @@ public class BaseNativeSdkIntegrationTest {
     session.sql(format(query, procedure, body)).collect();
   }
 
+  protected void mockProcedureWithHandler(String procedure, String handler) {
+    var query = "CALL PUBLIC.MOCK_PROCEDURE_WITH_HANDLER('PUBLIC.%s', '%s')";
+    session.sql(format(query, procedure, handler)).collect();
+  }
+
   protected void mockProcedureToThrow(String procedure) {
     var query = "CALL PUBLIC.MOCK_PROCEDURE_TO_THROW('PUBLIC.%s')";
     session.sql(format(query, procedure)).collect();
@@ -147,6 +163,18 @@ public class BaseNativeSdkIntegrationTest {
   protected void dropProcedure(String procedure) {
     var query = "CALL PUBLIC.DROP_PROCEDURE('PUBLIC.%s')";
     session.sql(format(query, procedure)).collect();
+  }
+
+  protected void createWarehouse(String warehouse) {
+    session
+        .sql(
+            "CREATE WAREHOUSE IF NOT EXISTS "
+                + warehouse
+                + " WAREHOUSE_SIZE=XSMALL"
+                + " AUTO_SUSPEND=1800"
+                + " SERVER_TYPE='C6GD2XLARGE'")
+        .collect();
+    application.grantUsageOnWarehouse(warehouse);
   }
 
   protected void setupWarehouseReference() {

@@ -1,10 +1,10 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.taskreactor;
 
-import static com.snowflake.connectors.taskreactor.utils.SnowsqlDockerConfigurator.configureSnowsqlInDocker;
 import static java.lang.String.format;
 
 import com.snowflake.connectors.BaseTest;
+import com.snowflake.connectors.SnowsqlConfigurer;
 import com.snowflake.connectors.taskreactor.utils.CommandLineHelper;
 import com.snowflake.connectors.taskreactor.utils.GradleUtils;
 import com.snowflake.connectors.taskreactor.utils.SnowsqlFileExecutor;
@@ -34,7 +34,7 @@ public class BaseTaskReactorIntegrationTest extends BaseTest {
 
   @BeforeAll
   public static void beforeAll() throws IOException, InterruptedException {
-    configureSnowsqlInDocker();
+    SnowsqlConfigurer.configureSnowsqlInDocker();
     buildProject();
     createStage();
     setUpTaskReactorApi();
@@ -49,7 +49,10 @@ public class BaseTaskReactorIntegrationTest extends BaseTest {
   private static void buildProject() throws IOException, InterruptedException {
     String command = "./gradlew build -x test";
     int buildResult = CommandLineHelper.runCommand(command, currentDir());
-    assert buildResult == 0 : "Building with command: " + command + "has failed";
+    assert buildResult == 0
+        : format(
+            "Building with command '%s' has failed in dir '%s'",
+            command, currentDir().getAbsolutePath());
   }
 
   protected static File currentDir() {

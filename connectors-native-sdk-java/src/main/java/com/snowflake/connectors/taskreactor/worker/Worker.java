@@ -8,11 +8,13 @@ import static com.snowflake.connectors.taskreactor.worker.status.WorkerStatus.SC
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.connectors.common.task.TaskRepository;
+import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.connectors.taskreactor.telemetry.TaskReactorTelemetry;
 import com.snowflake.connectors.taskreactor.worker.queue.WorkItem;
 import com.snowflake.connectors.taskreactor.worker.queue.WorkerQueue;
 import com.snowflake.connectors.taskreactor.worker.status.WorkerStatusRepository;
 import java.time.Instant;
+import org.slf4j.Logger;
 
 /**
  * A set of methods performed by the Worker implementation.
@@ -20,6 +22,8 @@ import java.time.Instant;
  * @param <T> param defining type of response during running worker jobs.
  */
 public abstract class Worker<T> {
+
+  private static final Logger LOG = TaskReactorLogger.getLogger(Worker.class);
 
   private final WorkerId workerId;
   private final Identifier instanceName;
@@ -52,6 +56,8 @@ public abstract class Worker<T> {
    *     cancellation.
    */
   public T run() throws WorkerException, WorkerJobCancelledException {
+    LOG.debug("Worker started working (workerId: {})", workerId.value());
+
     Instant workStartTime = Instant.now();
     TaskReactorTelemetry.setTaskReactorInstanceNameSpanAttribute(instanceName);
     TaskReactorTelemetry.setWorkerIdSpanAttribute(workerId);
@@ -67,16 +73,23 @@ public abstract class Worker<T> {
       }
 
       workerStatusRepository.updateStatusFor(workerId, IN_PROGRESS);
-      return performWork(workerQueue.fetch(workerId));
+      WorkItem workItem = workerQueue.fetch(workerId);
+      LOG.info("Worker (workerId: {}) started work on workItem ({})", workerId.value(), workItem);
+      T result = performWork(workItem);
+      LOG.info("Worker (workerId: {}) completed work on workItem ({})", workerId.value(), workItem);
+      return result;
     } catch (WorkerJobCancelledException e) {
+      LOG.info("Worker's job cancelled (workerId: {})", workerId.value());
       throw e;
     } catch (Exception e) {
+      LOG.error("Worker (workerId: {}) failed", workerId.value());
       throw new WorkerException(String.format("Worker %s failed", workerId), e);
     } finally {
       taskRepository.fetch(workerTask).suspend();
       workerQueue.delete(workerId);
       workerStatusRepository.updateStatusFor(workerId, AVAILABLE);
       TaskReactorTelemetry.addWorkerWorkingTimeEvent(workStartTime, Instant.now());
+      LOG.debug("Worker finished working (workerId: {})", workerId.value());
     }
   }
 

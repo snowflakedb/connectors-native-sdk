@@ -95,14 +95,14 @@ public class ConfigureConnectorHandler {
     connectorConfigurationService.validateFields(configuration);
 
     var validationResult = inputValidator.validate(configuration);
-    if (!validationResult.isOk()) {
+    if (validationResult.isNotOk()) {
       return validationResult;
     }
 
     connectorConfigurationService.updateConfiguration(configuration);
 
     var internalResult = callback.execute(configuration);
-    if (!internalResult.isOk()) {
+    if (internalResult.isNotOk()) {
       return internalResult;
     }
 

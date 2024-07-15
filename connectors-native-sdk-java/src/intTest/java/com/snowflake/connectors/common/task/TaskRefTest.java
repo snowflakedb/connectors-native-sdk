@@ -6,13 +6,12 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.snowflake.connectors.BaseIntegrationTest;
+import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.connectors.common.task.TaskProperties.Builder;
-import com.snowflake.connectors.util.sql.SqlStringFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import net.snowflake.client.jdbc.SnowflakeSQLException;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,15 +19,16 @@ import org.junit.jupiter.api.Test;
 
 public class TaskRefTest extends BaseIntegrationTest {
 
-  static final ObjectName taskName = ObjectName.from("PUBLIC", "TASK_NAME");
-  static final ObjectName invalidTaskName = ObjectName.from("PUBLIC", "INVALID");
-  private static final String warehouseName = "CONNECTORS_NATIVE_SDK_J@V@_IT_WH_" + TEST_ID;
-  private static final String warehouseLowercaseName = "true_lower_case" + TEST_ID;
-  static TaskRepository taskRepository;
-  static TaskRef invalidTaskRef;
-  static TaskDefinition taskDefinition;
-  static TaskProperties taskProperties;
-  static TaskParameters taskParameters;
+  private static final ObjectName taskName = ObjectName.from("PUBLIC", "TASK_NAME");
+  private static final ObjectName invalidTaskName = ObjectName.from("PUBLIC", "INVALID");
+  private static final Identifier quotedWarehouse = Identifier.from("\"Qu0T3d_WH_N@m3\"");
+
+  private static TaskRepository taskRepository;
+  private static TaskRef invalidTaskRef;
+  private static TaskDefinition taskDefinition;
+  private static TaskProperties taskProperties;
+  private static TaskParameters taskParameters;
+
   private TaskRef taskRef;
 
   @BeforeAll
@@ -43,14 +43,7 @@ public class TaskRefTest extends BaseIntegrationTest {
 
     invalidTaskRef = taskRepository.fetch(invalidTaskName);
 
-    session.sql("CREATE OR REPLACE WAREHOUSE \"" + warehouseName + "\"").toLocalIterator();
-    session.sql("CREATE OR REPLACE WAREHOUSE \"" + warehouseLowercaseName + "\"").toLocalIterator();
-  }
-
-  @AfterAll
-  static void afterAll() {
-    session.sql("DROP WAREHOUSE IF EXISTS \"" + warehouseName + "\"").toLocalIterator();
-    session.sql("DROP WAREHOUSE IF EXISTS \"" + warehouseLowercaseName + "\"").toLocalIterator();
+    session.sql("CREATE OR REPLACE WAREHOUSE " + quotedWarehouse.getValue()).toLocalIterator();
   }
 
   @BeforeEach
@@ -129,14 +122,11 @@ public class TaskRefTest extends BaseIntegrationTest {
 
   @Test
   void shouldAlterTaskWarehouse() {
-    // given
-    var escapedWarehouse = SqlStringFormatter.escapeIdentifier(warehouseName);
-
     // when
-    taskRef.alterWarehouse(escapedWarehouse);
+    taskRef.alterWarehouse(quotedWarehouse.getValue());
 
     // then
-    assertThat(taskRef.fetch()).hasWarehouse(escapedWarehouse);
+    assertThat(taskRef.fetch()).hasWarehouse(quotedWarehouse.getValue());
   }
 
   @Test
@@ -160,9 +150,7 @@ public class TaskRefTest extends BaseIntegrationTest {
     // given
     var newTaskName = ObjectName.from("PUBLIC", "WAREHOUSE_LOWERCASE_TASK");
     var newProperties =
-        new Builder(newTaskName, "select 1", "1 minute")
-            .withWarehouse(warehouseLowercaseName)
-            .build();
+        new Builder(newTaskName, "select 1", "1 minute").withWarehouse(quotedWarehouse).build();
     var newTaskDefinition = new TaskDefinition(newProperties, taskParameters);
 
     // when

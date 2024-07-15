@@ -128,3 +128,48 @@ CREATE OR REPLACE PROCEDURE PUBLIC.RESUME_CONNECTOR()
     IMPORTS = ('/connectors-native-sdk.jar', '/connectors-native-sdk-template.jar')
     HANDLER = 'com.snowflake.connectors.example.lifecycle.resume.ResumeConnectorCustomHandler.resumeConnector';
 GRANT USAGE ON PROCEDURE PUBLIC.RESUME_CONNECTOR() TO APPLICATION ROLE ADMIN;
+
+-----------------RESOURCE MANAGEMENT-----------------
+CREATE OR REPLACE PROCEDURE PUBLIC.CREATE_RESOURCE(
+       name VARCHAR,
+       resource_id VARIANT,
+       ingestion_configurations VARIANT,
+       id VARCHAR DEFAULT NULL,
+       enabled BOOLEAN DEFAULT FALSE,
+       resource_metadata VARIANT DEFAULT NULL)
+    RETURNS VARIANT
+    LANGUAGE JAVA
+    RUNTIME_VERSION = '11'
+    PACKAGES = ('com.snowflake:snowpark:1.11.0')
+    IMPORTS = ('/connectors-native-sdk.jar', '/connectors-native-sdk-template.jar')
+    HANDLER = 'com.snowflake.connectors.example.ingestion.create.TemplateCreateResourceHandler.createResource';
+GRANT USAGE ON PROCEDURE PUBLIC.CREATE_RESOURCE(VARCHAR, VARIANT, VARIANT, VARCHAR, BOOLEAN, VARIANT) TO APPLICATION ROLE ADMIN;
+
+CREATE OR REPLACE PROCEDURE PUBLIC.ENABLE_RESOURCE(resource_ingestion_definition_id VARCHAR)
+    RETURNS VARIANT
+    LANGUAGE JAVA
+    RUNTIME_VERSION = '11'
+    PACKAGES = ('com.snowflake:snowpark:1.11.0')
+    IMPORTS = ('/connectors-native-sdk.jar', '/connectors-native-sdk-template.jar')
+    HANDLER = 'com.snowflake.connectors.example.ingestion.enable.TemplateEnableResourceHandler.enableResource';
+GRANT USAGE ON PROCEDURE PUBLIC.ENABLE_RESOURCE(VARCHAR) TO APPLICATION ROLE ADMIN;
+
+CREATE OR REPLACE PROCEDURE PUBLIC.DISABLE_RESOURCE(resource_ingestion_definition_id VARCHAR)
+    RETURNS VARIANT
+    LANGUAGE JAVA
+    RUNTIME_VERSION = '11'
+    PACKAGES = ('com.snowflake:snowpark:1.11.0')
+    IMPORTS = ('/connectors-native-sdk.jar', '/connectors-native-sdk-template.jar')
+    HANDLER = 'com.snowflake.connectors.example.ingestion.disable.TemplateDisableResourceHandler.disableResource';
+GRANT USAGE ON PROCEDURE PUBLIC.DISABLE_RESOURCE(VARCHAR) TO APPLICATION ROLE ADMIN;
+
+CREATE OR REPLACE PROCEDURE PUBLIC.UPDATE_RESOURCE(
+       resource_ingestion_definition_id VARCHAR,
+       ingestion_configuration VARIANT)
+    RETURNS VARIANT
+    LANGUAGE JAVA
+    RUNTIME_VERSION = '11'
+    PACKAGES = ('com.snowflake:snowpark:1.11.0')
+    IMPORTS = ('/connectors-native-sdk.jar', '/connectors-native-sdk-template.jar')
+    HANDLER = 'com.snowflake.connectors.example.ingestion.update.TemplateUpdateResourceHandler.updateResource';
+GRANT USAGE ON PROCEDURE PUBLIC.UPDATE_RESOURCE(VARCHAR, VARIANT) TO APPLICATION ROLE ADMIN;

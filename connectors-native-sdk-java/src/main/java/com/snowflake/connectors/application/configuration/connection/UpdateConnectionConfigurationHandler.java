@@ -102,7 +102,7 @@ public class UpdateConnectionConfigurationHandler {
     validateConnectorStatus();
 
     var inputValidationResponse = inputValidator.validate(config);
-    if (!inputValidationResponse.isOk()) {
+    if (inputValidationResponse.isNotOk()) {
       return inputValidationResponse;
     }
 
@@ -111,19 +111,19 @@ public class UpdateConnectionConfigurationHandler {
             .orElse(config);
 
     var draftCallbackResponse = draftCallback.execute(updatedConfig);
-    if (!draftCallbackResponse.isOk()) {
+    if (draftCallbackResponse.isNotOk()) {
       return draftCallbackResponse;
     }
 
     var draftConnectionValidationResponse = draftConnectionValidator.validate(updatedConfig);
-    if (!draftConnectionValidationResponse.isOk()) {
+    if (draftConnectionValidationResponse.isNotOk()) {
       return draftConnectionValidationResponse;
     }
 
     connectionConfigurationService.updateConfiguration(updatedConfig);
 
     var callbackResponse = callback.execute(updatedConfig);
-    if (!callbackResponse.isOk()) {
+    if (callbackResponse.isNotOk()) {
       return callbackResponse;
     }
 

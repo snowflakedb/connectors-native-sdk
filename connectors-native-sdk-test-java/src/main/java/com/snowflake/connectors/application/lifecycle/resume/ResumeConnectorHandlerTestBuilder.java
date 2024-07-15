@@ -21,6 +21,10 @@ import com.snowflake.snowpark_java.Session;
  *   <li>{@link ResumeConnectorCallback}
  *   <li>{@link ConnectorErrorHelper}
  *   <li>{@link LifecycleService}
+ *   <li>{@link ResumeConnectorSdkCallback}
+ *   <li>{@link ResumeTaskReactorService}
+ *   <li>{@link InstanceStreamService}
+ *   <li>{@link TaskReactorInstanceActionExecutor}
  * </ul>
  */
 public class ResumeConnectorHandlerTestBuilder {
@@ -29,7 +33,7 @@ public class ResumeConnectorHandlerTestBuilder {
   private ResumeConnectorCallback callback;
   private ConnectorErrorHelper errorHelper;
   private LifecycleService lifecycleService;
-  private ResumeConnectorSdkCallback resumeConnectorSdkCallback;
+  private ResumeConnectorSdkCallback sdkCallback;
   private ResumeTaskReactorService resumeTaskReactorService;
   private InstanceStreamService instanceStreamService;
   private TaskReactorInstanceActionExecutor taskReactorInstanceActionExecutor;
@@ -55,6 +59,10 @@ public class ResumeConnectorHandlerTestBuilder {
    *   <li>a default implementation of {@link LifecycleService}, with {@link
    *       com.snowflake.connectors.application.status.ConnectorStatus#PAUSED PAUSED} state as
    *       post-rollback status
+   *   <li>a default implementation of {@link ResumeConnectorSdkCallback}
+   *   <li>a default implementation of {@link ResumeTaskReactorService}
+   *   <li>a default implementation of {@link InstanceStreamService}
+   *   <li>a default implementation of {@link TaskReactorInstanceActionExecutor}
    * </ul>
    *
    * @param session Snowpark session object
@@ -68,8 +76,10 @@ public class ResumeConnectorHandlerTestBuilder {
     this.errorHelper =
         ConnectorErrorHelper.buildDefault(session, ResumeConnectorHandler.ERROR_TYPE);
     this.lifecycleService = LifecycleService.getInstance(session, PAUSED);
-    this.resumeConnectorSdkCallback = new DefaultResumeConnectorSdkCallback(session);
+    this.sdkCallback = DefaultResumeConnectorSdkCallback.getInstance(session);
+    this.resumeTaskReactorService = ResumeTaskReactorService.getInstance(session);
     this.instanceStreamService = InstanceStreamService.getInstance(session);
+    this.taskReactorInstanceActionExecutor = TaskReactorInstanceActionExecutor.getInstance(session);
   }
 
   /**
@@ -120,12 +130,11 @@ public class ResumeConnectorHandlerTestBuilder {
   /**
    * Sets the internal sdk callback used to build the handler instance.
    *
-   * @param resumeConnectorSdkCallback internal sdk callback
+   * @param sdkCallback internal sdk callback
    * @return this builder
    */
-  public ResumeConnectorHandlerTestBuilder withResumeConnectorSdkCallback(
-      ResumeConnectorSdkCallback resumeConnectorSdkCallback) {
-    this.resumeConnectorSdkCallback = resumeConnectorSdkCallback;
+  public ResumeConnectorHandlerTestBuilder withSdkCallback(ResumeConnectorSdkCallback sdkCallback) {
+    this.sdkCallback = sdkCallback;
     return this;
   }
 
@@ -176,6 +185,9 @@ public class ResumeConnectorHandlerTestBuilder {
     requireNonNull(callback);
     requireNonNull(errorHelper);
     requireNonNull(lifecycleService);
+    requireNonNull(sdkCallback);
+    requireNonNull(instanceStreamService);
+    requireNonNull(taskReactorInstanceActionExecutor);
     requireNonNull(resumeTaskReactorService);
 
     return new ResumeConnectorHandler(
@@ -183,7 +195,7 @@ public class ResumeConnectorHandlerTestBuilder {
         callback,
         errorHelper,
         lifecycleService,
-        resumeConnectorSdkCallback,
+        sdkCallback,
         instanceStreamService,
         taskReactorInstanceActionExecutor,
         resumeTaskReactorService);

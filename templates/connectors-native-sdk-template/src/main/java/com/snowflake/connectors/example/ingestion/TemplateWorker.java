@@ -24,7 +24,7 @@ public class TemplateWorker {
 
     var ingestion = new TemplateIngestion(session, ingestionRunRepository, callback);
     var workerIdentifier = new WorkerId(workerId);
-    var schemaIdentifier = Identifier.fromWithAutoQuoting(taskReactorSchema);
+    var schemaIdentifier = Identifier.from(taskReactorSchema);
     var worker = IngestionWorker.from(session, ingestion, workerIdentifier, schemaIdentifier);
 
     try {

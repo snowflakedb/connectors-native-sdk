@@ -1,6 +1,8 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.util.sql;
 
+import static java.lang.String.format;
+
 import com.snowflake.connectors.common.exception.ConnectorException;
 import com.snowflake.connectors.common.response.ConnectorResponse;
 import com.snowflake.snowpark_java.Session;
@@ -29,7 +31,7 @@ public class SqlTools {
       var procedureArguments = String.join(",", arguments);
       var variantResponse =
           session
-              .sql(String.format("CALL %s.%s(%s)", schema, procedureName, procedureArguments))
+              .sql(format("CALL %s.%s(%s)", schema, procedureName, procedureArguments))
               .collect()[0]
               .getVariant(0);
       return ConnectorResponse.fromVariant(variantResponse);
@@ -64,11 +66,25 @@ public class SqlTools {
   /**
    * Returns the provided String wrapped in single quotes, so it can be treated as a SQL varchar.
    *
-   * @param argument String value
-   * @return provided value wrapped in single quotes
+   * <p>If the provided String contains any single quote characters - they are escaped with a
+   * backslash character.
+   *
+   * @param string String value
+   * @return provided value escaped and wrapped in single quotes
    */
+  public static String asVarchar(String string) {
+    return string != null ? format("'%s'", string.replace("'", "\\'")) : null;
+  }
+
+  /**
+   * Deprecated, use {@link #asVarchar(String)} instead.
+   *
+   * @param argument String value
+   * @return provided value escaped and wrapped in single quotes
+   */
+  @Deprecated(since = "2.1.0", forRemoval = true)
   public static String varcharArgument(String argument) {
-    return String.format("'%s'", argument);
+    return asVarchar(argument);
   }
 
   /**
@@ -78,19 +94,44 @@ public class SqlTools {
    * @param variant Variant value
    * @return provided value changed to a JSON String and wrapped in the {@code PARSE_JSON} function
    */
-  public static String variantArgument(Variant variant) {
-    String escapedVariant = variant.asJsonString().replaceAll("\"", "\\\\\"");
-    return String.format("PARSE_JSON('%s')", escapedVariant);
+  public static String asVariant(Variant variant) {
+    if (variant == null) {
+      return null;
+    }
+
+    String escapedVariant = variant.asJsonString().replace("\\\"", "\\\\\\\"");
+    return format("PARSE_JSON(%s)", asVarchar(escapedVariant));
   }
 
   /**
-   * Quotes each string using {@link SqlTools#varcharArgument(String) quote} and joins them into one
+   * Deprecated, use {@link #asVariant(Variant)} instead.
+   *
+   * @param variant Variant value
+   * @return provided value changed to a JSON String and wrapped in the {@code PARSE_JSON} function
+   */
+  @Deprecated(since = "2.1.0", forRemoval = true)
+  public static String variantArgument(Variant variant) {
+    return asVariant(variant);
+  }
+
+  /**
+   * Quotes each string using {@link SqlTools#asVarchar(String) quote} and joins them into one
    * separated by commas.
    *
-   * @param values values to be joined
+   * @param strings values to be joined
    * @return comma separated string
    */
-  public static String asCommaSeparatedSqlList(Collection<String> values) {
-    return values.stream().map(SqlTools::varcharArgument).collect(Collectors.joining(","));
+  public static String asCommaSeparatedSqlList(Collection<String> strings) {
+    return strings.stream().map(SqlTools::asVarchar).collect(Collectors.joining(","));
+  }
+
+  /**
+   * Wraps input text with double quotes, e.g. input {@code test} will create output {@code "test"}.
+   *
+   * @param string string to be formatted
+   * @return input string wrapped in double quotes
+   */
+  public static String quoted(String string) {
+    return string != null ? format("\"%s\"", string) : null;
   }
 }

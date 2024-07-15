@@ -19,14 +19,14 @@ public final class ComponentNames {
   public static final Identifier DISPATCHER_TASK = Identifier.from("DISPATCHER_TASK");
 
   public static Identifier workerQueueTable(WorkerId workerId) {
-    return Identifier.fromWithAutoQuoting("WORKER_QUEUE_" + workerId.value());
+    return Identifier.from("WORKER_QUEUE_" + workerId.value());
   }
 
   public static Identifier workerQueueStream(WorkerId workerId) {
-    return Identifier.fromWithAutoQuoting("WORKER_QUEUE_STREAM_" + workerId.value());
+    return Identifier.from("WORKER_QUEUE_STREAM_" + workerId.value());
   }
 
   public static Identifier workerTask(WorkerId workerId) {
-    return Identifier.fromWithAutoQuoting("WORKER_TASK_" + workerId.value());
+    return Identifier.from("WORKER_TASK_" + workerId.value());
   }
 }

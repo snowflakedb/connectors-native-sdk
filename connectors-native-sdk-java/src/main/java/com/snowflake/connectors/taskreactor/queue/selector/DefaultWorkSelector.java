@@ -1,8 +1,10 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.taskreactor.queue.selector;
 
+import static com.snowflake.connectors.util.sql.SqlTools.asVariant;
 import static java.util.stream.Collectors.toList;
 
+import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.connectors.taskreactor.queue.QueueItem;
 import com.snowflake.snowpark_java.Row;
 import com.snowflake.snowpark_java.Session;
@@ -11,12 +13,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Default implementation of {@link WorkSelector}. */
 class DefaultWorkSelector implements WorkSelector {
 
-  private static final Logger logger = LoggerFactory.getLogger(DefaultWorkSelector.class);
+  private static final Logger LOG = TaskReactorLogger.getLogger(DefaultWorkSelector.class);
 
   private final Session session;
 
@@ -26,7 +27,7 @@ class DefaultWorkSelector implements WorkSelector {
 
   @Override
   public List<QueueItem> selectItemsFromView(String workSelectorView) {
-    logger.debug("Selecting work items using view {}.", workSelectorView);
+    LOG.debug("Selecting work items using view {}.", workSelectorView);
 
     Row[] rawRows =
         session
@@ -42,12 +43,11 @@ class DefaultWorkSelector implements WorkSelector {
   @Override
   public List<QueueItem> selectItemsUsingProcedure(
       List<QueueItem> queueItems, String workSelectorProcedure) {
-    logger.debug("Selecting work items using procedure {}.", workSelectorProcedure);
+    LOG.debug("Selecting work items using procedure {}.", workSelectorProcedure);
 
-    String queueItemsSerialized = new Variant(queueItems).asJsonString();
     return session
         .sql(
-            String.format("CALL %s(PARSE_JSON('%s'))", workSelectorProcedure, queueItemsSerialized))
+            String.format("CALL %s(%s)", workSelectorProcedure, asVariant(new Variant(queueItems))))
         .first()
         .map(DefaultWorkSelector::rowToQueueItems)
         .orElse(Collections.emptyList());

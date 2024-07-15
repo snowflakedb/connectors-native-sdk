@@ -1,6 +1,9 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.application.scheduler;
 
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.FINISHED;
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.IN_PROGRESS;
+import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.SCHEDULED;
 import static com.snowflake.connectors.common.IdGenerator.randomId;
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -29,36 +32,36 @@ public class SchedulerTest {
   @Test
   void shouldProcessAnIngestionProcess() {
     // given
-    var id = processWithStatusExists("SCHEDULED");
+    var id = processWithStatusExists(SCHEDULED);
 
     // when
     scheduler.runIteration();
 
     // then
-    assertProcessHasStatus(id, "IN_PROGRESS");
+    assertProcessHasStatus(id, IN_PROGRESS);
     assertCallbackWasCalledForProcess(id);
   }
 
   @Test
   void shouldProcessOnlyIngestionProcessesWithScheduledStatus() {
     // given
-    var scheduledProcess1 = processWithStatusExists("SCHEDULED");
-    var scheduledProcess2 = processWithStatusExists("SCHEDULED");
-    var inProgressProcess1 = processWithStatusExists("IN_PROGRESS");
-    var inProgressProcess2 = processWithStatusExists("IN_PROGRESS");
-    var finishedProcess1 = processWithStatusExists("FINISHED");
-    var finishedProcess2 = processWithStatusExists("FINISHED");
+    var scheduledProcess1 = processWithStatusExists(SCHEDULED);
+    var scheduledProcess2 = processWithStatusExists(SCHEDULED);
+    var inProgressProcess1 = processWithStatusExists(IN_PROGRESS);
+    var inProgressProcess2 = processWithStatusExists(IN_PROGRESS);
+    var finishedProcess1 = processWithStatusExists(FINISHED);
+    var finishedProcess2 = processWithStatusExists(FINISHED);
 
     // when
     scheduler.runIteration();
 
     // then
-    assertProcessHasStatus(scheduledProcess1, "IN_PROGRESS");
-    assertProcessHasStatus(scheduledProcess2, "IN_PROGRESS");
-    assertProcessHasStatus(inProgressProcess1, "IN_PROGRESS");
-    assertProcessHasStatus(inProgressProcess2, "IN_PROGRESS");
-    assertProcessHasStatus(finishedProcess1, "FINISHED");
-    assertProcessHasStatus(finishedProcess2, "FINISHED");
+    assertProcessHasStatus(scheduledProcess1, IN_PROGRESS);
+    assertProcessHasStatus(scheduledProcess2, IN_PROGRESS);
+    assertProcessHasStatus(inProgressProcess1, IN_PROGRESS);
+    assertProcessHasStatus(inProgressProcess2, IN_PROGRESS);
+    assertProcessHasStatus(finishedProcess1, FINISHED);
+    assertProcessHasStatus(finishedProcess2, FINISHED);
     assertCallbackWasCalledForProcess(scheduledProcess1);
     assertCallbackWasCalledForProcess(scheduledProcess2);
     assertNoMoreInteractionOnCallback();
@@ -76,15 +79,15 @@ public class SchedulerTest {
   @Test
   void shouldDoNothingWhenNoProcessWithScheduledStatusExists() {
     // given
-    var inProgressProcess = processWithStatusExists("IN_PROGRESS");
-    var finishedProcess = processWithStatusExists("FINISHED");
+    var inProgressProcess = processWithStatusExists(IN_PROGRESS);
+    var finishedProcess = processWithStatusExists(FINISHED);
 
     // when
     scheduler.runIteration();
 
     // then
-    assertProcessHasStatus(inProgressProcess, "IN_PROGRESS");
-    assertProcessHasStatus(finishedProcess, "FINISHED");
+    assertProcessHasStatus(inProgressProcess, IN_PROGRESS);
+    assertProcessHasStatus(finishedProcess, FINISHED);
     assertNoMoreInteractionOnCallback();
   }
 

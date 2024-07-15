@@ -38,17 +38,17 @@ public class TaskReactorInstanceActionExecutor {
   }
 
   /**
-   * Executes the specified actions for all Task Reactor instances.
+   * Executes the specified actions for all initialized Task Reactor instances.
    *
    * @param action action to be executed
    */
-  public void applyToAllExistingTaskReactorInstances(Consumer<Identifier> action) {
+  public void applyToAllInitializedTaskReactorInstances(Consumer<Identifier> action) {
     if (!existenceVerifier.isTaskReactorConfigured()) {
       return;
     }
 
     instanceRegistryRepository
-        .fetchAll()
+        .fetchAllInitialized()
         .forEach(instance -> action.accept(instance.instanceName()));
   }
 }

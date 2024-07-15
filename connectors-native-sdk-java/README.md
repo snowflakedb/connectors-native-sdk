@@ -1,22 +1,22 @@
 # Native SDK for Connectors Java
 
 Native SDK for Connectors Java is a library that is distributed through the [Maven Central Repository][SDK in Maven Central].
-The library significantly helps developers in building Snowflake Native Applications of connectors' type. The SDK 
-consists of both Java and sql components. Sql components can be found in the `.sql` files placed in the resources 
-directory. They provide the definitions of the database objects, that are created during the installation of the 
-Connector. Java components mainly serve as procedure handlers. However, among these Java classes, there also are some 
-helper/util classes that provide useful tools to tackle most common use cases. The database objects and Java classes 
-create a coherent whole that makes managing the state of the Connector much easier and lets the developers focus on the 
+The library significantly helps developers in building Snowflake Native Applications of connectors' type. The SDK
+consists of both Java and sql components. Sql components can be found in the `.sql` files placed in the resources
+directory. They provide the definitions of the database objects, that are created during the installation of the
+Connector. Java components mainly serve as procedure handlers. However, among these Java classes, there also are some
+helper/util classes that provide useful tools to tackle most common use cases. The database objects and Java classes
+create a coherent whole that makes managing the state of the Connector much easier and lets the developers focus on the
 implementation of the specific external source ingestion logic which also is easier to do with the SDK.
 
 Reach the [official documentation][Native SDK official docs] and [java docs][Native SDK official java docs] to learn more.
 
 ## Project structure
 
-Native Application consists of database objects like tables, views, stored procedures, etc. Most of the stored procedures 
-delivered by the Native SDK for Connectors are implemented in Java. However, SQL code that sets up database objects with 
-the Java classes as handlers needs to be distributed alongside Java package. In order to achieve this, all files 
-containing SQL code are placed into the resources directory, so thanks to that they are available in the artifact JAR 
+Native Application consists of database objects like tables, views, stored procedures, etc. Most of the stored procedures
+delivered by the Native SDK for Connectors are implemented in Java. However, SQL code that sets up database objects with
+the Java classes as handlers needs to be distributed alongside Java package. In order to achieve this, all files
+containing SQL code are placed into the resources directory, so thanks to that they are available in the artifact JAR
 file. The idea of the packaging strategy is shown in the illustration below:
 
 ![image SDK packaging](.assets/sdk_packaging.png)
@@ -40,17 +40,17 @@ The SDK is tested by tests at different layers, which are:
 * Integration tests - these tests most often test code that is responsible for operations in the Snowflake environment, so they need a Snowflake account connection in order to be executed. These tests create a separate database that is used during tests run. They can be found in the `src/intTests` directory.
 * Application tests - the main difference between these tests and integration tests is that these tests test the whole flow of the particular functionality in the environment of the Snowflake Native Application instead of the database. It's required to use Native Application as a test environment because sometimes, Native Applications behavior differs from the standard Snowflake database. These tests can be found in the `src/appTests` directory.
 
-As for integration and application tests they require connection to Snowflake. Connection details can be defined using 
-the `.env/snowflake_credentials file`. Application tests directory also contains an empty connector application in 
+As for integration and application tests they require connection to Snowflake. Connection details can be defined using
+the `.env/snowflake_credentials file`. Application tests directory also contains an empty connector application in
 `src/appTests/resources`. That application is deployed during the test suite execution.
 
-The code is tested with the usage of the Native SDK for Connectors Java Test library which consists of Java utils 
-helping in testing the developed Connectors. These utils are custom assertions and in-memory objects (mocks) for Java 
+The code is tested with the usage of the Native SDK for Connectors Java Test library which consists of Java utils
+helping in testing the developed Connectors. These utils are custom assertions and in-memory objects (mocks) for Java
 classes used in the Native Java SDK.
 
 ## Application areas supported by the SDK
 
-The Native SDK for Connectors helps developers cover many crucial connector application areas by delivering appropriate 
+The Native SDK for Connectors helps developers cover many crucial connector application areas by delivering appropriate
 mechanisms (tables, views, procedures etc.). Among these areas we can mention:
 * Configuration (Wizard) - the SDK defines the division of connector configuration flow into 3 main steps where logically different configurations are provided:
   * Prerequisites - The prerequisites step is the first step of the wizard phase of the connector. This step is completely optional, but it is recommended, if the end user needs to perform some additional setup outside of the native app or even the whole Snowflake context. An example of this could be setting up authentication and authorization in the source system from which the data will be ingested.
@@ -74,7 +74,7 @@ mechanisms (tables, views, procedures etc.). Among these areas we can mention:
 
 ## Layers organization
 
-Each general functionality provided by the SDK can be broken down into smaller components assigned to appropriate 
+Each general functionality provided by the SDK can be broken down into smaller components assigned to appropriate
 layers, such as:
 * General feature layer - the name of the feature
 * API layer - entry points to the functionality like views and procedures
@@ -89,14 +89,14 @@ The example division into layers of the Connector Configuration functionality is
 
 ## Task Reactor
 
-This component consists of `.sql` files and Java classes embedded into the Native Java SDK library that helps with managing 
-and executing work asynchronously, mostly the work related to data ingestion. This component offers stability and 
-scalability in work executing. Although this component is dedicated to orchestrating the ingestion tasks, it can be also 
+This component consists of `.sql` files and Java classes embedded into the Native Java SDK library that helps with managing
+and executing work asynchronously, mostly the work related to data ingestion. This component offers stability and
+scalability in work executing. Although this component is dedicated to orchestrating the ingestion tasks, it can be also
 used for executing non-ingestion tasks that require an asynchronous way of execution.
 
 Task reactor is a separate module - the source code can be found in [com/snowflake/connectors/taskreactor][Task Reactor dir path]
-Task reactors’ queue and dispatcher are based on [Snowflake Streams][Snowflake Stream Docs] with [Snowflake Tasks][Snowflake Tasks Docs] 
-and will be triggered every one minute due to the refresh time limitation. The task Reactor will be active only when 
+Task reactors’ queue and dispatcher are based on [Snowflake Streams][Snowflake Stream Docs] with [Snowflake Tasks][Snowflake Tasks Docs]
+and will be triggered every one minute due to the refresh time limitation. The task Reactor will be active only when
 there is data in the input queue, to allow the warehouse to save some credits.
 
 ## How to use
@@ -105,16 +105,16 @@ Here are the methods of using the SDK in the new project.
 
 ### Library in Maven Central
 
-The library is available in the [Maven Central Repository][SDK in Maven Central]. You can add it as a dependency to your 
-project if you start in from scratch, but remember that you will need to take care of the whole process of connector 
+The library is available in the [Maven Central Repository][SDK in Maven Central]. You can add it as a dependency to your
+project if you start in from scratch, but remember that you will need to take care of the whole process of connector
 building and deployment to Snowflake.
 
 ### Connectors Native SDK Template
 
-The library is build into the [Connectors Native SDK Template project][Connectors Native SDK Template path] which allows 
-the developer to start the project with already prepared common code. The developer is only required to implement the 
-most important area of the connector like the configuration and ingestion. Moreover, the template provides some tools 
-that help with building and deploying the connector to Snowflake environment. It's a recommended way of starting a new 
+The library is build into the [Connectors Native SDK Template project][Connectors Native SDK Template path] which allows
+the developer to start the project with already prepared common code. The developer is only required to implement the
+most important area of the connector like the configuration and ingestion. Moreover, the template provides some tools
+that help with building and deploying the connector to Snowflake environment. It's a recommended way of starting a new
 project with the Native SDK for Connectors Java library.
 
 You can also check the [Connectors Native SDK Example Java GitHub Connector][Example Connector path] to find out how the

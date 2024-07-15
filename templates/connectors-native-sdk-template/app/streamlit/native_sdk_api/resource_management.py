@@ -28,7 +28,7 @@ def create_resource(resource_name):
 
     return call_procedure("PUBLIC.CREATE_RESOURCE",
                           [
-                              varchar_argument(id),
+                              varchar_argument(resource_name),
                               variant_argument(resource_id),
                               variant_list_argument(ingestion_config),
                               varchar_argument(id),
@@ -37,19 +37,56 @@ def create_resource(resource_name):
                           ])
 
 
-def fetch_resources():
+def fetch_resources_raw():
     # TODO: To modify the information shown about each resource in the table this query needs to be modified
     return session.sql(
         """
        SELECT
          id,
          resource_id:resource_name::string AS resource_name,
-         IS_ENABLED
-       FROM PUBLIC.INGESTION_DEFINITIONS
+         ENABLED AS is_enabled,
+         INGESTION_CONFIGURATION
+       FROM STATE.RESOURCE_INGESTION_DEFINITION
        """
     )
+
+
+def fetch_resources():
+    result = session.table("STATE.RESOURCE_INGESTION_DEFINITION").collect()
+    output = []
+    for r in result:
+        output.append(Resource(r["ID"], r["NAME"], r["ENABLED"], r["RESOURCE_ID"]))
+    return output
 
 
 def random_suffix():
     suffix = "".join(random.choice(string.ascii_uppercase + string.digits) for _ in range(9))
     return suffix
+
+
+class Resource:
+    def __init__(self, ingestion_definition_id: str, resource_name: str, is_enabled: bool, resource_id: str):
+        self._ingestion_definition_id = ingestion_definition_id
+        self._resource_name = resource_name
+        self._is_enabled = is_enabled
+        self._resource_id = resource_id
+
+    def get_ingestion_definition_id(self):
+        return self._ingestion_definition_id
+
+    def get_resource_name(self):
+        return self._resource_name
+
+    def is_enabled(self):
+        return self._is_enabled
+
+    def get_resource_id(self):
+        return self._resource_id
+
+
+def enable_resource(resource: Resource):
+    call_procedure("PUBLIC.ENABLE_RESOURCE", [varchar_argument(resource.get_ingestion_definition_id())])
+
+
+def disable_resource(resource: Resource):
+    call_procedure("PUBLIC.DISABLE_RESOURCE", [varchar_argument(resource.get_ingestion_definition_id())])

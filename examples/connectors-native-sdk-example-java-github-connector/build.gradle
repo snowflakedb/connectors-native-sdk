@@ -6,15 +6,19 @@ group = 'com.snowflake'
 version = '1.0-SNAPSHOT'
 
 repositories {
-    mavenCentral()
+    def artifactoryUrl = System.getenv('MAVEN_ARTIFACTORY_URL')
+    artifactoryUrl != null
+        ? maven { url artifactoryUrl }
+        : mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
-    compileOnly 'com.snowflake:connectors-native-sdk:2.0.0'
+    compileOnly 'com.snowflake:connectors-native-sdk:2.1.0'
 
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'com.snowflake:connectors-native-sdk-test:2.0.0'
+    testImplementation 'com.snowflake:connectors-native-sdk-test:2.1.0'
 }
 
 javadoc {
@@ -39,8 +43,10 @@ test {
  * **********************************************
  */
 import java.util.function.Supplier
+import java.util.stream.Collectors
 
 String defaultBuildDir = './sf_build'
+String defaultUpdateDir = './sf_build_update'
 String defaultSrcDir = './app'
 String libraryName = 'connectors-native-sdk'
 String defaultArtifactName = "${project.name}.jar"
@@ -94,6 +100,14 @@ project.tasks.register('createAppInstance') {
     }
 }
 
+project.tasks.register('updateAppInstance') {
+    it.group = 'Snowflake'
+    it.description = 'Updates an APPLICATION INSTANCE from given VERSION.'
+    doLast {
+        updateAppInstance(defaultUpdateDir, defaultArtifactName)
+    }
+}
+
 /*
 * **********************************************
 *              TASK MAIN LOGIC
@@ -108,13 +122,8 @@ private void copyInternalComponents(String defaultSrcDir, String defaultArtifact
 
     Utils.isDirectoryOrExit(localSrcDir)
     buildLocalJavaArtifact()
-    project.copy {
-        String originalArtifactName = "${project.name}-${project.version}.jar"
-        TaskLogger.info("Copying jar artifact [$originalArtifactName] of local project to [${targetDir}] as [$artifact].")
-        from layout.projectDirectory.file("build/libs/${originalArtifactName}")
-        into layout.projectDirectory.dir(targetDir.replace("./", ""))
-        rename ("^.*${project.name}-${project.version}.jar.*\$", artifact)
-    }
+    copyLocalJavaArtifact(artifact, targetDir)
+
     project.copy {
         TaskLogger.info("Copying all files from local source directory [${defaultSrcDir}] to connector build directory [$targetDir].")
         from layout.projectDirectory.dir(localSrcDir.replace("./", ""))
@@ -221,11 +230,105 @@ private void createAppInstance() {
     TaskLogger.success("Application instance [${instanceName}] created successfully.")
 }
 
+private void updateAppInstance(String defaultBuildDir, String defaultArtifactName) {
+    TaskLogger.info("Starting 'updateAppInstance' task...")
+    def connection = getCommandArgument("connection")
+    def appPackage = getCommandArgument("appPackage")
+    def schema = getCommandArgument("schema")
+    def stage = getCommandArgument("stage")
+    def buildDirPath = getCommandArgument("buildDirPath", {defaultBuildDir})
+    def artifact = getCommandArgument('artifact', {defaultArtifactName})
+    def appVersion = getCommandArgument("appVersion", {getVersionFromManifest(buildDirPath)})
+
+    SnowsqlQueryScript queriesScript = SnowsqlQueryScript.createScript(connection)
+
+    var gitStatusResult = getGitStatusResult()
+
+    File buildDir = new File(buildDirPath)
+    prepareBuildDir(gitStatusResult, artifact, buildDirPath)
+
+    if (buildDir.listFiles() is null) {
+        Utils.exitWithErrorLog("No files found to be updated in the stage. Make sure that updated files are tracked by git.")
+    }
+
+    prepareQueriesScriptIfRequired(buildDir, queriesScript, appPackage, schema, stage, appVersion)
+
+    TaskLogger.info("Putting discovered files to [${appVersion}] directory on [${appPackage}.${schema}.${stage}] stage.")
+    queriesScript.executeAndDelete()
+    TaskLogger.success("Application instance update process finished successfully.")
+    buildDir.deleteDir()
+}
+
 /*
 * **********************************************
 *                 TASK UTILS
 * **********************************************
 */
+
+private List<String> getGitStatusResult() {
+    var process = new ProcessBuilder(["git", "status", "--short"]).redirectErrorStream(true).start()
+    return Utils.executeCommand(process)
+}
+
+private void prepareBuildDir(List<String> gitStatus, String libraryName, String targetDir) {
+    List<String> filesTrackedByGit = filterOutUntrackedFiles(gitStatus)
+
+    if (containsFilesFromSrcMain(filesTrackedByGit)) {
+        buildLocalJavaArtifact()
+        copyLocalJavaArtifact(libraryName, targetDir)
+    }
+
+    List<String> filesPathToDeploy = extractPathsOfNonSrcModifiedOrAddedFiles(filesTrackedByGit)
+    filesPathToDeploy.forEach {copyFileKeepingOriginPath(it, targetDir)}
+}
+
+private void prepareQueriesScriptIfRequired(File buildDir, SnowsqlQueryScript queriesScript, String appPackage, String schema, String stage, String appVersion) {
+    if (buildDir.exists() && buildDir.isDirectory()) {
+        TaskLogger.info("Discovering files to be deployed in [${buildDir.getPath()}] directory.")
+        preparePutFileQueries(buildDir, queriesScript, appPackage, schema, stage, appVersion, buildDir.getPath())
+    } else {
+        Utils.exitWithErrorLog("File [${buildDir.getPath()}] does not exist or is not a directory.")
+    }
+}
+
+private void copyLocalJavaArtifact(String artifact, String targetDir) {
+    project.copy {
+        String originalArtifactName = "${project.name}-${project.version}.jar"
+        TaskLogger.info("Copying jar artifact [$originalArtifactName] of local project to [${targetDir}] as [$artifact].")
+        from layout.projectDirectory.file("build/libs/${originalArtifactName}")
+        into layout.projectDirectory.dir(targetDir.replace("./", ""))
+        rename ("^.*${project.name}-${project.version}.jar.*\$", artifact)
+    }
+}
+
+private void copyFileKeepingOriginPath(String filePath, String targetDir) {
+    var targetPathWithFileName = targetDir.replace("./", "").concat("/").concat(filePath)
+    var targetPath = targetPathWithFileName.substring(0, targetPathWithFileName.lastIndexOf("/")).replace("/app", "")
+    project.copy {
+        TaskLogger.info("Copying all files from local source directory [${filePath}] to connector build directory [$targetDir].")
+        from layout.projectDirectory.dir(filePath)
+        into layout.projectDirectory.dir(targetPath)
+    }
+}
+
+private List<String> filterOutUntrackedFiles(List<String> filesTrackedByGit) {
+    return filesTrackedByGit.stream().filter {!it.startsWith("??")}.collect(Collectors.toList())
+}
+
+private List<String> extractPathsOfNonSrcModifiedOrAddedFiles(List<String> filesTrackedByGit) {
+    return filesTrackedByGit.stream()
+        .map {it.trim()}
+        .filter {it.startsWith("A") || it.startsWith("M")}
+        .filter {it.contains(" app/")}
+        .filter {!it.contains(" src/")}
+        .filter {!it.contains(" ../")}
+        .map {it.substring(it.indexOf(" ")).trim()}
+        .collect(Collectors.toList())
+}
+
+private boolean containsFilesFromSrcMain(List<String> gitStatus) {
+    return gitStatus.stream().filter {it.contains(" src/main")}.count() > 0
+}
 
 private String createFromAppVersionOrVersionDir(String instanceName, String appPackage, java.util.Optional<String> versionDirPath, java.util.Optional<String> appVersion) {
     String createFromAppPackageQuery = """CREATE APPLICATION ${instanceName}
@@ -263,7 +366,7 @@ private void preparePutFileQueries(File dirToSearch, SnowsqlQueryScript script, 
             String query = """PUT file://${it.path.replace("./", "")}
                 @${appPackage}.${schema}.${stage}/${appVersion}${(it.path-buildDirPath).replace(it.name, "")}
                 AUTO_COMPRESS = FALSE
-                OVERWRITE = FALSE;"""
+                OVERWRITE = TRUE;"""
             script.addQuery(query)
         }
     }
@@ -437,6 +540,17 @@ class Utils {
         }
         if (encounteredError) {
             onErrorAction.run()
+        }
+        return commandOutput
+    }
+
+    static List<String> executeCommand(Process command) {
+        var reader = new BufferedReader(new InputStreamReader(command.getInputStream()))
+        List<String> commandOutput = new LinkedList<>()
+        String line
+        while ((line = reader.readLine()) != null) {
+            TaskLogger.external(line)
+            commandOutput.add(line)
         }
         return commandOutput
     }

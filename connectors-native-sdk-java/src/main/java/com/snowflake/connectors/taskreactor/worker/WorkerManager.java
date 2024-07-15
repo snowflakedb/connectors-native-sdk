@@ -4,6 +4,7 @@ package com.snowflake.connectors.taskreactor.worker;
 import static com.snowflake.connectors.taskreactor.worker.status.WorkerStatus.AVAILABLE;
 
 import com.snowflake.connectors.common.object.Identifier;
+import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.connectors.taskreactor.worker.queue.WorkerQueueManager;
 import com.snowflake.connectors.taskreactor.worker.registry.WorkerRegistryService;
 import com.snowflake.connectors.taskreactor.worker.status.WorkerStatusRepository;
@@ -11,12 +12,11 @@ import com.snowflake.snowpark_java.Session;
 import java.util.List;
 import java.util.Set;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** A set of utilities for worker management. */
 public class WorkerManager {
 
-  private static final Logger logger = LoggerFactory.getLogger(WorkerManager.class);
+  private static final Logger LOG = TaskReactorLogger.getLogger(WorkerManager.class);
 
   private final WorkerStatusRepository workerStatusRepository;
   private final WorkerRegistryService workerRegistryService;
@@ -55,7 +55,7 @@ public class WorkerManager {
 
   /** Recalculates the number of active workers. */
   public void reconcileWorkersNumber() {
-    logger.debug("Reconciling workers number.");
+    LOG.debug("Reconciling workers number.");
     List<WorkerId> workersToProvision = workerRegistryService.getWorkersToProvision();
     List<WorkerId> workersToDelete = workerRegistryService.getWorkersToDelete();
 
@@ -72,7 +72,7 @@ public class WorkerManager {
 
   private boolean provisionWorkers(List<WorkerId> workerIds) {
     if (workerIds.isEmpty()) {
-      logger.debug("There are no workers to be provisioned.");
+      LOG.debug("There are no workers to be provisioned.");
       return false;
     }
 
@@ -84,7 +84,7 @@ public class WorkerManager {
   }
 
   private void provisionWorker(WorkerId workerId) {
-    logger.debug("Provisioning worker with id {}", workerId);
+    LOG.debug("Provisioning worker with id {}", workerId);
     workerQueueManager.createWorkerQueueIfNotExist(workerId);
     workerTaskManager.createWorkerTask(workerId);
     workerStatusRepository.updateStatusFor(workerId, AVAILABLE);
@@ -93,7 +93,7 @@ public class WorkerManager {
 
   private boolean deleteWorkers(List<WorkerId> workerIds) {
     if (workerIds.isEmpty()) {
-      logger.debug("There are no workers to be deleted.");
+      LOG.debug("There are no workers to be deleted.");
       return false;
     }
 
@@ -107,7 +107,7 @@ public class WorkerManager {
   }
 
   private void deleteWorker(WorkerId workerId) {
-    logger.debug("Deleting worker with id {}", workerId);
+    LOG.debug("Deleting worker with id {}", workerId);
     workerTaskManager.dropWorkerTask(workerId);
     workerQueueManager.dropWorkerQueue(workerId);
     workerStatusRepository.removeStatusFor(workerId);

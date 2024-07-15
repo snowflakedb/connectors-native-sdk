@@ -117,8 +117,12 @@ public class IngestionProcessAssert
    * @return this assertion
    */
   public IngestionProcessAssert hasMetadata(Variant metadata) {
-    if (metadata == null) assertThat(actual.getMetadata()).isNull();
-    else assertThat(actual.getMetadata().asString()).isEqualTo(metadata.asString());
+    if (metadata == null) {
+      assertThat(actual.getMetadata()).isNull();
+    } else {
+      assertThat(actual.getMetadata()).isNotNull();
+      assertThat(actual.getMetadata().asString()).isEqualTo(metadata.asString());
+    }
     return this;
   }
 }

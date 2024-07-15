@@ -124,27 +124,23 @@ public class InstanceStreamServiceTest extends BaseTaskReactorIntegrationTest {
 
   private void streamsDoNotHaveData() {
     long commandsQueueRowsNumber =
-        session
-            .sql(String.format("SELECT * FROM %s", COMMANDS_QUEUE_STREAM.getEscapedName()))
-            .count();
+        session.sql(String.format("SELECT * FROM %s", COMMANDS_QUEUE_STREAM.getValue())).count();
     long queueRowsNumber =
-        session.sql(String.format("SELECT * FROM %s", QUEUE_STREAM.getEscapedName())).count();
+        session.sql(String.format("SELECT * FROM %s", QUEUE_STREAM.getValue())).count();
     assertThat(commandsQueueRowsNumber).isZero();
     assertThat(queueRowsNumber).isZero();
   }
 
   private void deleteDataFromQueues() {
-    session.table(QUEUE.getEscapedName()).delete();
-    session.table(COMMANDS_QUEUE.getEscapedName()).delete();
+    session.table(QUEUE.getValue()).delete();
+    session.table(COMMANDS_QUEUE.getValue()).delete();
   }
 
   private void streamsHaveData() {
     long commandsQueueRowsNumber =
-        session
-            .sql(String.format("SELECT * FROM %s", COMMANDS_QUEUE_STREAM.getEscapedName()))
-            .count();
+        session.sql(String.format("SELECT * FROM %s", COMMANDS_QUEUE_STREAM.getValue())).count();
     long queueRowsNumber =
-        session.sql(String.format("SELECT * FROM %s", QUEUE_STREAM.getEscapedName())).count();
+        session.sql(String.format("SELECT * FROM %s", QUEUE_STREAM.getValue())).count();
     assertThat(commandsQueueRowsNumber).isNotZero();
     assertThat(queueRowsNumber).isNotZero();
   }
@@ -154,7 +150,7 @@ public class InstanceStreamServiceTest extends BaseTaskReactorIntegrationTest {
         .sql(
             String.format(
                 "ALTER SCHEMA %s SET MAX_DATA_EXTENSION_TIME_IN_DAYS = %d",
-                schemaName.getName(), value))
+                schemaName.getValue(), value))
         .collect();
   }
 
@@ -181,7 +177,7 @@ public class InstanceStreamServiceTest extends BaseTaskReactorIntegrationTest {
         .sql(
             String.format(
                 "INSERT INTO %s (RESOURCE_ID, WORKER_PAYLOAD) VALUES ('123', 321)",
-                QUEUE.getEscapedName()))
+                QUEUE.getValue()))
         .collect();
     commandsQueueRepository.add(CommandType.RESUME_INSTANCE, new Variant(""));
   }

@@ -54,4 +54,11 @@ public final class WorkItem {
   public int hashCode() {
     return Objects.hash(id, resourceId, payload);
   }
+
+  @Override
+  public String toString() {
+    return String.format(
+        "WorkItem[id='%s', resourceId='%s', payload='%s']",
+        id, resourceId, payload == null ? null : payload.asJsonString());
+  }
 }

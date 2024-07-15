@@ -1,19 +1,18 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.taskreactor.commands.processor;
 
-import static java.lang.String.format;
-
 import com.snowflake.connectors.taskreactor.commands.processor.executors.CommandExecutor;
 import com.snowflake.connectors.taskreactor.commands.queue.Command;
 import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
+import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Default implementation of {@link CommandsProcessor} used by the Task Reactor. */
 public class DefaultCommandsProcessor implements CommandsProcessor {
 
-  private final Logger logger = LoggerFactory.getLogger(DefaultCommandsProcessor.class);
+  private static final Logger LOG = TaskReactorLogger.getLogger(DefaultCommandsProcessor.class);
+
   private final CommandsQueueRepository commandsQueueRepository;
   private final ExecutorStrategies executorsStrategy;
 
@@ -38,14 +37,13 @@ public class DefaultCommandsProcessor implements CommandsProcessor {
   public void processCommands() {
     var commands = commandsQueueRepository.fetchAllSupportedOrderedBySeqNo();
 
-    logger.info(
-        format(
-            "Starting executing %s%n commands of types [%s]",
-            commands.size(),
-            commands.stream()
-                .map(Command::getType)
-                .map(Command.CommandType::name)
-                .collect(Collectors.joining(", "))));
+    LOG.trace(
+        "Starting executing {} commands of types [{}]",
+        commands.size(),
+        commands.stream()
+            .map(Command::getType)
+            .map(Command.CommandType::name)
+            .collect(Collectors.joining(", ")));
     commands.forEach(this::executeCommand);
     commandsQueueRepository.deleteUnsupportedCommands();
   }
@@ -57,6 +55,11 @@ public class DefaultCommandsProcessor implements CommandsProcessor {
    * @param command command to be executed
    */
   private void executeCommand(Command command) {
+    LOG.info(
+        "Started processing a command (type: {}, id: {})",
+        command.getType().name(),
+        command.getId());
+
     CommandExecutor commandExecutor =
         executorsStrategy
             .getStrategy(command.getType())
@@ -64,15 +67,16 @@ public class DefaultCommandsProcessor implements CommandsProcessor {
                 () -> new CommandTypeUnsupportedByCommandsExecutorException(command.getType()));
     try {
       commandExecutor.execute(command);
-      logger.info(
-          format(
-              "Command of type [%s] with id [%s] successfully executed.",
-              command.getType().name(), command.getId()));
+      LOG.info(
+          "Command (type: {}, id: {}) successfully executed.",
+          command.getType().name(),
+          command.getId());
     } catch (Exception e) {
-      logger.error(
-          format(
-              "Command of type [%s] with id [%s] execution failed. Cause: [%s]",
-              command.getType().name(), command.getId(), e.getMessage()));
+      LOG.error(
+          "Command (type: {}, id: {}) execution failed. Cause: [{}]",
+          command.getType().name(),
+          command.getId(),
+          e.getMessage());
     }
     commandsQueueRepository.deleteById(command.getId());
   }

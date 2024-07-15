@@ -17,6 +17,15 @@ class DefaultUpdateWarehouseSdkCallback implements UpdateWarehouseSdkCallback {
   private final TaskRepository taskRepository;
   private final UpdateTaskReactorTasks updateTaskReactorTasks;
 
+  public DefaultUpdateWarehouseSdkCallback(
+      TaskReactorExistenceVerifier taskReactorVerifier,
+      TaskRepository taskRepository,
+      UpdateTaskReactorTasks updateTaskReactorTasks) {
+    this.taskReactorVerifier = taskReactorVerifier;
+    this.taskRepository = taskRepository;
+    this.updateTaskReactorTasks = updateTaskReactorTasks;
+  }
+
   DefaultUpdateWarehouseSdkCallback(Session session) {
     this.taskReactorVerifier = TaskReactorExistenceVerifier.getInstance(session);
     this.taskRepository = TaskRepository.getInstance(session);
@@ -33,7 +42,7 @@ class DefaultUpdateWarehouseSdkCallback implements UpdateWarehouseSdkCallback {
 
   private void updateSchedulerTask(Identifier warehouse) {
     var schedulerTask = taskRepository.fetch(SCHEDULER_TASK);
-    schedulerTask.alterWarehouseIfExists(warehouse.toSqlString());
+    schedulerTask.alterWarehouseIfExists(warehouse.getValue());
   }
 
   private void updateTaskReactorTasks(Identifier warehouse) {

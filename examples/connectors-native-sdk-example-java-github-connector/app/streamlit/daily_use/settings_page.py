@@ -2,10 +2,11 @@
 
 import streamlit as st
 from native_sdk_api.connector_config import get_connector_configuration
-from native_sdk_api.connection_config import get_connection_configuration
 from utils.permission_sdk_utils import (
     get_held_account_privileges,
-    get_warehouse_ref
+    get_warehouse_ref,
+    get_github_eai_ref,
+    get_github_secret_ref
 )
 
 
@@ -26,8 +27,10 @@ def connector_config_page():
     destination_schema = current_config.get("destination_schema", "")
 
     st.header("Connector configuration")
-    st.caption("Here you can see the general connector configuration saved during the connector configuration step of "
-               "the Wizard.")
+    st.caption(
+        "Here you can see the general connector configuration saved during the connector "
+        "configuration step of the wizard"
+    )
     st.divider()
 
     st.text_input(
@@ -54,24 +57,25 @@ def connector_config_page():
 
 
 def connection_config_page():
-    current_config = get_connection_configuration()
+    ext_acc_int_reference = get_github_eai_ref()[0]
+    secret_reference = get_github_secret_ref()[0]
 
-    secret = current_config.get("secret", "")
-    external_access_integration = current_config.get("external_access_integration", "")
-
-    st.header("Connector configuration")
-    st.caption("Here you can see the connector connection configuration saved during the connection configuration step "
-               "of the Wizard.")
+    st.header("Connection configuration")
+    st.caption(
+        "Here you can see the connector connection configuration saved during the connection "
+        "configuration step of the wizard"
+    )
     st.divider()
 
     st.text_input(
-        "Secret:",
-        value=secret,
+        "External access integration reference:",
+        value=ext_acc_int_reference,
         disabled=True
     )
     st.text_input(
-        "External access integration:",
-        value=external_access_integration,
+        "Secret reference:",
+        value=secret_reference,
         disabled=True
     )
+
     st.divider()

@@ -94,7 +94,7 @@ public class InMemoryTaskRef implements TaskRef {
         taskName,
         (taskName, taskProperties) ->
             new TaskProperties.Builder(taskProperties)
-                .withWarehouse(Identifier.fromWithAutoQuoting(warehouse))
+                .withWarehouse(Identifier.from(warehouse))
                 .build());
   }
 
