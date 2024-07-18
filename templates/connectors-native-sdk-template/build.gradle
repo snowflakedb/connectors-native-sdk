@@ -5,6 +5,11 @@ plugins {
 group = 'com.snowflake'
 version = '1.0-SNAPSHOT'
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 repositories {
     def artifactoryUrl = System.getenv('MAVEN_ARTIFACTORY_URL')
     artifactoryUrl != null
@@ -42,6 +47,7 @@ test {
  *           CONNECTOR LIFECYCLE TASKS
  * **********************************************
  */
+
 import java.util.function.Supplier
 import java.util.stream.Collectors
 
