@@ -479,14 +479,6 @@ app.toml
 sf_build
 sf_package
 .formatter_cache
-native_repo_tmp/
-
-### Artifactory
-**/truststore/
-
-### Documentation ###
-sphinx/_sphinx-output
-bin/javadoc
 
 ### Mac OS ###
 .DS_Store
