@@ -6,9 +6,9 @@ build-backend = "hatchling.build"
 name = "snowflake_github_connector"
 version = "0.0.1"
 dependencies = [
-    "snowflake-connector-python==3.0.2",
-    "snowflake-snowpark-python==1.1.0",
-    "requests===2.28.1"
+    "snowflake-connector-python==3.12.4",
+    "snowflake-snowpark-python==1.26.0",
+    "requests===2.32.3"
 ]
 
 [project.optional-dependencies]

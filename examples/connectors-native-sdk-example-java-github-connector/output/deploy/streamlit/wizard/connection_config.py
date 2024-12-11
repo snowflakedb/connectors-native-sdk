@@ -19,7 +19,7 @@ def connection_config_page():
     st.caption(" 2. Install the app in your GitHub account")
     st.caption(" 3. Copy the client ID and client secret from your GitHub app")
     st.caption("")
-    st.caption("Refer to the example quickstart for more information about GitHub apps setup")
+    st.caption("Refer to the example tutorial for more information about GitHub apps setup")
 
     st.divider()
 

@@ -29,6 +29,6 @@ We recommend the following flow when using the tutorial, especially for the firs
 5. Ingest the data!
 
 [Native SDK official docs]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/about-connector-sdk
-[Tutorial docs]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/tutorials/native_sdk_tutorial
+[Tutorial docs]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/tutorials/native_sdk_template_connector_tutorial
 
 [Example Connector path]: ../../examples/connectors-native-sdk-example-java-github-connector
