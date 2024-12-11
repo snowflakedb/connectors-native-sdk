@@ -3,11 +3,16 @@ package com.snowflake.connectors.common.task;
 
 import static com.snowflake.connectors.util.sql.SqlTools.asVarchar;
 import static com.snowflake.connectors.util.sql.SqlTools.quoted;
+import static java.lang.String.format;
 
 import com.snowflake.connectors.common.object.Identifier.AutoQuoting;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.snowpark_java.Row;
 import com.snowflake.snowpark_java.Session;
+import com.snowflake.snowpark_java.types.Variant;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /** Default implementation of {@link TaskRef}. */
 public class DefaultTaskRef implements TaskRef {
@@ -31,7 +36,7 @@ public class DefaultTaskRef implements TaskRef {
 
   @Override
   public void execute() {
-    session.sql(String.format("EXECUTE TASK %s", identifier())).toLocalIterator();
+    session.sql(format("EXECUTE TASK %s", identifier())).toLocalIterator();
   }
 
   @Override
@@ -43,7 +48,7 @@ public class DefaultTaskRef implements TaskRef {
 
     return session
             .sql(
-                String.format(
+                format(
                     "SHOW TASKS LIKE %s IN SCHEMA %s",
                     asVarchar(taskName.getName().getUnquotedValue()), schema.get().getValue()))
             .collect()
@@ -73,40 +78,38 @@ public class DefaultTaskRef implements TaskRef {
 
   @Override
   public void drop() {
-    session.sql(String.format("DROP TASK %s", identifier())).toLocalIterator();
+    session.sql(format("DROP TASK %s", identifier())).toLocalIterator();
   }
 
   @Override
   public void dropIfExists() {
-    session.sql(String.format("DROP TASK IF EXISTS %s", identifier())).toLocalIterator();
+    session.sql(format("DROP TASK IF EXISTS %s", identifier())).toLocalIterator();
   }
 
   @Override
   public void alterSchedule(String schedule) {
-    alterTask(String.format("SET SCHEDULE = %s", asVarchar(schedule)));
+    alterTask(format("SET SCHEDULE = %s", asVarchar(schedule)));
   }
 
   @Override
   public void alterScheduleIfExists(String schedule) {
-    alterTaskIfExists(String.format("SET SCHEDULE = %s", asVarchar(schedule)));
+    alterTaskIfExists(format("SET SCHEDULE = %s", asVarchar(schedule)));
   }
 
   @Override
   public void alterWarehouse(String warehouse) {
-    alterTask(String.format("SET WAREHOUSE = %s", asVarchar(warehouse)));
+    alterTask(format("SET WAREHOUSE = %s", asVarchar(warehouse)));
   }
 
   @Override
   public void alterWarehouseIfExists(String warehouse) {
-    alterTaskIfExists(String.format("SET WAREHOUSE = %s", asVarchar(warehouse)));
+    alterTaskIfExists(format("SET WAREHOUSE = %s", asVarchar(warehouse)));
   }
 
   @Override
   public void grantMonitorPrivilegeToRole(String role) {
     session
-        .sql(
-            String.format(
-                "GRANT MONITOR ON TASK %s TO APPLICATION ROLE %s", taskName.getValue(), role))
+        .sql(format("GRANT MONITOR ON TASK %s TO APPLICATION ROLE %s", taskName.getValue(), role))
         .toLocalIterator();
   }
 
@@ -119,7 +122,8 @@ public class DefaultTaskRef implements TaskRef {
             quoted("schedule"),
             quoted("warehouse"),
             quoted("state"),
-            quoted("allow_overlapping_execution"))
+            quoted("allow_overlapping_execution"),
+            quoted("predecessors"))
         .first()
         .map(this::mapToProperties)
         .orElseThrow(() -> new TaskNotFoundException(taskName));
@@ -130,20 +134,46 @@ public class DefaultTaskRef implements TaskRef {
         .withWarehouse(row.getString(2), AutoQuoting.ENABLED)
         .withState(row.getString(3))
         .withAllowOverlappingExecution(Boolean.parseBoolean(row.getString(4)))
+        .withPredecessors(mapVariantsToTaskRefs(row.getListOfVariant(5)))
         .build();
   }
 
+  private List<TaskRef> mapVariantsToTaskRefs(List<Variant> variants) {
+    return variants.stream()
+        .map(Variant::asString)
+        .map(ObjectName::fromString)
+        .map(name -> TaskRef.of(session, name))
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    DefaultTaskRef that = (DefaultTaskRef) o;
+    return Objects.equals(taskName, that.taskName);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(taskName);
+  }
+
   private String identifier() {
-    return String.format("IDENTIFIER(%s)", asVarchar(taskName.getValue()));
+    return format("IDENTIFIER(%s)", asVarchar(taskName.getValue()));
   }
 
   private void alterTask(String command) {
-    session.sql(String.format("ALTER TASK %s %s", identifier(), command)).toLocalIterator();
+    session.sql(format("ALTER TASK %s %s", identifier(), command)).toLocalIterator();
   }
 
   private void alterTaskIfExists(String command) {
-    session
-        .sql(String.format("ALTER TASK IF EXISTS %s %s", identifier(), command))
-        .toLocalIterator();
+    session.sql(format("ALTER TASK IF EXISTS %s %s", identifier(), command)).toLocalIterator();
   }
 }

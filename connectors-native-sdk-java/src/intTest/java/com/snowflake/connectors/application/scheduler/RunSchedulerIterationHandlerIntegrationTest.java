@@ -10,7 +10,6 @@ import com.snowflake.connectors.BaseIntegrationTest;
 import com.snowflake.connectors.application.ingestion.process.DefaultIngestionProcessRepository;
 import com.snowflake.connectors.application.ingestion.process.IngestionProcess;
 import com.snowflake.connectors.application.ingestion.process.IngestionProcessRepository;
-import java.io.IOException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +19,7 @@ public class RunSchedulerIterationHandlerIntegrationTest extends BaseIntegration
   private static IngestionProcessRepository ingestionProcessRepository;
 
   @BeforeAll
-  static void setup() throws IOException {
+  void setup() {
     handler = RunSchedulerIterationHandler.builder(session).withCallback(processId -> {}).build();
     ingestionProcessRepository = new DefaultIngestionProcessRepository(session);
   }

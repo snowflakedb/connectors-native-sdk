@@ -7,9 +7,11 @@ import static com.snowflake.connectors.application.ingestion.process.IngestionPr
 
 import com.snowflake.snowpark_java.types.Variant;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -86,12 +88,21 @@ public class InMemoryIngestionProcessRepository
   @Override
   public void endProcess(
       String resourceIngestionDefinitionId, String ingestionConfigurationId, String type) {
-    throw new UnsupportedOperationException();
+    List<IngestionProcess> processes =
+        fetchAll(resourceIngestionDefinitionId, ingestionConfigurationId, type);
+    processes.stream().map(IngestionProcess::getId).forEach(this::endProcess);
   }
 
   @Override
   public Optional<IngestionProcess> fetch(String processId) {
     return Optional.ofNullable(repository.get(processId));
+  }
+
+  @Override
+  public List<IngestionProcess> fetchAllById(List<String> processIds) {
+    return repository.values().stream()
+        .filter(process -> processIds.contains(process.getId()))
+        .collect(Collectors.toList());
   }
 
   @Override
@@ -105,6 +116,28 @@ public class InMemoryIngestionProcessRepository
         .filter(process -> type.equals(process.getType()))
         .filter(process -> FINISHED.equals(process.getStatus()))
         .max(Comparator.comparing(IngestionProcess::getFinishedAt));
+  }
+
+  @Override
+  public List<IngestionProcess> fetchLastFinished(
+      String resourceIngestionDefinitionId, String ingestionConfigurationId) {
+    return new ArrayList<>(
+        repository.values().stream()
+            .filter(
+                process ->
+                    resourceIngestionDefinitionId.equals(
+                        process.getResourceIngestionDefinitionId()))
+            .filter(
+                process -> ingestionConfigurationId.equals(process.getIngestionConfigurationId()))
+            .filter(process -> FINISHED.equals(process.getStatus()))
+            .sorted(Comparator.comparing(IngestionProcess::getFinishedAt))
+            .collect(
+                Collectors.toMap(
+                    IngestionProcess::getType,
+                    process -> process,
+                    (first, second) -> first,
+                    LinkedHashMap::new))
+            .values());
   }
 
   @Override
@@ -144,6 +177,15 @@ public class InMemoryIngestionProcessRepository
                 resourceIngestionDefinitionId.equals(process.getResourceIngestionDefinitionId()))
         .filter(process -> statuses.contains(process.getStatus()))
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public void deleteAllByResourceId(String resourceIngestionDefinitionId) {
+    repository
+        .values()
+        .removeIf(
+            process ->
+                resourceIngestionDefinitionId.equals(process.getResourceIngestionDefinitionId()));
   }
 
   @Override

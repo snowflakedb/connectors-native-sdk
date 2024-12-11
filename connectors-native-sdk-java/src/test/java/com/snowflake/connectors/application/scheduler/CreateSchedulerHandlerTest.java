@@ -29,11 +29,11 @@ class CreateSchedulerHandlerTest {
         new InMemoryConnectorConfigurationService(configurationRepository);
     inMemoryTaskManagement = new InMemoryTaskManagement();
     var schedulerCreator =
-        new DefaultSchedulerCreator(
+        new DefaultSchedulerManager(
             connectorConfigurationService, inMemoryTaskManagement, inMemoryTaskManagement);
     this.createSchedulerHandler =
         new CreateSchedulerHandlerTestBuilder()
-            .withSchedulerCreator(schedulerCreator)
+            .withSchedulerManager(schedulerCreator)
             .withErrorHelper(ConnectorErrorHelper.builder(null, "RESOURCE").build())
             .build();
   }

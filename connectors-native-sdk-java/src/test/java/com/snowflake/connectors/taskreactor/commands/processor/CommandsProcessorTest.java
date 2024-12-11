@@ -14,7 +14,7 @@ import com.snowflake.connectors.taskreactor.commands.processor.executors.Command
 import com.snowflake.connectors.taskreactor.commands.processor.executors.PauseInstanceExecutor;
 import com.snowflake.connectors.taskreactor.commands.processor.executors.ResumeInstanceExecutor;
 import com.snowflake.connectors.taskreactor.commands.queue.Command;
-import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
+import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueue;
 import com.snowflake.snowpark_java.types.Variant;
 import java.util.List;
 import java.util.Optional;
@@ -44,23 +44,21 @@ public class CommandsProcessorTest {
     when(executorsStrategy.getStrategy(RESUME_INSTANCE))
         .thenReturn(Optional.of(resumeInstanceExecutor));
 
-    CommandsQueueRepository commandsQueueRepository = mock(CommandsQueueRepository.class);
-    when(commandsQueueRepository.fetchAllSupportedOrderedBySeqNo())
+    CommandsQueue commandsQueue = mock(CommandsQueue.class);
+    when(commandsQueue.fetchAllSupportedOrderedBySeqNo())
         .thenReturn(List.of(resumeInstanceCommand, pauseInstanceCommand));
-    var commandsProcessor =
-        new DefaultCommandsProcessor(commandsQueueRepository, executorsStrategy);
+    var commandsProcessor = new DefaultCommandsProcessor(commandsQueue, executorsStrategy);
 
     // when
     commandsProcessor.processCommands();
 
     // then
-    InOrder inOrder =
-        inOrder(pauseInstanceExecutor, resumeInstanceExecutor, commandsQueueRepository);
+    InOrder inOrder = inOrder(pauseInstanceExecutor, resumeInstanceExecutor, commandsQueue);
     inOrder.verify(resumeInstanceExecutor).execute(resumeInstanceCommand);
-    inOrder.verify(commandsQueueRepository).deleteById(resumeInstanceCommandId);
+    inOrder.verify(commandsQueue).deleteById(resumeInstanceCommandId);
     inOrder.verify(pauseInstanceExecutor).execute(pauseInstanceCommand);
-    inOrder.verify(commandsQueueRepository).deleteById(pauseInstanceCommandId);
-    inOrder.verify(commandsQueueRepository).deleteUnsupportedCommands();
+    inOrder.verify(commandsQueue).deleteById(pauseInstanceCommandId);
+    inOrder.verify(commandsQueue).deleteUnsupportedCommands();
   }
 
   @Test
@@ -71,11 +69,9 @@ public class CommandsProcessorTest {
     ExecutorStrategies executorsStrategy = mock(ExecutorStrategies.class);
     when(executorsStrategy.getStrategy(PAUSE_INSTANCE)).thenReturn(Optional.ofNullable(null));
 
-    CommandsQueueRepository commandsQueueRepository = mock(CommandsQueueRepository.class);
-    when(commandsQueueRepository.fetchAllSupportedOrderedBySeqNo())
-        .thenReturn(List.of(pauseInstanceCommand));
-    var commandsProcessor =
-        new DefaultCommandsProcessor(commandsQueueRepository, executorsStrategy);
+    CommandsQueue commandsQueue = mock(CommandsQueue.class);
+    when(commandsQueue.fetchAllSupportedOrderedBySeqNo()).thenReturn(List.of(pauseInstanceCommand));
+    var commandsProcessor = new DefaultCommandsProcessor(commandsQueue, executorsStrategy);
 
     // expect
     assertThatExceptionOfType(CommandTypeUnsupportedByCommandsExecutorException.class)

@@ -65,7 +65,7 @@ public class UpdateConnectionConfigurationHandlerTestBuilder {
   UpdateConnectionConfigurationHandlerTestBuilder(Session session) {
     requireNonNull(session);
 
-    this.inputValidator = new DefaultConnectionConfigurationInputValidator(session);
+    this.inputValidator = new DefaultUpdateConnectionConfigurationInputValidator(session);
     this.draftCallback = new DraftConnectionConfigurationCallback(session);
     this.draftConnectionValidator = new TestDraftConnectionValidator(session);
     this.callback = new InternalConnectionConfigurationCallback(session);

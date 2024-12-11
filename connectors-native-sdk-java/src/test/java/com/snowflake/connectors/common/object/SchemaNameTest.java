@@ -63,7 +63,7 @@ public class SchemaNameTest {
   }
 
   @Test
-  void shouldThrowErrorOnInvalidObjectNamesFromNameAndSchema() {
+  void shouldThrowErrorOnInvalidObjectNamesFromGetNameAndSchema() {
     // expect
     assertThatExceptionOfType(InvalidIdentifierException.class)
         .isThrownBy(() -> SchemaName.from(Identifier.from("db"), Identifier.from("")))

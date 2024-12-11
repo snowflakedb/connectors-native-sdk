@@ -36,7 +36,7 @@ class ConfigureConnectorHandlerTest {
   private static final Variant CONNECTOR_CONFIG =
       new Variant(
           "{"
-              + "\"warehouse\": \"xs\", "
+              + "\"warehouse\": \"xsmall\", "
               + "\"destination_database\": \"dest_db\", "
               + "\"destination_schema\": \"dest_schema\", "
               + "\"data_owner_role\": \"role\""

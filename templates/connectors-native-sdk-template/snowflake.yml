@@ -1,0 +1,19 @@
+definition_version: 2
+entities:
+  app:
+    type: application
+    identifier: <% ctx.env.APP_NAME %>
+    from:
+      target: package
+  package:
+    type: application package
+    stage: <% ctx.env.SCHEMA_NAME %>.<% ctx.env.STAGE_NAME %>
+    manifest: ./app/manifest.yml
+    artifacts:
+      - src: ./sf_build/*
+        dest: ./
+
+env:
+  APP_NAME: <! app_name !>
+  SCHEMA_NAME: <! schema_name !>
+  STAGE_NAME: <! stage_name !>

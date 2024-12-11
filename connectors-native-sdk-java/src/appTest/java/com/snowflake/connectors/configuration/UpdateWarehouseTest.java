@@ -2,7 +2,6 @@
 package com.snowflake.connectors.configuration;
 
 import static com.snowflake.connectors.application.scheduler.Scheduler.SCHEDULER_TASK;
-import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.TASK_PROPERTIES;
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThat;
 import static com.snowflake.connectors.util.ConnectorStatus.ConnectorConfigurationStatus.FINALIZED;
 import static com.snowflake.connectors.util.ConnectorStatus.PAUSED;
@@ -11,8 +10,6 @@ import static java.lang.String.format;
 
 import com.snowflake.connectors.BaseNativeSdkIntegrationTest;
 import com.snowflake.connectors.common.assertions.NativeSdkAssertions;
-import com.snowflake.connectors.common.task.TaskLister;
-import com.snowflake.connectors.common.task.TaskRef;
 import java.io.IOException;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,7 +28,6 @@ public class UpdateWarehouseTest extends BaseNativeSdkIntegrationTest {
   void shouldUpdateWarehouseInConfigAndTask() {
     // given
     configureConnector();
-    setupWarehouseReference();
     createScheduler();
     pauseConnector();
 
@@ -50,27 +46,23 @@ public class UpdateWarehouseTest extends BaseNativeSdkIntegrationTest {
   private void configureConnector() {
     var config =
         "{\"warehouse\": \""
-            + WAREHOUSE
+            + WAREHOUSE.getValue()
             + "\", \"global_schedule\": {\"scheduleType\":"
             + "\"CRON\", \"scheduleDefinition\": \"*/10 * * * *\"}}";
     callProcedure(format("CONFIGURE_CONNECTOR(PARSE_JSON('%s'))", config));
-    assertConnectorConfigSavedWarehouse(WAREHOUSE);
+    assertConnectorConfigSavedWarehouse(WAREHOUSE.getValue());
     setConnectorStatus(STARTED, FINALIZED);
   }
 
   private void pauseConnector() {
     setConnectorStatus(PAUSED, FINALIZED);
-    TaskRef.of(session, SCHEDULER_TASK).suspendIfExists();
+    executeInApp(format("ALTER TASK IF EXISTS %s SUSPEND", SCHEDULER_TASK.getValue()));
   }
 
   private void createScheduler() {
     var response = callProcedure("CREATE_SCHEDULER()");
     NativeSdkAssertions.assertThatResponseMap(response).hasOKResponseCode();
-    assertSchedulerTaskWarehouse("reference('WAREHOUSE_REFERENCE')");
-
-    // Grant ALL on the scheduler task, so it can be managed and validated easily
-    executeInApp(
-        format("GRANT ALL ON TASK %s TO APPLICATION ROLE ADMIN", SCHEDULER_TASK.getValue()));
+    assertSchedulerTaskWarehouse(WAREHOUSE.getValue());
   }
 
   // Only the task owner can drop it, we cannot use TaskRef here
@@ -79,8 +71,14 @@ public class UpdateWarehouseTest extends BaseNativeSdkIntegrationTest {
   }
 
   private void assertSchedulerTaskWarehouse(String warehouse) {
-    var task = TaskLister.getInstance(session).showTask(SCHEDULER_TASK);
-    assertThat(task).isNotEmpty().get(TASK_PROPERTIES).hasWarehouse(warehouse);
+    var taskWarehouse =
+        executeInAppWithSelect(
+            format(
+                "SHOW TASKS LIKE '%s' IN SCHEMA %s",
+                SCHEDULER_TASK.getName().getUnquotedValue(),
+                SCHEDULER_TASK.getSchema().get().getValue()),
+            "warehouse");
+    assertThat(taskWarehouse[0].getString(0)).isEqualTo(warehouse);
   }
 
   private void assertConnectorConfigSavedWarehouse(String warehouse) {

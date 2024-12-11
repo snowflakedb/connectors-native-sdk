@@ -10,6 +10,12 @@ public class PrefixLogger implements Logger {
   private final String prefix;
   private final Logger logger;
 
+  /**
+   * Creates a new {@link PrefixLogger}.
+   *
+   * @param prefix prefix added to all messages
+   * @param logger logger instance used for message logging
+   */
   public PrefixLogger(String prefix, Logger logger) {
     this.prefix = prefix;
     this.logger = logger;

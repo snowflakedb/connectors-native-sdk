@@ -6,6 +6,7 @@ import static com.snowflake.connectors.application.status.ConnectorStatus.PAUSIN
 import static com.snowflake.connectors.application.status.ConnectorStatus.STARTED;
 
 import com.snowflake.connectors.application.lifecycle.LifecycleService;
+import com.snowflake.connectors.application.scheduler.SchedulerManager;
 import com.snowflake.connectors.common.exception.helper.ConnectorErrorHelper;
 import com.snowflake.connectors.common.response.ConnectorResponse;
 import com.snowflake.connectors.taskreactor.lifecycle.PauseTaskReactorService;
@@ -28,6 +29,7 @@ public class PauseConnectorHandler {
   private final LifecycleService lifecycleService;
   private final PauseConnectorSdkCallback sdkCallback;
   private final PauseTaskReactorService pauseTaskReactorService;
+  private final SchedulerManager schedulerManager;
 
   PauseConnectorHandler(
       PauseConnectorStateValidator stateValidator,
@@ -35,13 +37,15 @@ public class PauseConnectorHandler {
       ConnectorErrorHelper errorHelper,
       LifecycleService lifecycleService,
       PauseConnectorSdkCallback sdkCallback,
-      PauseTaskReactorService pauseTaskReactorService) {
+      PauseTaskReactorService pauseTaskReactorService,
+      SchedulerManager schedulerManager) {
     this.stateValidator = stateValidator;
     this.callback = callback;
     this.errorHelper = errorHelper;
     this.lifecycleService = lifecycleService;
     this.sdkCallback = sdkCallback;
     this.pauseTaskReactorService = pauseTaskReactorService;
+    this.schedulerManager = schedulerManager;
   }
 
   /**
@@ -113,6 +117,8 @@ public class PauseConnectorHandler {
     if (callbackResult.isNotOk()) {
       return callbackResult;
     }
+
+    schedulerManager.pauseScheduler();
 
     pauseTaskReactorService.pauseAllInstances();
 

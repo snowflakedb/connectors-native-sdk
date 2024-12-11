@@ -2,8 +2,8 @@
 
 ---
 ## Prerequisites
-1. All sql queries are executed with the usage of [SnowSQL tool](https://docs.snowflake.com/en/user-guide/snowsql), so it's required to have this tool installed.
-2. Define connection to Snowflake in the configuration file of the SnowSQL, which will be used in the tasks below [how to](https://docs.snowflake.com/en/user-guide/snowsql-config).
+1. All sql queries are executed with the usage of [Snowflake CLI tool](https://docs.snowflake.com/en/developer-guide/snowflake-cli-v2/index), so it's required to have this tool installed.
+2. Define connection to Snowflake in the configuration file of the Snowflake CLI, which will be used in the tasks below [how to](https://docs.snowflake.com/en/developer-guide/snowflake-cli-v2/connecting/specify-credentials).
 
 ## Terminology
 - `connector build directory` - it's a directory where all connector artifacts should be stored before the deployment to Snowflake.
@@ -41,7 +41,7 @@ Generally this task is intended to copy only local files created by the user. By
 
 ---
 ## 2. copySdkComponents
-This task copies the `native-connectors-sdk-components` directory which contains all `*.sql` files of the native-sdk features from the
+This task copies the `connectors-sdk-components` directory which contains all `*.sql` files of the native-sdk features from the
 `connectors-native-sdk-java` library (jar file). This task uses the `connectors-native-sdk-java` library from local Maven
 repository (`./m2/repository`). The library will be downloaded by gradle from the Maven central repository, before it's used, so it will be present in the local files.
 
@@ -61,7 +61,7 @@ In case, when the `APPLICATION PACKAGE` with the same name already exists, the t
 - `appPackage` - defines the name of the APPLICATION PACKAGE that will be created.
 - `schema` - defines the name of the SCHEMA that will be created.
 - `stage` - defines the name of the STAGE that will be created.
-- `connection` - defines the connection name which is used by the SnowSQL.
+- `connectionFile` - defines the path to the connection config file which is used by the Snowflake CLI.
 
 ### Example command:
 `./gradlew prepareAppPackage
@@ -78,7 +78,7 @@ This task puts all files which are stored in the connector build directory into 
 - `appPackage` - defines the name of the APPLICATION PACKAGE, to where, connector artifacts should be deployed.
 - `schema` - defines the name of the SCHEMA, where the stage for artifacts is created.
 - `stage` - defines the name of the STAGE created for storing connector artifacts.
-- `connection` - defines the connection name which is used by the SnowSQL.
+- `connectionFile` - defines the path to the connection config file which is used by the Snowflake CLI.
 
 ### OPTIONAL parameters:
 - `buildDirPath` - defines the path to the connector build directory from which, files will be put into the stage (the same as `targetDir` parameter in copy components tasks). Default value is `./sf_build`.
@@ -99,7 +99,7 @@ This task creates new VERSION of the application from the given version director
 
 ### REQUIRED parameters
 - `appPackage` - defines the name of the APPLICATION PACKAGE, from which, the new version should be created.
-- `connection` - defines the connection name which is used by the SnowSQL.
+- `connectionFile` - defines the path to the connection config file which is used by the Snowflake CLI.
 - `versionDirPath` - defines the absolute path to the version directory in the application package stage, for example `@EXAMPLE_APP.EXAMPLE_SCHEMA.EXAMPLE_STAGE/artifacts/v_1_0`.
 - `appVersion` - defines the name of the application version that is created in the application package.
 
@@ -117,7 +117,7 @@ In case, when the `APPLICATION INSTANCE` with the same name already exists, the 
 
 ### REQUIRED parameters
 - `appPackage` - defines the name of the APPLICATION PACKAGE, from which, the new application instance should be created.
-- `connection` - defines the connection name which is used by the SnowSQL.
+- `connectionFile` - defines the path to the connection config file which is used by the Snowflake CLI.
 
 ### OPTIONAL parameters:
 - `instanceName` - defines the name of the application instance that is created by the task. By default, the name of the instance is `<app_package_name>_INSTANCE`.

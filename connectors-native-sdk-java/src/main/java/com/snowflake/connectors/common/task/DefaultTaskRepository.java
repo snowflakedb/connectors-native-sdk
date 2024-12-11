@@ -1,10 +1,14 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.common.task;
 
+import static java.lang.String.format;
+
 import com.snowflake.connectors.common.object.ObjectName;
+import com.snowflake.snowpark_java.Row;
 import com.snowflake.snowpark_java.Session;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /** Default implementation of {@link TaskRepository}. */
@@ -28,36 +32,54 @@ public class DefaultTaskRepository implements TaskRepository {
     String exists = ifNotExists ? "if not exists" : "";
 
     query.add(
-        String.format(
+        format(
             "%s task %s identifier('%s')",
             create, exists, definition.properties().name().getValue()));
-    query.add(String.format("schedule = '%s'", definition.properties().schedule()));
     query.add(
-        String.format(
+        format(
             "allow_overlapping_execution = %s",
             definition.properties().allowOverlappingExecution()));
 
-    if (definition.properties().warehouse() != null) {
-      query.add(String.format("warehouse = %s", definition.properties().warehouse()));
+    if (definition.properties().schedule() != null) {
+      query.add(format("schedule = '%s'", definition.properties().schedule()));
     }
+
+    if (definition.properties().warehouse() != null) {
+      query.add(format("warehouse = %s", definition.properties().warehouse()));
+    }
+
     if (definition.properties().suspendTaskAfterNumFailures() != null) {
       query.add(
-          String.format(
+          format(
               "SUSPEND_TASK_AFTER_NUM_FAILURES = %s",
               definition.properties().suspendTaskAfterNumFailures()));
     }
+
+    if (definition.properties().userTaskTimeoutMs() != null) {
+      query.add(
+          String.format("USER_TASK_TIMEOUT_MS = %s", definition.properties().userTaskTimeoutMs()));
+    }
+
+    if (!definition.properties().predecessors().isEmpty()) {
+      List<String> predecessorNames =
+          definition.properties().predecessors().stream()
+              .map(task -> task.name().getValue())
+              .collect(Collectors.toList());
+      query.add(format("after %s", String.join(",", predecessorNames)));
+    }
+
     if (definition.properties().condition() != null) {
-      query.add(String.format("when %s", definition.properties().condition()));
+      query.add(format("when %s", definition.properties().condition()));
     }
 
     definition
         .parameters()
         .map(TaskParameters::stream)
         .orElse(Stream.empty())
-        .map(entry -> String.format("%s = %s", entry.getKey(), entry.getValue()))
+        .map(entry -> format("%s = %s", entry.getKey(), entry.getValue()))
         .forEach(query::add);
 
-    query.add(String.format("as %s", definition.properties().definition()));
+    query.add(format("as %s", definition.properties().definition()));
 
     String result = executeQuery(query);
     validateResult(result, definition.properties().name());
@@ -72,22 +94,19 @@ public class DefaultTaskRepository implements TaskRepository {
 
   private String executeQuery(List<String> query) {
     try {
-      return session
-          .sql(String.join("\n", query))
-          .first()
-          .map(row -> row.getString(0))
-          .orElse("Unknown exception, returned message was empty.");
-
+      Row[] queryResult = session.sql(String.join("\n", query)).collect();
+      return queryResult.length > 0
+          ? queryResult[0].getString(0)
+          : "Unknown exception, returned message was empty.";
     } catch (Exception exception) {
       throw new TaskCreationException(exception.getMessage());
     }
   }
 
   private static void validateResult(String result, ObjectName taskName) {
-    if (!result.endsWith("successfully created.")) {
+    if (!result.endsWith("successfully created.") && !result.endsWith("statement succeeded.")) {
       throw new TaskCreationException(
-          String.format(
-              "Creation of task %s failed with message: %s", taskName.getValue(), result));
+          format("Creation of task %s failed with message: %s", taskName.getValue(), result));
     }
   }
 }

@@ -1,6 +1,7 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.common.assertions;
 
+import com.snowflake.connectors.application.ingestion.definition.IngestionConfiguration;
 import com.snowflake.connectors.application.ingestion.definition.ResourceIngestionDefinition;
 import com.snowflake.connectors.application.ingestion.process.IngestionProcess;
 import com.snowflake.connectors.application.observability.IngestionRun;
@@ -17,6 +18,7 @@ import com.snowflake.connectors.common.assertions.common.state.TestState;
 import com.snowflake.connectors.common.assertions.common.state.TestStateAssert;
 import com.snowflake.connectors.common.assertions.configurationRepository.TestConfig;
 import com.snowflake.connectors.common.assertions.configurationRepository.TestConfigAssert;
+import com.snowflake.connectors.common.assertions.ingestion.IngestionConfigurationAssert;
 import com.snowflake.connectors.common.assertions.ingestion.IngestionProcessAssert;
 import com.snowflake.connectors.common.assertions.ingestion.IngestionRunAssert;
 import com.snowflake.connectors.common.assertions.ingestion.definition.ResourceIngestionDefinitionAssert;
@@ -47,6 +49,9 @@ public class NativeSdkAssertions extends Assertions {
     return new TestConfigAssert(actual, TestConfigAssert.class);
   }
 
+  /**
+   * Definition of {@link InstanceOfAssertFactory} for {@link IngestionProcess} assertion classes.
+   */
   public static final InstanceOfAssertFactory<IngestionProcess, IngestionProcessAssert>
       INGESTION_PROCESS =
           new InstanceOfAssertFactory<>(IngestionProcess.class, NativeSdkAssertions::assertThat);
@@ -91,21 +96,37 @@ public class NativeSdkAssertions extends Assertions {
     return new FullConnectorStatusAssert(actual, FullConnectorStatusAssert.class);
   }
 
-  public static final InstanceOfAssertFactory<
-          ResourceIngestionDefinition, ResourceIngestionDefinitionAssert>
-      RESOURCE_INGESTION_DEFINITION =
-          new InstanceOfAssertFactory<>(
-              ResourceIngestionDefinition.class, NativeSdkAssertions::assertThat);
+  /**
+   * Creates a new assertion for the specified {@link ResourceIngestionDefinition}.
+   *
+   * @param actual actual value
+   * @param <I> resource id class, containing properties which identify the resource in the source
+   *     system
+   * @param <M> resource metadata class, containing additional properties which identify the
+   *     resource in the source system. The properties can be fetched automatically or calculated by
+   *     the connector
+   * @param <C> custom ingestion configuration class, containing custom ingestion properties
+   * @param <D> destination configuration class, containing properties describing where the ingested
+   *     data should be stored
+   * @return new assertion instance
+   */
+  public static <I, M, C, D> ResourceIngestionDefinitionAssert<I, M, C, D> assertThat(
+      ResourceIngestionDefinition<I, M, C, D> actual) {
+    return new ResourceIngestionDefinitionAssert<>(actual, ResourceIngestionDefinitionAssert.class);
+  }
 
   /**
    * Creates a new assertion for the specified {@link ResourceIngestionDefinition}.
    *
    * @param actual actual value
+   * @param <C> custom ingestion configuration class, containing custom ingestion properties
+   * @param <D> destination configuration class, containing properties describing where the ingested
+   *     data should be stored
    * @return new assertion instance
    */
-  public static ResourceIngestionDefinitionAssert assertThat(
-      ResourceIngestionDefinition<?, ?, ?, ?> actual) {
-    return new ResourceIngestionDefinitionAssert(actual, ResourceIngestionDefinitionAssert.class);
+  public static <C, D> IngestionConfigurationAssert<C, D> assertThat(
+      IngestionConfiguration<C, D> actual) {
+    return new IngestionConfigurationAssert<>(actual, IngestionConfigurationAssert.class);
   }
 
   /**
@@ -166,6 +187,7 @@ public class NativeSdkAssertions extends Assertions {
     return new VariantAssert(actual, VariantAssert.class);
   }
 
+  /** Definition of {@link InstanceOfAssertFactory} for {@link Identifier} assertion classes. */
   public static final InstanceOfAssertFactory<Identifier, IdentifierAssert> IDENTIFIER =
       new InstanceOfAssertFactory<>(Identifier.class, NativeSdkAssertions::assertThat);
 
@@ -179,6 +201,7 @@ public class NativeSdkAssertions extends Assertions {
     return new IdentifierAssert(actual, IdentifierAssert.class);
   }
 
+  /** Definition of {@link InstanceOfAssertFactory} for {@link SchemaName} assertion classes. */
   public static final InstanceOfAssertFactory<SchemaName, SchemaNameAssert> SCHEMA_NAME =
       new InstanceOfAssertFactory<>(SchemaName.class, NativeSdkAssertions::assertThat);
 
@@ -192,6 +215,7 @@ public class NativeSdkAssertions extends Assertions {
     return new SchemaNameAssert(actual, SchemaNameAssert.class);
   }
 
+  /** Definition of {@link InstanceOfAssertFactory} for {@link ObjectName} assertion classes. */
   public static final InstanceOfAssertFactory<ObjectName, ObjectNameAssert> OBJECT_NAME =
       new InstanceOfAssertFactory<>(ObjectName.class, NativeSdkAssertions::assertThat);
 
@@ -205,6 +229,7 @@ public class NativeSdkAssertions extends Assertions {
     return new ObjectNameAssert(actual, ObjectNameAssert.class);
   }
 
+  /** Definition of {@link InstanceOfAssertFactory} for {@link Reference} assertion classes. */
   public static final InstanceOfAssertFactory<Reference, ReferenceAssert> REFERENCE =
       new InstanceOfAssertFactory<>(Reference.class, NativeSdkAssertions::assertThat);
 

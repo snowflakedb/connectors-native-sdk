@@ -5,11 +5,17 @@ import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.ass
 
 import com.snowflake.connectors.BaseIntegrationTest;
 import com.snowflake.snowpark_java.types.Variant;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class AppendOnlyKeyValueTableTest extends BaseIntegrationTest {
 
-  AppendOnlyTable table = new AppendOnlyKeyValueTable(session, "STATE.RESOURCE_INGESTION_STATE");
+  private AppendOnlyTable table;
+
+  @BeforeAll
+  void beforeAll() {
+    table = new AppendOnlyKeyValueTable(session, "STATE.RESOURCE_INGESTION_STATE");
+  }
 
   @Test
   void shouldAccessIntConfiguration() {

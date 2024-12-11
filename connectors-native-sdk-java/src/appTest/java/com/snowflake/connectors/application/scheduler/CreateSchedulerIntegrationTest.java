@@ -1,12 +1,11 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.application.scheduler;
 
+import static com.snowflake.connectors.application.scheduler.Scheduler.SCHEDULER_TASK;
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThatResponseMap;
-import static java.util.stream.Collectors.toList;
+import static java.lang.String.format;
 
 import com.snowflake.connectors.BaseNativeSdkIntegrationTest;
-import java.util.Arrays;
-import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -28,12 +27,12 @@ class CreateSchedulerIntegrationTest extends BaseNativeSdkIntegrationTest {
 
   private void assertTaskWasCreated() {
     var tasks =
-        session
-            .sql("SHOW TASKS IN APPLICATION " + application.instanceName)
-            .select("\"name\"")
-            .collect();
-    List<String> taskNames = Arrays.stream(tasks).map(task -> task.getString(0)).collect(toList());
-    Assertions.assertThat(taskNames).contains("SCHEDULER_TASK");
+        executeInApp(
+            format(
+                "SHOW TASKS LIKE '%s' IN SCHEMA %s",
+                SCHEDULER_TASK.getName().getUnquotedValue(),
+                SCHEDULER_TASK.getSchema().get().getValue()));
+    Assertions.assertThat(tasks).hasSize(1);
   }
 
   private void setConnectorConfiguration() {

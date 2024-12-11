@@ -1,0 +1,18 @@
+minimum_cli_version: "3.0.0"
+files_to_render:
+  - snowflake.yml
+  - settings.gradle
+  - app/setup.sql
+variables:
+  - name: app_name
+    prompt: "Name of the application instance which will be created in Snowflake"
+    type: string
+    default: connectors-native-sdk-template
+  - name: schema_name
+    prompt: "Name of the schema in which the connector files stage will be created"
+    type: string
+    default: TEST_SCHEMA
+  - name: stage_name
+    prompt: "Name of the stage used to store connector files in the application package"
+    default: TEST_STAGE
+    type: string

@@ -20,7 +20,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 @TestMethodOrder(MethodOrderer.Random.class)
 public abstract class ConfigurableVersionsUpgradeDowngradeBaseTest {
 
-  private static final String WAREHOUSE = "XS";
+  private static final String WAREHOUSE = "XSMALL";
 
   private final String randomSuffix = UUID.randomUUID().toString().replace('-', '_');
   private final String appPackageName = "NATIVE_SDK_TEST_APP_" + randomSuffix;
@@ -46,7 +46,6 @@ public abstract class ConfigurableVersionsUpgradeDowngradeBaseTest {
 
     application.grantUsageOnWarehouse(WAREHOUSE);
     application.grantExecuteTaskPrivilege();
-    application.setDebugMode(true);
   }
 
   @AfterAll

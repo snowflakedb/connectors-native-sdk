@@ -1,21 +1,27 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.common.assertions.ingestion.definition;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.snowflake.connectors.application.ingestion.definition.IngestionConfiguration;
 import com.snowflake.connectors.application.ingestion.definition.ResourceIngestionDefinition;
-import com.snowflake.snowpark_java.types.Variant;
 import java.util.List;
+import java.util.function.Consumer;
 import org.assertj.core.api.AbstractAssert;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.ListAssert;
 
 /** AssertJ based assertions for {@link ResourceIngestionDefinition}. */
-public class ResourceIngestionDefinitionAssert
+public class ResourceIngestionDefinitionAssert<I, M, C, D>
     extends AbstractAssert<
-        ResourceIngestionDefinitionAssert, ResourceIngestionDefinition<?, ?, ?, ?>> {
+        ResourceIngestionDefinitionAssert<I, M, C, D>, ResourceIngestionDefinition<I, M, C, D>> {
 
+  /**
+   * Creates a new {@link ResourceIngestionDefinitionAssert}.
+   *
+   * @param resourceIngestionDefinition asserted resource ingestion definition
+   * @param selfType self type
+   */
   public ResourceIngestionDefinitionAssert(
-      ResourceIngestionDefinition<?, ?, ?, ?> resourceIngestionDefinition,
+      ResourceIngestionDefinition<I, M, C, D> resourceIngestionDefinition,
       Class<ResourceIngestionDefinitionAssert> selfType) {
     super(resourceIngestionDefinition, selfType);
   }
@@ -26,8 +32,8 @@ public class ResourceIngestionDefinitionAssert
    * @param id expected id
    * @return this assertion
    */
-  public ResourceIngestionDefinitionAssert hasId(String id) {
-    assertThat(actual.getId()).isEqualTo(id);
+  public ResourceIngestionDefinitionAssert<I, M, C, D> hasId(String id) {
+    Assertions.assertThat(this.actual.getId()).isEqualTo(id);
     return this;
   }
 
@@ -37,8 +43,8 @@ public class ResourceIngestionDefinitionAssert
    * @param resourceId expected resource id
    * @return this assertion
    */
-  public ResourceIngestionDefinitionAssert hasResourceId(Variant resourceId) {
-    assertThat(actual.getResourceId()).isEqualTo(resourceId);
+  public ResourceIngestionDefinitionAssert<I, M, C, D> hasResourceId(I resourceId) {
+    Assertions.assertThat(this.actual.getResourceId()).isEqualTo(resourceId);
     return this;
   }
 
@@ -48,8 +54,8 @@ public class ResourceIngestionDefinitionAssert
    * @param name expected name
    * @return this assertion
    */
-  public ResourceIngestionDefinitionAssert hasName(String name) {
-    assertThat(actual.getName()).isEqualTo(name);
+  public ResourceIngestionDefinitionAssert<I, M, C, D> hasName(String name) {
+    Assertions.assertThat(this.actual.getName()).isEqualTo(name);
     return this;
   }
 
@@ -60,8 +66,8 @@ public class ResourceIngestionDefinitionAssert
    * @param resourceMetadata expected resource metadata
    * @return this assertion
    */
-  public ResourceIngestionDefinitionAssert hasResourceMetadata(Variant resourceMetadata) {
-    assertThat(actual.getResourceMetadata()).isEqualTo(resourceMetadata);
+  public ResourceIngestionDefinitionAssert<I, M, C, D> hasResourceMetadata(M resourceMetadata) {
+    Assertions.assertThat(this.actual.getResourceMetadata()).isEqualTo(resourceMetadata);
     return this;
   }
 
@@ -72,9 +78,10 @@ public class ResourceIngestionDefinitionAssert
    * @param ingestionConfigurations expected ingestion configurations
    * @return this assertion
    */
-  public ResourceIngestionDefinitionAssert hasIngestionConfigurations(
-      List<IngestionConfiguration<Variant, Variant>> ingestionConfigurations) {
-    assertThat(actual.getIngestionConfigurations()).isEqualTo(ingestionConfigurations);
+  public ResourceIngestionDefinitionAssert<I, M, C, D> hasIngestionConfigurations(
+      List<IngestionConfiguration<C, D>> ingestionConfigurations) {
+    Assertions.assertThat(this.actual.getIngestionConfigurations())
+        .isEqualTo(ingestionConfigurations);
     return this;
   }
 
@@ -85,8 +92,8 @@ public class ResourceIngestionDefinitionAssert
    * @param enabled expected enabled state
    * @return this assertion
    */
-  public ResourceIngestionDefinitionAssert isEnabled(boolean enabled) {
-    assertThat(actual.isEnabled()).isEqualTo(enabled);
+  public ResourceIngestionDefinitionAssert<I, M, C, D> isEnabled(boolean enabled) {
+    Assertions.assertThat(this.actual.isEnabled()).isEqualTo(enabled);
     return this;
   }
 
@@ -95,8 +102,8 @@ public class ResourceIngestionDefinitionAssert
    *
    * @return this assertion
    */
-  public ResourceIngestionDefinitionAssert isEnabled() {
-    assertThat(actual.isEnabled()).isTrue();
+  public ResourceIngestionDefinitionAssert<I, M, C, D> isEnabled() {
+    Assertions.assertThat(this.actual.isEnabled()).isTrue();
     return this;
   }
 
@@ -105,8 +112,30 @@ public class ResourceIngestionDefinitionAssert
    *
    * @return this assertion
    */
-  public ResourceIngestionDefinitionAssert isDisabled() {
-    assertThat(actual.isEnabled()).isFalse();
+  public ResourceIngestionDefinitionAssert<I, M, C, D> isDisabled() {
+    Assertions.assertThat(this.actual.isEnabled()).isFalse();
+    return this;
+  }
+
+  /**
+   * Returns an assertion for ingestion configuration of this resource ingestion definition.
+   *
+   * @return an assertion for ingestion configuration of this resource ingestion definition
+   */
+  public ListAssert<IngestionConfiguration<C, D>> andIngestionConfigurations() {
+    return Assertions.assertThat(this.actual.getIngestionConfigurations());
+  }
+
+  /**
+   * Asserts that this resource ingestion definition has a metadata satisfying the specified
+   * requirement.
+   *
+   * @param requirement metadata requirement
+   * @return this assertion
+   */
+  public ResourceIngestionDefinitionAssert<I, M, C, D> resourceMetadataSatisfies(
+      Consumer<M> requirement) {
+    requirement.accept(this.actual.getResourceMetadata());
     return this;
   }
 }

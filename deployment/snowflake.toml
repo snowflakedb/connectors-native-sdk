@@ -1,0 +1,15 @@
+default_connection_name = "connectors_native_sdk"
+
+[connections.connectors_native_sdk]
+host = "<host>"
+protocol = "https"
+port = 443
+user = "<username>"
+password = "<password>"
+account = "<account_name>"
+warehouse = "<warehouse>"
+role = "ACCOUNTADMIN"
+
+[options]
+variable_substitution = "True"
+exit_on_error = "True"

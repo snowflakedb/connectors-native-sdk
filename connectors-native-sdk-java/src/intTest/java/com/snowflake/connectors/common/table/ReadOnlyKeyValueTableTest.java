@@ -10,11 +10,17 @@ import com.snowflake.connectors.BaseIntegrationTest;
 import com.snowflake.snowpark_java.Column;
 import com.snowflake.snowpark_java.types.Variant;
 import java.util.List;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class ReadOnlyKeyValueTableTest extends BaseIntegrationTest {
 
-  ReadOnlyKeyValueTable table = new ReadOnlyKeyValueTable(session, "PUBLIC.APP_PROPERTIES");
+  private ReadOnlyKeyValueTable table;
+
+  @BeforeAll
+  void beforeAll() {
+    table = new ReadOnlyKeyValueTable(session, "PUBLIC.APP_PROPERTIES");
+  }
 
   @Test
   void shouldFetchValueForAKey() {

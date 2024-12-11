@@ -8,7 +8,9 @@ import static com.snowflake.connectors.util.sql.SnowparkFunctions.lit;
 import static com.snowflake.connectors.util.sql.TimestampUtil.toInstant;
 import static com.snowflake.connectors.util.sql.TimestampUtil.toTimestamp;
 import static com.snowflake.snowpark_java.Functions.col;
+import static com.snowflake.snowpark_java.Functions.row_number;
 import static com.snowflake.snowpark_java.Functions.sysdate;
+import static com.snowflake.snowpark_java.Window.partitionBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -18,6 +20,7 @@ import com.snowflake.snowpark_java.DataFrame;
 import com.snowflake.snowpark_java.MergeResult;
 import com.snowflake.snowpark_java.Row;
 import com.snowflake.snowpark_java.Session;
+import com.snowflake.snowpark_java.WindowSpec;
 import com.snowflake.snowpark_java.types.DataTypes;
 import com.snowflake.snowpark_java.types.StructField;
 import com.snowflake.snowpark_java.types.StructType;
@@ -57,6 +60,10 @@ public class DefaultIngestionProcessRepository
   private static final String FINISHED_AT = "finished_at";
   private static final String METADATA = "METADATA";
 
+  private static final WindowSpec PARTITION_BY_TYPE =
+      partitionBy(col(TYPE)).orderBy(col(FINISHED_AT).desc());
+  private static final Column ROW_NUMBER_COL = row_number().over(PARTITION_BY_TYPE).as("ROW");
+
   private static final StructType ID_SCHEMA =
       StructType.create(new StructField(ID, DataTypes.StringType));
 
@@ -68,6 +75,11 @@ public class DefaultIngestionProcessRepository
 
   private final Session session;
 
+  /**
+   * Creates a new {@link DefaultIngestionProcessRepository}.
+   *
+   * @param session Snowpark session object
+   */
   public DefaultIngestionProcessRepository(Session session) {
     this.session = session;
   }
@@ -251,6 +263,11 @@ public class DefaultIngestionProcessRepository
   }
 
   @Override
+  public List<IngestionProcess> fetchAllById(List<String> processIds) {
+    return fetch(col(ID).in(processIds.toArray()));
+  }
+
+  @Override
   public Optional<IngestionProcess> fetchLastFinished(
       String resourceIngestionDefinitionId, String ingestionConfigurationId, String type) {
     var where =
@@ -261,6 +278,19 @@ public class DefaultIngestionProcessRepository
             .and(col(STATUS).equal_to(lit(FINISHED)));
     var sort = col(FINISHED_AT).desc();
     return fetch(where, sort).stream().findFirst();
+  }
+
+  @Override
+  public List<IngestionProcess> fetchLastFinished(
+      String resourceIngestionDefinitionId, String ingestionConfigurationId) {
+    var where =
+        col(RESOURCE_INGESTION_DEFINITION_ID)
+            .equal_to(lit(resourceIngestionDefinitionId))
+            .and(col(INGESTION_CONFIGURATION_ID).equal_to(lit(ingestionConfigurationId)))
+            .and(col(STATUS).equal_to(lit(FINISHED)));
+
+    var sort = col(FINISHED_AT).desc();
+    return fetchDistinct(where, sort);
   }
 
   @Override
@@ -332,8 +362,40 @@ public class DefaultIngestionProcessRepository
     return fetch(col(STATUS).equal_to(lit(status)));
   }
 
+  @Override
+  public void deleteAllByResourceId(String resourceIngestionDefinitionId) {
+    session
+        .table(TABLE_NAME)
+        .delete(col(RESOURCE_INGESTION_DEFINITION_ID).equal_to(lit(resourceIngestionDefinitionId)));
+  }
+
   private List<IngestionProcess> fetch(Column condition) {
     return fetch(condition, col(CREATED_AT).desc());
+  }
+
+  private List<IngestionProcess> fetchDistinct(Column condition, Column sort) {
+    return StreamSupport.stream(
+            Spliterators.spliteratorUnknownSize(
+                session
+                    .table(TABLE_NAME)
+                    .select(
+                        col(ID),
+                        col(RESOURCE_INGESTION_DEFINITION_ID),
+                        col(INGESTION_CONFIGURATION_ID),
+                        col(TYPE),
+                        col(STATUS),
+                        col(CREATED_AT),
+                        col(FINISHED_AT),
+                        col(METADATA),
+                        ROW_NUMBER_COL)
+                    .where(condition)
+                    .filter(col("ROW").equal_to(lit(1)))
+                    .sort(sort)
+                    .toLocalIterator(),
+                Spliterator.ORDERED),
+            false)
+        .map(this::mapToIngestionProcess)
+        .collect(toList());
   }
 
   private List<IngestionProcess> fetch(Column condition, Column sort) {

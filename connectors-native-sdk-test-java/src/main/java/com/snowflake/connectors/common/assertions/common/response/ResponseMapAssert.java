@@ -13,6 +13,12 @@ import org.assertj.core.api.MapAssert;
 public class ResponseMapAssert
     extends AbstractMapAssert<MapAssert<String, Variant>, Map<String, Variant>, String, Variant> {
 
+  /**
+   * Creates a new {@link ResponseMapAssert}.
+   *
+   * @param response asserted response map
+   * @param selfType self type
+   */
   public ResponseMapAssert(Map<String, Variant> response, Class<ResponseMapAssert> selfType) {
     super(response, selfType);
   }
@@ -31,6 +37,13 @@ public class ResponseMapAssert
     return this;
   }
 
+  /**
+   * Asserts that this response has a value of {@code responseCode} field equal to the specified
+   * value.
+   *
+   * @param code expected code
+   * @return this assertion
+   */
   public ResponseMapAssert hasResponseCode(String code) {
     assertThat(variantAsString(actual.get("response_code"))).isEqualTo(code);
     return this;

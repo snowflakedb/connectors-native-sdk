@@ -3,7 +3,6 @@ package com.snowflake.connectors.example.lifecycle.pause;
 
 import com.snowflake.connectors.application.lifecycle.pause.PauseConnectorHandler;
 import com.snowflake.connectors.common.response.ConnectorResponse;
-import com.snowflake.connectors.common.task.TaskRepository;
 import com.snowflake.snowpark_java.Session;
 import com.snowflake.snowpark_java.types.Variant;
 
@@ -11,7 +10,7 @@ import com.snowflake.snowpark_java.types.Variant;
 public class PauseConnectorCustomHandler {
 
   public Variant pauseConnector(Session session) {
-    var internalCallback = new InternalPauseConnectorCallback(TaskRepository.getInstance(session));
+    var internalCallback = new InternalPauseConnectorCallback();
     var handler =
         PauseConnectorHandler.builder(session)
             .withStateValidator(ConnectorResponse::success)

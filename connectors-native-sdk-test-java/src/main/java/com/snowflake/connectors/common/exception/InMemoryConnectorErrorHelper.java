@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 /** In memory implementation of {@link ConnectorErrorHelper}. */
 public class InMemoryConnectorErrorHelper implements ConnectorErrorHelper {
 
+  /** Creates a new {@link InMemoryConnectorErrorHelper}. */
   public InMemoryConnectorErrorHelper() {}
 
   @Override

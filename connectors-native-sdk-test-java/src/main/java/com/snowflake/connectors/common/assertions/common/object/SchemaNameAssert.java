@@ -11,6 +11,12 @@ import org.assertj.core.api.AbstractObjectAssert;
 /** AssertJ based assertions for {@link SchemaName}. */
 public class SchemaNameAssert extends AbstractObjectAssert<SchemaNameAssert, SchemaName> {
 
+  /**
+   * Creates a new {@link SchemaNameAssert}.
+   *
+   * @param schemaName asserted schema name
+   * @param selfType self type
+   */
   public SchemaNameAssert(SchemaName schemaName, Class<SchemaNameAssert> selfType) {
     super(schemaName, selfType);
   }

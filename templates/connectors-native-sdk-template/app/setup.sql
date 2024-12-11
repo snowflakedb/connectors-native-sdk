@@ -1,17 +1,22 @@
 -- Copyright (c) 2024 Snowflake Inc.
 
 -- CONNECTORS-NATIVE-SDK
-EXECUTE IMMEDIATE FROM 'native-connectors-sdk-components/all.sql';
-EXECUTE IMMEDIATE FROM 'native-connectors-sdk-components/task_reactor.sql';
+EXECUTE IMMEDIATE FROM 'connectors-sdk-components/all.sql';
+EXECUTE IMMEDIATE FROM 'connectors-sdk-components/task_reactor.sql';
+EXECUTE IMMEDIATE FROM 'connectors-sdk-components/external-connection/setup_external_integration.sql';
 
 -- CUSTOM CONNECTOR OBJECTS
 CREATE OR ALTER VERSIONED SCHEMA STREAMLIT;
 GRANT USAGE ON SCHEMA STREAMLIT TO APPLICATION ROLE ADMIN;
+GRANT USAGE ON SCHEMA STREAMLIT TO APPLICATION ROLE DATA_READER;
+GRANT USAGE ON SCHEMA STREAMLIT TO APPLICATION ROLE VIEWER;
 
 CREATE OR REPLACE STREAMLIT STREAMLIT.NATIVE_SDK_TEMPLATE_ST
     FROM  '/streamlit'
     MAIN_FILE = 'streamlit_app.py';
 GRANT USAGE ON STREAMLIT STREAMLIT.NATIVE_SDK_TEMPLATE_ST TO APPLICATION ROLE ADMIN;
+GRANT USAGE ON STREAMLIT STREAMLIT.NATIVE_SDK_TEMPLATE_ST TO APPLICATION ROLE DATA_READER;
+GRANT USAGE ON STREAMLIT STREAMLIT.NATIVE_SDK_TEMPLATE_ST TO APPLICATION ROLE VIEWER;
 
 -- SNOWFLAKE REFERENCE MECHANISM
 CREATE OR REPLACE PROCEDURE PUBLIC.REGISTER_REFERENCE(ref_name STRING, operation STRING, ref_or_alias STRING)
@@ -55,8 +60,8 @@ CREATE OR REPLACE PROCEDURE PUBLIC.SET_CONNECTION_CONFIGURATION(connection_confi
     RETURNS VARIANT
     LANGUAGE JAVA
     RUNTIME_VERSION = '11'
-    PACKAGES = ('com.snowflake:snowpark:1.11.0')
-    IMPORTS = ('/connectors-native-sdk-template.jar', '/connectors-native-sdk.jar')
+    PACKAGES = ('com.snowflake:snowpark:1.14.0')
+    IMPORTS = ('/<! app_name !>.jar', '/connectors-native-sdk.jar')
     HANDLER = 'com.snowflake.connectors.example.configuration.connection.TemplateConnectionConfigurationHandler.setConnectionConfiguration';
 GRANT USAGE ON PROCEDURE PUBLIC.SET_CONNECTION_CONFIGURATION(VARIANT) TO APPLICATION ROLE ADMIN;
 
@@ -64,8 +69,8 @@ CREATE OR REPLACE PROCEDURE PUBLIC.TEST_CONNECTION()
     RETURNS VARIANT
     LANGUAGE JAVA
     RUNTIME_VERSION = '11'
-    PACKAGES = ('com.snowflake:snowpark:1.11.0')
-    IMPORTS = ('/connectors-native-sdk-template.jar', '/connectors-native-sdk.jar')
+    PACKAGES = ('com.snowflake:snowpark:1.14.0')
+    IMPORTS = ('/<! app_name !>.jar', '/connectors-native-sdk.jar')
     HANDLER = 'com.snowflake.connectors.example.configuration.connection.TemplateConnectionValidator.testConnection';
 
 -- FINALIZE CONFIGURATION
@@ -73,8 +78,8 @@ CREATE OR REPLACE PROCEDURE PUBLIC.FINALIZE_CONNECTOR_CONFIGURATION(CUSTOM_CONFI
     RETURNS VARIANT
     LANGUAGE JAVA
     RUNTIME_VERSION = '11'
-    PACKAGES = ('com.snowflake:snowpark:1.11.0')
-    IMPORTS = ('/connectors-native-sdk-template.jar', '/connectors-native-sdk.jar')
+    PACKAGES = ('com.snowflake:snowpark:1.14.0')
+    IMPORTS = ('/<! app_name !>.jar', '/connectors-native-sdk.jar')
     HANDLER = 'com.snowflake.connectors.example.configuration.finalize.TemplateFinalizeConnectorConfigurationCustomHandler.finalizeConnectorConfiguration';
 GRANT USAGE ON PROCEDURE PUBLIC.FINALIZE_CONNECTOR_CONFIGURATION(VARIANT) TO APPLICATION ROLE ADMIN;
 
@@ -83,8 +88,8 @@ CREATE OR REPLACE PROCEDURE PUBLIC.TEMPLATE_WORKER(worker_id number, task_reacto
     RETURNS STRING
     LANGUAGE JAVA
     RUNTIME_VERSION = '11'
-    PACKAGES = ('com.snowflake:snowpark:1.11.0', 'com.snowflake:telemetry:latest')
-    IMPORTS = ('/connectors-native-sdk.jar', '/connectors-native-sdk-template.jar')
+    PACKAGES = ('com.snowflake:snowpark:1.14.0', 'com.snowflake:telemetry:0.1.0')
+    IMPORTS = ('/connectors-native-sdk.jar', '/<! app_name !>.jar')
     HANDLER = 'com.snowflake.connectors.example.ingestion.TemplateWorker.executeWork';
 
 CALL TASK_REACTOR.CREATE_INSTANCE_OBJECTS(
@@ -106,8 +111,8 @@ CREATE OR REPLACE PROCEDURE PUBLIC.RUN_SCHEDULER_ITERATION()
     RETURNS VARIANT
     LANGUAGE JAVA
     RUNTIME_VERSION = '11'
-    PACKAGES = ('com.snowflake:snowpark:1.11.0')
-    IMPORTS = ('/connectors-native-sdk.jar', '/connectors-native-sdk-template.jar')
+    PACKAGES = ('com.snowflake:snowpark:1.14.0', 'com.snowflake:telemetry:0.1.0')
+    IMPORTS = ('/connectors-native-sdk.jar', '/<! app_name !>.jar')
     HANDLER = 'com.snowflake.connectors.example.integration.SchedulerIntegratedWithTaskReactorHandler.runIteration';
 
 -----------------LIFECYCLE-----------------
@@ -115,8 +120,8 @@ CREATE OR REPLACE PROCEDURE PUBLIC.PAUSE_CONNECTOR()
     RETURNS VARIANT
     LANGUAGE JAVA
     RUNTIME_VERSION = '11'
-    PACKAGES = ('com.snowflake:snowpark:1.11.0')
-    IMPORTS = ('/connectors-native-sdk.jar', '/connectors-native-sdk-template.jar')
+    PACKAGES = ('com.snowflake:snowpark:1.14.0')
+    IMPORTS = ('/connectors-native-sdk.jar', '/<! app_name !>.jar')
     HANDLER = 'com.snowflake.connectors.example.lifecycle.pause.PauseConnectorCustomHandler.pauseConnector';
 GRANT USAGE ON PROCEDURE PUBLIC.PAUSE_CONNECTOR() TO APPLICATION ROLE ADMIN;
 
@@ -124,8 +129,8 @@ CREATE OR REPLACE PROCEDURE PUBLIC.RESUME_CONNECTOR()
     RETURNS VARIANT
     LANGUAGE JAVA
     RUNTIME_VERSION = '11'
-    PACKAGES = ('com.snowflake:snowpark:1.11.0')
-    IMPORTS = ('/connectors-native-sdk.jar', '/connectors-native-sdk-template.jar')
+    PACKAGES = ('com.snowflake:snowpark:1.14.0')
+    IMPORTS = ('/connectors-native-sdk.jar', '/<! app_name !>.jar')
     HANDLER = 'com.snowflake.connectors.example.lifecycle.resume.ResumeConnectorCustomHandler.resumeConnector';
 GRANT USAGE ON PROCEDURE PUBLIC.RESUME_CONNECTOR() TO APPLICATION ROLE ADMIN;
 
@@ -140,8 +145,8 @@ CREATE OR REPLACE PROCEDURE PUBLIC.CREATE_RESOURCE(
     RETURNS VARIANT
     LANGUAGE JAVA
     RUNTIME_VERSION = '11'
-    PACKAGES = ('com.snowflake:snowpark:1.11.0')
-    IMPORTS = ('/connectors-native-sdk.jar', '/connectors-native-sdk-template.jar')
+    PACKAGES = ('com.snowflake:snowpark:1.14.0')
+    IMPORTS = ('/connectors-native-sdk.jar', '/<! app_name !>.jar')
     HANDLER = 'com.snowflake.connectors.example.ingestion.create.TemplateCreateResourceHandler.createResource';
 GRANT USAGE ON PROCEDURE PUBLIC.CREATE_RESOURCE(VARCHAR, VARIANT, VARIANT, VARCHAR, BOOLEAN, VARIANT) TO APPLICATION ROLE ADMIN;
 
@@ -149,8 +154,8 @@ CREATE OR REPLACE PROCEDURE PUBLIC.ENABLE_RESOURCE(resource_ingestion_definition
     RETURNS VARIANT
     LANGUAGE JAVA
     RUNTIME_VERSION = '11'
-    PACKAGES = ('com.snowflake:snowpark:1.11.0')
-    IMPORTS = ('/connectors-native-sdk.jar', '/connectors-native-sdk-template.jar')
+    PACKAGES = ('com.snowflake:snowpark:1.14.0')
+    IMPORTS = ('/connectors-native-sdk.jar', '/<! app_name !>.jar')
     HANDLER = 'com.snowflake.connectors.example.ingestion.enable.TemplateEnableResourceHandler.enableResource';
 GRANT USAGE ON PROCEDURE PUBLIC.ENABLE_RESOURCE(VARCHAR) TO APPLICATION ROLE ADMIN;
 
@@ -158,8 +163,8 @@ CREATE OR REPLACE PROCEDURE PUBLIC.DISABLE_RESOURCE(resource_ingestion_definitio
     RETURNS VARIANT
     LANGUAGE JAVA
     RUNTIME_VERSION = '11'
-    PACKAGES = ('com.snowflake:snowpark:1.11.0')
-    IMPORTS = ('/connectors-native-sdk.jar', '/connectors-native-sdk-template.jar')
+    PACKAGES = ('com.snowflake:snowpark:1.14.0')
+    IMPORTS = ('/connectors-native-sdk.jar', '/<! app_name !>.jar')
     HANDLER = 'com.snowflake.connectors.example.ingestion.disable.TemplateDisableResourceHandler.disableResource';
 GRANT USAGE ON PROCEDURE PUBLIC.DISABLE_RESOURCE(VARCHAR) TO APPLICATION ROLE ADMIN;
 
@@ -169,7 +174,22 @@ CREATE OR REPLACE PROCEDURE PUBLIC.UPDATE_RESOURCE(
     RETURNS VARIANT
     LANGUAGE JAVA
     RUNTIME_VERSION = '11'
-    PACKAGES = ('com.snowflake:snowpark:1.11.0')
-    IMPORTS = ('/connectors-native-sdk.jar', '/connectors-native-sdk-template.jar')
+    PACKAGES = ('com.snowflake:snowpark:1.14.0')
+    IMPORTS = ('/connectors-native-sdk.jar', '/<! app_name !>.jar')
     HANDLER = 'com.snowflake.connectors.example.ingestion.update.TemplateUpdateResourceHandler.updateResource';
 GRANT USAGE ON PROCEDURE PUBLIC.UPDATE_RESOURCE(VARCHAR, VARIANT) TO APPLICATION ROLE ADMIN;
+
+-- alter procedures requiring external access
+-- TODO: choose the method of external access setup of procedures according to the way of managing EAI
+--       and SECRET objects in your connector. By default, as procedures arguments, there are passed
+--       identifiers of procedures that most probably would require an external access, once the mechanism
+--       of integration with the external is implemented.
+-- CALL PUBLIC.SETUP_EXTERNAL_INTEGRATION_WITH_REFERENCES(ARRAY_CONSTRUCT(
+--     'PUBLIC.TEST_CONNECTION()',
+--     'PUBLIC.FINALIZE_CONFIGURATION(VARIANT)',
+--     'PUBLIC.TEMPLATE_WORKER(NUMBER, STRING)'));
+
+-- CALL PUBLIC.SETUP_EXTERNAL_INTEGRATION_WITH_NAMES(ARRAY_CONSTRUCT(
+--     'PUBLIC.TEST_CONNECTION()',
+--     'PUBLIC.FINALIZE_CONFIGURATION(VARIANT)',
+--     'PUBLIC.TEMPLATE_WORKER(NUMBER, STRING)'));

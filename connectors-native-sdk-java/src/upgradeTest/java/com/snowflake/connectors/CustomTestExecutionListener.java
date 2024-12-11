@@ -9,7 +9,6 @@ public class CustomTestExecutionListener implements TestExecutionListener {
 
   @Override
   public void testPlanExecutionStarted(TestPlan testPlan) {
-    SnowsqlConfigurer.configureSnowsqlInDocker();
     try {
       Application.setupApplication();
     } catch (IOException e) {

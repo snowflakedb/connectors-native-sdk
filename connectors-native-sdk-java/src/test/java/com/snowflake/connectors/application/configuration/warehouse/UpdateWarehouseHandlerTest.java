@@ -15,8 +15,8 @@ import com.snowflake.connectors.application.configuration.DefaultConfigurationRe
 import com.snowflake.connectors.application.configuration.connector.ConnectorConfigurationService;
 import com.snowflake.connectors.application.configuration.connector.InMemoryConnectorConfigurationService;
 import com.snowflake.connectors.application.scheduler.CreateSchedulerHandlerTestBuilder;
-import com.snowflake.connectors.application.scheduler.InMemoryDefaultSchedulerCreator;
-import com.snowflake.connectors.application.scheduler.SchedulerCreator;
+import com.snowflake.connectors.application.scheduler.InMemoryDefaultSchedulerManager;
+import com.snowflake.connectors.application.scheduler.SchedulerManager;
 import com.snowflake.connectors.application.status.ConnectorStatusService;
 import com.snowflake.connectors.application.status.DefaultConnectorStatusService;
 import com.snowflake.connectors.application.status.FullConnectorStatus;
@@ -38,7 +38,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 public class UpdateWarehouseHandlerTest {
 
-  private static final String ALTERNATIVE_WAREHOUSE_NAME = "XS";
+  private static final String ALTERNATIVE_WAREHOUSE_NAME = "XSMALL";
   private static final String WAREHOUSE_NAME = "TEST_WH";
 
   private InMemoryAccessTools accessTools;
@@ -46,7 +46,7 @@ public class UpdateWarehouseHandlerTest {
   private UpdateWarehouseSdkCallback sdkCallback;
   private ConnectorStatusService statusService;
   private ConnectorConfigurationService configurationService;
-  private SchedulerCreator schedulerCreator;
+  private SchedulerManager schedulerManager;
 
   @BeforeEach
   public void setUp() {
@@ -61,8 +61,8 @@ public class UpdateWarehouseHandlerTest {
     this.sdkCallback =
         new DefaultUpdateWarehouseSdkCallback(taskManagement, taskManagement, mock());
     this.statusService = new DefaultConnectorStatusService(statusRepository);
-    this.schedulerCreator =
-        new InMemoryDefaultSchedulerCreator(configurationService, taskManagement, taskManagement);
+    this.schedulerManager =
+        new InMemoryDefaultSchedulerManager(configurationService, taskManagement, taskManagement);
   }
 
   @Test
@@ -157,7 +157,7 @@ public class UpdateWarehouseHandlerTest {
     var handler = initializeCreateSchedulerHandlerBuilder().build();
     var response = handler.createScheduler();
     assertThat(response).hasOKResponseCode();
-    assertSchedulerTaskWarehouse("reference('WAREHOUSE_REFERENCE')");
+    assertSchedulerTaskWarehouse(ALTERNATIVE_WAREHOUSE_NAME);
   }
 
   private void assertSchedulerTaskWarehouse(String warehouse) {
@@ -185,7 +185,7 @@ public class UpdateWarehouseHandlerTest {
 
   private CreateSchedulerHandlerTestBuilder initializeCreateSchedulerHandlerBuilder() {
     return new CreateSchedulerHandlerTestBuilder()
-        .withSchedulerCreator(schedulerCreator)
+        .withSchedulerManager(schedulerManager)
         .withErrorHelper(ConnectorErrorHelper.builder(null, "RESOURCE").build());
   }
 }

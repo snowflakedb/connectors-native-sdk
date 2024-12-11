@@ -19,18 +19,18 @@ public class SqlToolsTest extends BaseIntegrationTest {
   private static final String EXAMPLE_NONEXISTENCE_PROCEDURE = "EXAMPLE_NONEXISTENCE_PROCEDURE";
 
   @BeforeAll
-  static void beforeAllTests() {
+  void beforeAllTests() {
     createTestProcedure();
   }
 
   @AfterAll
-  static void afterAllTests() {
+  void afterAllTests() {
     session
         .sql("DROP PROCEDURE IF EXISTS PUBLIC." + TEST_PROCEDURE + "(VARCHAR, INTEGER, BOOLEAN)")
         .collect();
   }
 
-  private static void createTestProcedure() {
+  private void createTestProcedure() {
     String procedureDeclaration =
         "CREATE OR REPLACE PROCEDURE PUBLIC."
             + TEST_PROCEDURE

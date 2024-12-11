@@ -21,6 +21,7 @@ import com.snowflake.snowpark_java.Session;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -129,5 +130,19 @@ class DefaultWorkerStatusRepository implements WorkerStatusRepository {
         .first()
         .map(row -> row.getTimestamp(0))
         .map(TimestampUtil::toInstant);
+  }
+
+  @Override
+  public Map<String, Integer> getWorkersNumberForEachStatus() {
+    String query =
+        String.format(
+            "SELECT LAST_STATUS, COUNT(*) FROM (SELECT DISTINCT WORKER_ID, FIRST_VALUE(STATUS) OVER"
+                + " (PARTITION BY WORKER_ID ORDER BY TIMESTAMP DESC) AS LAST_STATUS FROM %s) GROUP"
+                + " BY LAST_STATUS",
+            tableName.getValue());
+    Row[] result = session.sql(query).collect();
+
+    return Arrays.stream(result)
+        .collect(Collectors.toMap(row -> row.getString(0), row -> row.getInt(1)));
   }
 }

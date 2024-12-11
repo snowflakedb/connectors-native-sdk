@@ -18,6 +18,10 @@ application_test: clean
 upgrade_test: clean
 	./gradlew upgradeTest -i
 
+.PHONY: benchmark
+benchmark: clean
+	./gradlew benchmarkTest -i
+
 .PHONY: spotbugs
 spotbugs: clean
 	./gradlew spotbugsMain spotbugsTest spotbugsAppTest spotbugsIntTest

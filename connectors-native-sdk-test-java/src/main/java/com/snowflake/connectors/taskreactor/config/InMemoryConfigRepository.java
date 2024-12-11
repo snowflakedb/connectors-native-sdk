@@ -1,32 +1,28 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.taskreactor.config;
 
-import com.snowflake.connectors.common.table.InMemoryDefaultKeyValueTable;
-import com.snowflake.connectors.common.table.KeyValue;
-import com.snowflake.snowpark_java.types.Variant;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /** In memory implementation of {@link ConfigRepository}. */
 public class InMemoryConfigRepository implements ConfigRepository {
 
-  private final ConfigRepository configRepository;
-  private final InMemoryDefaultKeyValueTable store;
-
-  public InMemoryConfigRepository() {
-    this.store = new InMemoryDefaultKeyValueTable();
-    this.configRepository = new DefaultConfigRepository(store);
-  }
+  private final Map<String, String> repository = new HashMap<>();
 
   @Override
   public TaskReactorConfig getConfig() {
-    return configRepository.getConfig();
+    return new TaskReactorConfig(
+        repository.get("SCHEMA"),
+        repository.get("WORKER_PROCEDURE"),
+        repository.get("WORK_SELECTOR_TYPE"),
+        repository.get("WORK_SELECTOR"),
+        repository.get("EXPIRED_WORK_SELECTOR"),
+        repository.get("WAREHOUSE"));
   }
 
   @Override
   public void update(String key, String value) {
-    store.update(key, new Variant(value));
+    repository.put(key, value);
   }
 
   /**
@@ -35,15 +31,11 @@ public class InMemoryConfigRepository implements ConfigRepository {
    * @param config new config values
    */
   public void updateConfig(Map<String, String> config) {
-    List<KeyValue> keyValues =
-        config.entrySet().stream()
-            .map(entry -> new KeyValue(entry.getKey(), new Variant(entry.getValue())))
-            .collect(Collectors.toList());
-    store.updateAll(keyValues);
+    config.forEach(this::update);
   }
 
   /** Clears this repository. */
   public void clear() {
-    store.getRepository().clear();
+    repository.clear();
   }
 }

@@ -19,7 +19,7 @@ import com.snowflake.snowpark_java.Session;
 public class CreateSchedulerHandlerBuilder {
 
   ConnectorErrorHelper errorHelper;
-  SchedulerCreator schedulerCreator;
+  SchedulerManager schedulerManager;
 
   /**
    * Creates a new {@link CreateSchedulerHandlerBuilder}.
@@ -32,7 +32,7 @@ public class CreateSchedulerHandlerBuilder {
    * </ul>
    *
    * <ul>
-   *   <li>{@link SchedulerCreator} built using {@link SchedulerCreator#getInstance(Session)
+   *   <li>{@link SchedulerManager} built using {@link SchedulerManager#getInstance(Session)
    *       getInstance}
    * </ul>
    *
@@ -42,7 +42,7 @@ public class CreateSchedulerHandlerBuilder {
   public CreateSchedulerHandlerBuilder(Session session) {
     requireNonNull(session);
 
-    this.schedulerCreator = SchedulerCreator.getInstance(session);
+    this.schedulerManager = SchedulerManager.getInstance(session);
     this.errorHelper = ConnectorErrorHelper.buildDefault(session, ERROR_TYPE);
   }
 
@@ -68,8 +68,8 @@ public class CreateSchedulerHandlerBuilder {
    */
   public CreateSchedulerHandler build() {
     requireNonNull(errorHelper);
-    requireNonNull(schedulerCreator);
+    requireNonNull(schedulerManager);
 
-    return new CreateSchedulerHandler(errorHelper, schedulerCreator);
+    return new CreateSchedulerHandler(errorHelper, schedulerManager);
   }
 }

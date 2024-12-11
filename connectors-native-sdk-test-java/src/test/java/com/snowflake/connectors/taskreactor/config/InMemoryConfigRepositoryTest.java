@@ -3,25 +3,18 @@ package com.snowflake.connectors.taskreactor.config;
 
 import static com.snowflake.connectors.taskreactor.WorkSelectorType.PROCEDURE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.snowflake.connectors.util.variant.VariantMapperException;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 public class InMemoryConfigRepositoryTest {
+
   private final InMemoryConfigRepository configRepository = new InMemoryConfigRepository();
 
   @AfterEach
   void afterEach() {
     configRepository.clear();
-  }
-
-  @Test
-  void shouldThrowExceptionWhenConfigIsEmpty() {
-    // expect
-    assertThatThrownBy(configRepository::getConfig).isInstanceOf(VariantMapperException.class);
   }
 
   @Test

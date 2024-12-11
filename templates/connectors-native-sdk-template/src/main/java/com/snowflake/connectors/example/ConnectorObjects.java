@@ -1,6 +1,9 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.example;
 
+import com.snowflake.connectors.example.configuration.connection.TemplateConnectionValidator;
+import com.snowflake.connectors.example.configuration.finalize.TemplateFinalizeConnectorConfigurationCustomHandler;
+
 /** Simple constant aggregation class for various connector object names. */
 public class ConnectorObjects {
 
@@ -25,9 +28,42 @@ public class ConnectorObjects {
   /** Name of the procedure used for task reactor instance initialization. */
   public static final String INITIALIZE_INSTANCE_PROCEDURE = "INITIALIZE_INSTANCE";
 
+  /**
+   * Name of the connection testing procedure, backend implementation of which is provided by the
+   * {@link TemplateConnectionValidator}.
+   */
+  public static final String TEST_CONNECTION_PROCEDURE = "TEST_CONNECTION";
+
+  /**
+   * Name of the configuration finalization procedure, backend implementation of which is provided
+   * by the {@link TemplateFinalizeConnectorConfigurationCustomHandler}.
+   */
+  public static final String FINALIZE_CONNECTOR_CONFIGURATION_PROCEDURE =
+      "FINALIZE_CONNECTOR_CONFIGURATION";
+
+  /** Name of the worker procedure, used by the task reactor instance. */
+  public static final String WORKER_PROCEDURE = "TEMPLATE_WORKER";
+
   /** Name of the procedure used for task reactor worker number setting. */
   public static final String SET_WORKERS_NUMBER_PROCEDURE = "SET_WORKERS_NUMBER";
 
+  /**
+   * Name of the procedure used for altering external source related procedures with references of
+   * EAI and SECRET.
+   */
+  public static final String SETUP_EXTERNAL_INTEGRATION_WITH_REFS_PROCEDURE =
+      "SETUP_EXTERNAL_INTEGRATION_WITH_REFERENCES";
+
+  /**
+   * Name of the procedure used for altering external source related procedures with names of EAI
+   * and SECRET stored as connection configuration.
+   */
+  public static final String SETUP_EXTERNAL_INTEGRATION_WITH_NAMES_PROCEDURE =
+      "SETUP_EXTERNAL_INTEGRATION_WITH_NAMES";
+
   /** Name of the internal connector schema. */
   public static final String STATE_SCHEMA = "STATE";
+
+  /** Name of the main connector schema. */
+  public static final String PUBLIC_SCHEMA = "PUBLIC";
 }

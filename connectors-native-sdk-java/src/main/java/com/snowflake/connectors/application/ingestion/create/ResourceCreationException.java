@@ -13,6 +13,11 @@ public class ResourceCreationException extends ConnectorException {
   /** Error code of the exception, used in the underlying {@link #getResponse() response}. */
   public static final String ERROR_CODE = "CREATE_RESOURCE_ERROR";
 
+  /**
+   * Creates a new {@link ResourceCreationException}.
+   *
+   * @param cause exception cause
+   */
   public ResourceCreationException(Throwable cause) {
     super(
         ERROR_CODE,

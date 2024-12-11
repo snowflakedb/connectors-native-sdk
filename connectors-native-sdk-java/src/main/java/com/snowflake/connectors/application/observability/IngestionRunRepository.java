@@ -133,6 +133,13 @@ public interface IngestionRunRepository {
   List<IngestionRun> fetchAllByProcessId(String processId);
 
   /**
+   * Deletes all ingestion runs with the specified resource ingestion definition id.
+   *
+   * @param resourceIngestionDefinitionId resource ingestion definition id
+   */
+  void deleteAllByResourceId(String resourceIngestionDefinitionId);
+
+  /**
    * Returns a new instance of the default repository implementation.
    *
    * <p>Default implementation of the repository uses the {@code STATE.INGESTION_RUN} table.

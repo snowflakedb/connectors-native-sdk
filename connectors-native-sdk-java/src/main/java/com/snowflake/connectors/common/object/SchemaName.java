@@ -161,9 +161,7 @@ public class SchemaName {
 
   @Override
   public String toString() {
-    return format(
-        "SchemaName[schema = %s, database = %s]",
-        schema.getValue(), database.map(Identifier::getValue).orElse(null));
+    return getValue();
   }
 
   @Override

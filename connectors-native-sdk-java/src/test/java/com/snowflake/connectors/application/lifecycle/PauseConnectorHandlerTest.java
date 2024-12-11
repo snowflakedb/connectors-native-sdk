@@ -15,6 +15,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.snowflake.connectors.application.lifecycle.pause.PauseConnectorHandlerTestBuilder;
+import com.snowflake.connectors.application.scheduler.SchedulerManager;
 import com.snowflake.connectors.application.status.ConnectorStatus;
 import com.snowflake.connectors.application.status.ConnectorStatusRepository;
 import com.snowflake.connectors.application.status.ConnectorStatusService;
@@ -37,6 +38,7 @@ public class PauseConnectorHandlerTest {
 
   private final PrivilegeTools privilegeTools = mock();
   private final PauseTaskReactorService pauseTaskReactorService = mock();
+  private final SchedulerManager schedulerManager = mock();
 
   private final InMemoryDefaultKeyValueTable connectorStatusTable =
       new InMemoryDefaultKeyValueTable();
@@ -67,8 +69,8 @@ public class PauseConnectorHandlerTest {
     assertThat(statusService.getConnectorStatus())
         .isInStatus(PAUSED)
         .isInConfigurationStatus(FINALIZED);
-
     verify(pauseTaskReactorService, times(1)).pauseAllInstances();
+    verify(schedulerManager, times(1)).pauseScheduler();
   }
 
   @Test
@@ -232,6 +234,7 @@ public class PauseConnectorHandlerTest {
         .withSdkCallback(ConnectorResponse::success)
         .withErrorHelper(errorHelper)
         .withLifecycleService(lifecycleService)
-        .withPauseTaskReactorService(pauseTaskReactorService);
+        .withPauseTaskReactorService(pauseTaskReactorService)
+        .withSchedulerManager(schedulerManager);
   }
 }

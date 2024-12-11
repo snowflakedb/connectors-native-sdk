@@ -15,23 +15,25 @@ import org.junit.jupiter.api.Test;
 
 class DefaultTableListerTest extends BaseIntegrationTest {
 
-  static final TableLister tableLister = new DefaultTableLister(session);
-  static final String TEST_SCHEMA = "TEST_SCHEMA";
-  static final String[] referenceTableNames = {"TBL1", "TBL2", "TBL3"};
-  static final Identifier SCHEMA = Identifier.from(TEST_SCHEMA);
-  static final Identifier DATABASE = Identifier.from(DATABASE_NAME);
-  static final SchemaName schemaFqn = SchemaName.from(DATABASE, SCHEMA);
-  static final SchemaName schema = SchemaName.from(SCHEMA);
+  private final String TEST_SCHEMA = "TEST_SCHEMA";
+  private final String[] referenceTableNames = {"TBL1", "TBL2", "TBL3"};
+  private final Identifier SCHEMA = Identifier.from(TEST_SCHEMA);
+  private final Identifier DATABASE = Identifier.from(DATABASE_NAME);
+  private final SchemaName schemaFqn = SchemaName.from(DATABASE, SCHEMA);
+  private final SchemaName schema = SchemaName.from(SCHEMA);
+
+  private TableLister tableLister;
 
   @BeforeAll
-  static void beforeAll() {
+  void beforeAll() {
+    tableLister = new DefaultTableLister(session);
 
     session.sql(format("create or replace schema %s", TEST_SCHEMA)).collect();
     session.sql(format("use schema %s", TEST_SCHEMA)).collect();
     createTestTables();
   }
 
-  private static void createTestTables() {
+  private void createTestTables() {
     var createTableTmpl = "create table %s(c1 varchar)";
     Stream.of(referenceTableNames)
         .forEach(tableName -> session.sql(format(createTableTmpl, tableName)).collect());

@@ -6,7 +6,7 @@ import static com.snowflake.connectors.taskreactor.commands.queue.Command.Comman
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceComponentProvider;
-import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
+import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueue;
 import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.snowpark_java.Session;
 import org.slf4j.Logger;
@@ -49,9 +49,8 @@ public class PauseTaskReactorService {
    */
   public void pauseInstance(Identifier instanceSchema) {
     LOG.info("Started pausing Task Reactor instance: {}", instanceSchema);
-    CommandsQueueRepository commandsQueueRepository =
-        componentProvider.commandsQueueRepository(instanceSchema);
-    commandsQueueRepository.addCommandWithEmptyPayload(PAUSE_INSTANCE);
+    CommandsQueue commandsQueue = componentProvider.commandsQueue(instanceSchema);
+    commandsQueue.addCommandWithEmptyPayload(PAUSE_INSTANCE);
     LOG.info("Added PAUSE_INSTANCE command to the command queue (instance: {})", instanceSchema);
   }
 

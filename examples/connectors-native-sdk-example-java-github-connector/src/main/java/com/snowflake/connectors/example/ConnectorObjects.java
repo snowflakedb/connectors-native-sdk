@@ -34,6 +34,13 @@ public class ConnectorObjects {
   /** Name of the procedure used for task reactor worker number setting. */
   public static final String SET_WORKERS_NUMBER_PROCEDURE = "SET_WORKERS_NUMBER";
 
+  /**
+   * Name of the procedure used for altering external source related procedures with references of
+   * EAI and SECRET.
+   */
+  public static final String SETUP_EXTERNAL_INTEGRATION_WITH_REFS_PROCEDURE =
+      "SETUP_EXTERNAL_INTEGRATION_WITH_REFERENCES";
+
   /** Name of the main connector schema. */
   public static final String PUBLIC_SCHEMA = "PUBLIC";
 

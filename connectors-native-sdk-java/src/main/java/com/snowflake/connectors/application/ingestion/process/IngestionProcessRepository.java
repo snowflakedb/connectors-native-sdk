@@ -89,6 +89,14 @@ public interface IngestionProcessRepository {
   Optional<IngestionProcess> fetch(String processId);
 
   /**
+   * Fetches all ingestion processes by the specified ids.
+   *
+   * @param processIds List of process ids
+   * @return ingestion processes with the specified ids
+   */
+  List<IngestionProcess> fetchAllById(List<String> processIds);
+
+  /**
    * Fetches an ingestion process with the latest finishedAt date and status = FINISHED
    *
    * @param resourceIngestionDefinitionId resource ingestion definition id
@@ -98,6 +106,17 @@ public interface IngestionProcessRepository {
    */
   Optional<IngestionProcess> fetchLastFinished(
       String resourceIngestionDefinitionId, String ingestionConfigurationId, String type);
+
+  /**
+   * Fetches ingestion processes with the latest finishedAt date, status = FINISHED and distinct
+   * process type.
+   *
+   * @param resourceIngestionDefinitionId resource ingestion definition id
+   * @param ingestionConfigurationId ingestion configuration id
+   * @return ingestion process with the specified id
+   */
+  List<IngestionProcess> fetchLastFinished(
+      String resourceIngestionDefinitionId, String ingestionConfigurationId);
 
   /**
    * Fetches all ingestion processes with the specified resource ingestion definition id, ingestion
@@ -120,4 +139,11 @@ public interface IngestionProcessRepository {
    * @return a list containing processes matching the specified criteria
    */
   List<IngestionProcess> fetchAllActive(String resourceIngestionDefinitionId);
+
+  /**
+   * Deletes ingestion processes with the specified resource ingestion definition id.
+   *
+   * @param resourceIngestionDefinitionId resource ingestion definition id
+   */
+  void deleteAllByResourceId(String resourceIngestionDefinitionId);
 }

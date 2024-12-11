@@ -16,17 +16,17 @@ public class CreateSchedulerHandler {
   public static final String ERROR_TYPE = "CREATE_SCHEDULER_ERROR";
 
   private final ConnectorErrorHelper errorHelper;
-  private final SchedulerCreator schedulerCreator;
+  private final SchedulerManager schedulerManager;
 
   /**
    * Creates a new {@link CreateSchedulerHandler}.
    *
    * @param errorHelper connector error helper
-   * @param schedulerCreator scheduler creator
+   * @param schedulerManager scheduler manager
    */
-  CreateSchedulerHandler(ConnectorErrorHelper errorHelper, SchedulerCreator schedulerCreator) {
+  CreateSchedulerHandler(ConnectorErrorHelper errorHelper, SchedulerManager schedulerManager) {
     this.errorHelper = errorHelper;
-    this.schedulerCreator = schedulerCreator;
+    this.schedulerManager = schedulerManager;
   }
 
   /**
@@ -35,7 +35,7 @@ public class CreateSchedulerHandler {
    * <p>This method uses:
    *
    * <ul>
-   *   <li>a default implementation of {@link SchedulerCreator}
+   *   <li>a default implementation of {@link SchedulerManager}
    *   <li>{@link ConnectorErrorHelper} built using {@link
    *       ConnectorErrorHelper#buildDefault(Session, String) buildDefault}
    * </ul>
@@ -64,12 +64,12 @@ public class CreateSchedulerHandler {
    * ConnectorErrorHelper#withExceptionLogging(Supplier) withExceptionLogging}.
    *
    * <p>The handler logic consists of creating a scheduler via the {@link
-   * SchedulerCreator#createScheduler() createScheduler} method.
+   * SchedulerManager#createScheduler() createScheduler} method.
    *
    * @return a response with the code {@code OK} if the execution was successful, otherwise a
    *     response with an error code and an error message
    */
   public ConnectorResponse createScheduler() {
-    return errorHelper.withExceptionLoggingAndWrapping(schedulerCreator::createScheduler);
+    return errorHelper.withExceptionLoggingAndWrapping(schedulerManager::createScheduler);
   }
 }

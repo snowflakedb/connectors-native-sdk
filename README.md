@@ -69,6 +69,13 @@ general concept of the native connectors:
 
 Keep in mind that these basic connectors do not use the [Native SDK for Connectors Java library](#native-sdk-for-connectors-java).
 
+### Configuring Snowflake CLI for templates and examples
+
+In order to use the templates and examples, it is required to configure the Snowflake CLI. The configuration file can be
+found in root directory of the repository. The file is named [Snowflake CLI configuration file path] ./deployment/snowflake.toml
+The file should be fulfilled with the required data depending on users Snowflake credentials. More about
+configuring that file can be found in the [Snowflake CLI documentation] [Snowflake CLI docs].
+
 ## Structure of the repository
 
 * [Native SDK for Connectors Java](#native-sdk-for-connectors-java) - [connectors-native-sdk-java][Native SDK for Connectors Java path]
@@ -93,6 +100,7 @@ Please refer to [LICENSE][license]
 [SDK Test in Maven Central]: https://central.sonatype.com/artifact/com.snowflake/connectors-native-sdk-test
 [Template tutorial]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/tutorials/native_sdk_tutorial
 [Native Apps docs]: https://docs.snowflake.com/en/developer-guide/native-apps/native-apps-about
+[Snowflake CLI docs]: https://docs.snowflake.com/en/developer-guide/snowflake-cli-v2/connecting/specify-credentials
 
 [contributing]: ./CONTRIBUTING.md
 [license]: ./LICENSE
@@ -104,3 +112,4 @@ Please refer to [LICENSE][license]
 [Example GitHub Java Connector path]: ./examples/examples-basic/example-github-java-connector
 [Example GitHub Python Connector path]: ./examples/examples-basic/example-github-python-connector
 [Example Push-Based Java Connector path]: ./examples/examples-basic/example-push-based-java-connector
+[Snowflake CLI configuration file path]: ./deployment/snowflake.toml

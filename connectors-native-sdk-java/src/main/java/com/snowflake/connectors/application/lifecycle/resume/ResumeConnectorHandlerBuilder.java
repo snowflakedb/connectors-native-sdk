@@ -5,6 +5,7 @@ import static com.snowflake.connectors.application.status.ConnectorStatus.PAUSED
 import static java.util.Objects.requireNonNull;
 
 import com.snowflake.connectors.application.lifecycle.LifecycleService;
+import com.snowflake.connectors.application.scheduler.SchedulerManager;
 import com.snowflake.connectors.common.exception.helper.ConnectorErrorHelper;
 import com.snowflake.connectors.taskreactor.InstanceStreamService;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
@@ -32,6 +33,7 @@ public class ResumeConnectorHandlerBuilder {
   private final InstanceStreamService instanceStreamService;
   private final TaskReactorInstanceActionExecutor taskReactorInstanceActionExecutor;
   private final ResumeTaskReactorService resumeTaskReactorService;
+  private final SchedulerManager schedulerManager;
 
   /**
    * Creates a new {@link ResumeConnectorHandlerBuilder}.
@@ -60,6 +62,7 @@ public class ResumeConnectorHandlerBuilder {
     this.resumeTaskReactorService = ResumeTaskReactorService.getInstance(session);
     this.instanceStreamService = InstanceStreamService.getInstance(session);
     this.taskReactorInstanceActionExecutor = TaskReactorInstanceActionExecutor.getInstance(session);
+    this.schedulerManager = SchedulerManager.getInstance(session);
   }
 
   /**
@@ -111,6 +114,7 @@ public class ResumeConnectorHandlerBuilder {
     requireNonNull(instanceStreamService);
     requireNonNull(taskReactorInstanceActionExecutor);
     requireNonNull(resumeTaskReactorService);
+    requireNonNull(schedulerManager);
 
     return new ResumeConnectorHandler(
         stateValidator,
@@ -120,6 +124,7 @@ public class ResumeConnectorHandlerBuilder {
         sdkCallback,
         instanceStreamService,
         taskReactorInstanceActionExecutor,
-        resumeTaskReactorService);
+        resumeTaskReactorService,
+        schedulerManager);
   }
 }

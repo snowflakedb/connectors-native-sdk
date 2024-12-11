@@ -47,7 +47,7 @@ public class ConnectionConfigurationHandlerBuilder {
   ConnectionConfigurationHandlerBuilder(Session session) {
     requireNonNull(session);
 
-    this.inputValidator = new DefaultConnectionConfigurationInputValidator(session);
+    this.inputValidator = new DefaultSetConnectionConfigurationInputValidator(session);
     this.callback = new InternalConnectionConfigurationCallback(session);
     this.connectionValidator = new TestConnectionValidator(session);
     this.errorHelper =

@@ -2,6 +2,7 @@
 package com.snowflake.connectors.common.task;
 
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThat;
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -32,7 +33,12 @@ public class TaskRefTest extends BaseIntegrationTest {
   private TaskRef taskRef;
 
   @BeforeAll
-  static void beforeAll() {
+  void beforeAll() {
+    String query =
+        format(
+            "CREATE WAREHOUSE IF NOT EXISTS \"\"%s\"\" WAREHOUSE_SIZE=XSMALL",
+            quotedWarehouse.getQuotedValue());
+    session.sql(query).collect();
     taskProperties = new Builder(taskName, "SELECT 1", "1 MINUTE").build();
     Map<String, String> map = new HashMap<>();
     map.put("SUSPEND_TASK_AFTER_NUM_FAILURES", "5");

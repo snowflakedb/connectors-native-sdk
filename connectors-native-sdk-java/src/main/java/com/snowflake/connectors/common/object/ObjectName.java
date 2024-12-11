@@ -255,11 +255,7 @@ public class ObjectName {
 
   @Override
   public String toString() {
-    return format(
-        "ObjectName[name = %s, schema = %s, database = %s]",
-        name.getValue(),
-        schema.map(Identifier::getValue).orElse(null),
-        database.map(Identifier::getValue).orElse(null));
+    return getValue();
   }
 
   @Override

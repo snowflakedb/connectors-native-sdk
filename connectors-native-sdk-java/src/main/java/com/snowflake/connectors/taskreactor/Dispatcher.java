@@ -15,12 +15,14 @@ import com.snowflake.connectors.taskreactor.queue.QueueItem;
 import com.snowflake.connectors.taskreactor.queue.WorkItemQueue;
 import com.snowflake.connectors.taskreactor.queue.cleaner.QueueItemCleaner;
 import com.snowflake.connectors.taskreactor.queue.selector.QueueItemSelector;
+import com.snowflake.connectors.taskreactor.telemetry.TaskReactorTelemetry;
 import com.snowflake.connectors.taskreactor.worker.WorkerCombinedView;
 import com.snowflake.connectors.taskreactor.worker.WorkerId;
 import com.snowflake.connectors.taskreactor.worker.WorkerManager;
 import com.snowflake.connectors.taskreactor.worker.queue.WorkerQueue;
 import com.snowflake.connectors.taskreactor.worker.status.WorkerStatusRepository;
 import com.snowflake.snowpark_java.Session;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -96,13 +98,18 @@ public class Dispatcher {
    */
   public String execute() {
     LOG.trace("Dispatcher started working (instance: {})", instanceSchema.getValue());
+    TaskReactorTelemetry.setTaskReactorInstanceNameSpanAttribute(instanceSchema);
+
     commandsProcessor.processCommands();
     instanceStreamService.recreateStreamsIfRequired(instanceSchema);
     workerManager.reconcileWorkersNumber();
     cancelOngoingExecutions();
     queueItemCleaner.clean();
 
-    return dispatchWorkItems();
+    String dispatchingResult = dispatchWorkItems();
+    TaskReactorTelemetry.addWorkerStatusEvent(
+        workerStatusRepository.getWorkersNumberForEachStatus());
+    return dispatchingResult;
   }
 
   private void cancelOngoingExecutions() {
@@ -159,5 +166,7 @@ public class Dispatcher {
     workerStatusRepository.updateStatusFor(workerId, WORK_ASSIGNED);
     taskRepository.fetch(workerTask).resume();
     workItemQueue.delete(item.id);
+
+    TaskReactorTelemetry.addWorkItemWaitingInQueueTimeEvent(item.timestamp, Instant.now());
   }
 }

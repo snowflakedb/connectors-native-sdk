@@ -16,6 +16,12 @@ public class InternalConnectorException extends ConnectorException {
     super(RESPONSE_CODE, message);
   }
 
+  /**
+   * Creates a new {@link InternalConnectorException}.
+   *
+   * @param message exception message
+   * @param cause exception cause
+   */
   public InternalConnectorException(String message, Throwable cause) {
     super(RESPONSE_CODE, message, cause);
   }

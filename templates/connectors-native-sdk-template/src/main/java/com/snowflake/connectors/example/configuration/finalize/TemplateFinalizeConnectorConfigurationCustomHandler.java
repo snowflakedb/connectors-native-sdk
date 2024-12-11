@@ -2,7 +2,7 @@
 package com.snowflake.connectors.example.configuration.finalize;
 
 import com.snowflake.connectors.application.configuration.finalization.FinalizeConnectorHandler;
-import com.snowflake.connectors.application.scheduler.SchedulerCreator;
+import com.snowflake.connectors.application.scheduler.SchedulerManager;
 import com.snowflake.connectors.common.response.ConnectorResponse;
 import com.snowflake.connectors.example.configuration.connection.TemplateConnectionConfigurationCallback;
 import com.snowflake.snowpark_java.Session;
@@ -24,11 +24,11 @@ public class TemplateFinalizeConnectorConfigurationCustomHandler {
     // See more in docs:
     // https://other-docs.snowflake.com/LIMITEDACCESS/connector-sdk/reference/finalize_configuration_reference
     // https://other-docs.snowflake.com/LIMITEDACCESS/connector-sdk/flow/finalize_configuration
-    var schedulerCreator = SchedulerCreator.getInstance(session);
+    var schedulerManager = SchedulerManager.getInstance(session);
     var handler =
         FinalizeConnectorHandler.builder(session)
             .withCallback(
-                new TemplateFinalizeConnectorConfigurationInternal(session, schedulerCreator))
+                new TemplateFinalizeConnectorConfigurationInternal(session, schedulerManager))
             .withSourceValidator(new TemplateAccessValidator())
             .withInputValidator(v -> ConnectorResponse.success())
             .build();

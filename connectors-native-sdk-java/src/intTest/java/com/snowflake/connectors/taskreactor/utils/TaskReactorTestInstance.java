@@ -48,6 +48,7 @@ public class TaskReactorTestInstance {
     this.session = session;
     this.queries = queries;
     createRequiredInstanceObjects();
+    registerInstance();
   }
 
   public static InstanceManager buildFromScratch(String instanceName, Session session) {
@@ -68,6 +69,15 @@ public class TaskReactorTestInstance {
         .collect();
   }
 
+  public void setFakeIsActive(boolean isActive) {
+    session
+        .sql(
+            format(
+                "UPDATE %s.%s SET IS_ACTIVE = %s WHERE INSTANCE_NAME = '%s'",
+                TASK_REACTOR_INSTANCES_SCHEMA_NAME, INSTANCE_REGISTRY, isActive, this.name))
+        .collect();
+  }
+
   public void updateConfig(String key, String value) {
     session
         .sql(
@@ -79,6 +89,15 @@ public class TaskReactorTestInstance {
 
   private void createRequiredInstanceObjects() {
     queries.forEach(query -> session.sql(query).collect());
+  }
+
+  private void registerInstance() {
+    session
+        .sql(
+            format(
+                "INSERT INTO %s.%s (INSTANCE_NAME) VALUES ('%s')",
+                TASK_REACTOR_INSTANCES_SCHEMA_NAME, INSTANCE_REGISTRY, this.name))
+        .collect();
   }
 
   public static class InstanceManager {

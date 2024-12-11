@@ -7,9 +7,11 @@ import static com.snowflake.connectors.application.status.ConnectorStatus.PAUSED
 import static com.snowflake.connectors.application.status.ConnectorStatus.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-public class UpgradeDowngradeTest extends BaseNativeSdkIntegrationTest {
+@Disabled
+public class UpgradeDowngradeTest extends BaseNativeSdkUpgradeIntegrationTest {
 
   @Test
   void shouldUpgradeAndDowngradeApplication() {

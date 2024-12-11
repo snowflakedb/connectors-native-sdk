@@ -137,6 +137,17 @@ public class FullConnectorStatus {
     return configurationStatus == expected;
   }
 
+  /**
+   * Returns whether this connector configuration status is equal to one of provided in the
+   * argument.
+   *
+   * @param expected expected connector configuration statuses
+   * @return whether this connector configuration status is to one of the provided ones
+   */
+  public boolean hasConfigurationStatus(ConnectorStatus.ConnectorConfigurationStatus... expected) {
+    return Arrays.asList(expected).contains(configurationStatus);
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {

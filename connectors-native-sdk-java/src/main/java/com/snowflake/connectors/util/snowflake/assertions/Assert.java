@@ -8,11 +8,11 @@ import java.util.function.BooleanSupplier;
 public class Assert {
 
   /**
-   * Function throws {@link IllegalArgumentException} when given boolean supplier returns false
+   * Throws an exception when the given boolean supplier returns false.
    *
    * @param supplier boolean supplier check function
    * @param message message to be included in the thrown exception
-   * @throws IllegalArgumentException
+   * @throws IllegalArgumentException when the given boolean supplier returns false
    */
   public static void checkThat(BooleanSupplier supplier, String message) {
     if (!supplier.getAsBoolean()) {
@@ -28,21 +28,21 @@ public class Assert {
   }
 
   /**
-   * Function throws {@link IllegalArgumentException} when given boolean supplier returns false
+   * Throws an exception when the given boolean supplier returns false.
    *
    * @param supplier boolean supplier check function
-   * @throws IllegalArgumentException
+   * @throws IllegalArgumentException when the given boolean supplier returns false
    */
   public static void checkThat(BooleanSupplier supplier) {
     checkThat(supplier, null);
   }
 
   /**
-   * Function throws {@link IllegalArgumentException} when first boolean argument is false
+   * Throws an exception when the provided boolean is false
    *
-   * @param value boolean value being asserted
+   * @param value boolean value being checked
    * @param message message to be included in the thrown exception
-   * @throws IllegalArgumentException
+   * @throws IllegalArgumentException when the given boolean is false
    */
   public static void checkThat(boolean value, String message) {
     if (!value) {
@@ -58,10 +58,10 @@ public class Assert {
   }
 
   /**
-   * Function throws {@link IllegalArgumentException} when given boolean value is false
+   * Throws an exception when the provided boolean is false
    *
    * @param value boolean value being checked
-   * @throws IllegalArgumentException
+   * @throws IllegalArgumentException when the given boolean is false
    */
   public static void checkThat(boolean value) {
     checkThat(value, null);

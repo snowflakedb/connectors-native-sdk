@@ -2,9 +2,11 @@
 package com.snowflake.connectors;
 
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThatResponseMap;
+import static com.snowflake.connectors.util.sql.SqlTools.asVarchar;
 import static java.lang.String.format;
 
 import com.snowflake.connectors.application.status.ConnectorStatus;
+import com.snowflake.connectors.application.status.ConnectorStatus.ConnectorConfigurationStatus;
 import com.snowflake.snowpark_java.Row;
 import com.snowflake.snowpark_java.Session;
 import com.snowflake.snowpark_java.types.Variant;
@@ -32,7 +34,9 @@ public class Application {
   private static final Logger LOG = LoggerFactory.getLogger(Application.class);
   private static final String RANDOM_SUFFIX = UUID.randomUUID().toString().replace('-', '_');
   private static final String APP_PACKAGE_NAME = "NATIVE_SDK_TEST_APP_" + RANDOM_SUFFIX;
-  private static final String RELATIVE_APP_DIR = "src/testApps/test-native-sdk-app";
+  private static final String RELATIVE_APP_DIR = "src/testApps/test-native-sdk-app-upgrade";
+  private static final String RELATIVE_SNOWFLAKE_CLI_CREDENTIALS_FILE =
+      System.getProperty("configurationFile");
   private static final String RELATIVE_PACKAGES_DIR = "src/testApps/testPackages";
   private static final String RELATIVE_UNPACKED_DIR = "src/testApps/testPackages/unpackedApp";
   private static final String PACKAGE_NAME_FORMAT = "test-native-sdk-app-%s.zip";
@@ -46,6 +50,10 @@ public class Application {
 
   public static File getAppDir() {
     return new File(getProjectRoot(), RELATIVE_APP_DIR);
+  }
+
+  public static File getSnowflakeCliConfigFile() {
+    return new File(getProjectRoot(), RELATIVE_SNOWFLAKE_CLI_CREDENTIALS_FILE);
   }
 
   public static File getPackageDir() {
@@ -102,20 +110,20 @@ public class Application {
     runCommand(copyInternalCommand, appDir);
 
     var copyCommand =
-        String.format(
-            "make copy_sdk_components CONNECTORS_NATIVE_SDK_VERSION=%s", secondSdkVersion);
+        format("make copy_sdk_components CONNECTORS_NATIVE_SDK_VERSION=%s", secondSdkVersion);
     runCommand(copyCommand, appDir);
 
     var deployCommand =
-        String.format(
-            "make deploy_connector APP_PACKAGE_NAME=%s VERSION=%s CONNECTORS_NATIVE_SDK_VERSION=%s",
-            appPackageName, appPackageVersion, secondSdkVersion);
+        format(
+            "make deploy_app_package APP_PACKAGE_NAME=%s VERSION=\"%s\""
+                + " CONNECTORS_NATIVE_SDK_VERSION=%s CONNECTION_FILE=%s",
+            appPackageName, appPackageVersion, secondSdkVersion, getSnowflakeCliConfigFile());
     runCommand(deployCommand, appDir);
 
     var newVersionCommand =
-        String.format(
-            "make create_new_version APP_PACKAGE_NAME=%s VERSION=%s",
-            appPackageName, appPackageVersion);
+        format(
+            "make create_new_version APP_PACKAGE_NAME=%s VERSION=\"%s\" CONNECTION_FILE=%s",
+            appPackageName, appPackageVersion, getSnowflakeCliConfigFile());
     runCommand(newVersionCommand, appDir);
   }
 
@@ -133,9 +141,13 @@ public class Application {
         runCommand(versionCommand, getAppDir()).stream()
             .filter(it -> it.matches("\\d+\\.\\d+\\.\\d+"))
             .findFirst()
-            .get();
+            .orElseThrow(
+                () ->
+                    new RuntimeException(
+                        "Cannot find recent version of connectors-native-sdk with command "
+                            + versionCommand));
 
-    LOG.info(String.format("Latest published version is: %s", version));
+    LOG.info(format("Latest published version is: %s", version));
 
     buildDeployAndCreateVersionFromPackage(version, INITIAL_APP_VERSION, APP_PACKAGE_NAME);
   }
@@ -160,12 +172,11 @@ public class Application {
             .orElseThrow(
                 () ->
                     new RuntimeException(
-                        String.format("No matching package for sdk version: %s", version)));
+                        format("No matching package for sdk version: %s", version)));
 
     getUnpackedAppDir().mkdir();
     var unpackCommand =
-        String.format(
-            "unzip %s -d %s", packageFile.getName(), getUnpackedAppDir().getAbsolutePath());
+        format("unzip %s -d %s", packageFile.getName(), getUnpackedAppDir().getAbsolutePath());
 
     runCommand(unpackCommand, getPackageDir());
   }
@@ -175,10 +186,10 @@ public class Application {
     LOG.info("Initializing application...");
 
     var command =
-        String.format(
-            "make build_and_create_app_version APP_PACKAGE_NAME=%s VERSION=%s"
-                + " CONNECTORS_NATIVE_SDK_VERSION=%s",
-            appPackageName, appPackageVersion, baseSdkVersion);
+        format(
+            "make build_and_create_app_version APP_PACKAGE_NAME=%s VERSION=\"%s\""
+                + " CONNECTORS_NATIVE_SDK_VERSION=%s CONNECTION_FILE=%s",
+            appPackageName, appPackageVersion, baseSdkVersion, getSnowflakeCliConfigFile());
     runCommand(command, appDir);
   }
 
@@ -188,7 +199,10 @@ public class Application {
 
   public static void dropApplicationPackage(String appPackageName) {
     LOG.info("Dropping application data...");
-    var command = String.format("make drop_application APP_PACKAGE_NAME=%s", appPackageName);
+    var command =
+        format(
+            "make drop_application APP_PACKAGE_NAME=%s CONNECTION_FILE=%s",
+            appPackageName, getSnowflakeCliConfigFile());
     runCommand(command, getAppDir());
   }
 
@@ -204,7 +218,7 @@ public class Application {
         applicationName,
         appPackageName);
     String command =
-        String.format(
+        format(
             "CREATE APPLICATION %s FROM APPLICATION PACKAGE %s USING VERSION \"%s\"",
             applicationName, appPackageName, appVersion);
     session.sql(command).collect();
@@ -213,7 +227,7 @@ public class Application {
 
   private static String generateNewInstanceName(String appPackageName) {
     var randomInstanceSuffix = UUID.randomUUID().toString().replace('-', '_');
-    return String.format("%s_INSTANCE_%s", appPackageName, randomInstanceSuffix);
+    return format("%s_INSTANCE_%s", appPackageName, randomInstanceSuffix);
   }
 
   public static List<String> runCommand(String command, File workingDir) {
@@ -243,7 +257,7 @@ public class Application {
 
   public void dropInstance() {
     LOG.info("Dropping application instance with name {}", instanceName);
-    session.sql(String.format("DROP APPLICATION IF EXISTS %s CASCADE", instanceName)).collect();
+    session.sql(format("DROP APPLICATION IF EXISTS %s CASCADE", instanceName)).collect();
   }
 
   public void upgrade() {
@@ -265,29 +279,19 @@ public class Application {
 
   public void grantUsageOnWarehouse(String warehouse) {
     session
-        .sql(
-            String.format("GRANT USAGE ON WAREHOUSE %s TO APPLICATION %s", warehouse, instanceName))
-        .collect();
-  }
-
-  public void setDebugMode(boolean enable) {
-    session
-        .sql(String.format("ALTER APPLICATION %s SET DEBUG_MODE = %s", instanceName, enable))
+        .sql(format("GRANT USAGE ON WAREHOUSE %s TO APPLICATION %s", warehouse, instanceName))
         .collect();
   }
 
   public void resetState() {
-    setConnectorStatus(
-        ConnectorStatus.CONFIGURING, ConnectorStatus.ConnectorConfigurationStatus.INSTALLED);
-    session.sql("TRUNCATE TABLE IF EXISTS STATE.APP_CONFIG").collect();
-    session
-        .sql("UPDATE TASK_REACTOR_INSTANCES.INSTANCE_REGISTRY SET IS_INITIALIZED = false")
-        .collect();
-    session.sql("DROP TASK IF EXISTS TR_INSTANCE.DISPATCHER_TASK").collect();
+    setConnectorStatus(ConnectorStatus.CONFIGURING, ConnectorConfigurationStatus.INSTALLED);
+    executeInApp("TRUNCATE TABLE IF EXISTS STATE.APP_CONFIG");
+    executeInApp("UPDATE TASK_REACTOR_INSTANCES.INSTANCE_REGISTRY SET IS_INITIALIZED = FALSE");
+    executeInApp("DROP TASK IF EXISTS TR_INSTANCE.DISPATCHER_TASK");
   }
 
   public void setConnectorStatus(
-      ConnectorStatus status, ConnectorStatus.ConnectorConfigurationStatus configurationStatus) {
+      ConnectorStatus status, ConnectorConfigurationStatus configurationStatus) {
     String connectorStatus =
         format(
             "OBJECT_CONSTRUCT('status', '%s', 'configurationStatus', '%s')",
@@ -299,7 +303,7 @@ public class Application {
             + "ON dst.key = '%2$s' "
             + "WHEN MATCHED THEN UPDATE SET dst.value = src.value "
             + "WHEN NOT MATCHED THEN INSERT VALUES ('%2$s', src.value, current_timestamp())";
-    session.sql(format(query, connectorStatus, "connector_status")).collect();
+    executeInApp(format(query, connectorStatus, "connector_status"));
   }
 
   public Row[] getConnectorConfiguration() {
@@ -311,20 +315,16 @@ public class Application {
   }
 
   public List<String> getInitializedTaskReactorInstances() {
-    return Arrays.stream(
-            session
-                .sql(
-                    "SELECT instance_name from TASK_REACTOR_INSTANCES.INSTANCE_REGISTRY WHERE"
-                        + " is_initialized = 'true'")
-                .collect())
+    String query =
+        "SELECT instance_name FROM TASK_REACTOR_INSTANCES.INSTANCE_REGISTRY WHERE is_initialized ="
+            + " TRUE";
+    return Arrays.stream(executeInApp(query))
         .map(it -> it.getString(0))
         .collect(Collectors.toList());
   }
 
   public Row[] getTaskReactorConfig() {
-    return session
-        .sql(String.format("SELECT * FROM %s.CONFIG", TASK_REACTOR_INSTANCE_NAME))
-        .collect();
+    return executeInApp(format("SELECT * FROM %s.CONFIG", TASK_REACTOR_INSTANCE_NAME));
   }
 
   public Map<String, Variant> getConnectorStatus() {
@@ -350,8 +350,8 @@ public class Application {
 
   public void initializeTaskReactorInstance(String warehouse) {
     var response =
-        callProcedure(
-            String.format(
+        callProcedureInApp(
+            format(
                 "INITIALIZE_INSTANCE('%s', '%s', null, null, null, null)",
                 TASK_REACTOR_INSTANCE_NAME, warehouse),
             "TASK_REACTOR");
@@ -368,7 +368,7 @@ public class Application {
   public void configureConnector() {
     var response =
         callProcedure(
-            String.format(
+            format(
                 "CONFIGURE_CONNECTOR(parse_json('{\"destination_database\":\"destdb_%s\"}'))",
                 RANDOM_SUFFIX));
     assertThatResponseMap(response).hasOKResponseCode();
@@ -396,9 +396,23 @@ public class Application {
   }
 
   private Variant callProcedureRaw(String procedureQuery, String schema) {
-    return session
-        .sql(String.format("CALL %s.%s", schema, procedureQuery))
-        .collect()[0]
-        .getVariant(0);
+    return session.sql(format("CALL %s.%s", schema, procedureQuery)).collect()[0].getVariant(0);
+  }
+
+  private Row[] executeInApp(String query) {
+    return session.sql(format("CALL PUBLIC.EXECUTE_SQL(%s)", asVarchar(query))).collect();
+  }
+
+  private Map<String, Variant> callProcedureInApp(String procedureQuery) {
+    return callProcedure(procedureQuery, "PUBLIC");
+  }
+
+  private Map<String, Variant> callProcedureInApp(String procedureQuery, String schema) {
+    Variant response = callProcedureRawInApp(procedureQuery, schema);
+    return response == null ? new HashMap<>() : response.asMap();
+  }
+
+  private Variant callProcedureRawInApp(String procedureQuery, String schema) {
+    return executeInApp(format("CALL %s.%s", schema, procedureQuery))[0].getVariant(0);
   }
 }

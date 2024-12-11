@@ -11,6 +11,7 @@ import java.io.IOException;
 /** Jackson JSON deserializer for {@link Variant}. */
 public class VariantDeserializer extends StdDeserializer<Variant> {
 
+  /** Creates a new {@link VariantDeserializer}. */
   protected VariantDeserializer() {
     super(Variant.class);
   }

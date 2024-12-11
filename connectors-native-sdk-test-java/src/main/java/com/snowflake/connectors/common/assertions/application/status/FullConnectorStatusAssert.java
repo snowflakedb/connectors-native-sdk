@@ -12,6 +12,12 @@ import org.assertj.core.api.AbstractAssert;
 public class FullConnectorStatusAssert
     extends AbstractAssert<FullConnectorStatusAssert, FullConnectorStatus> {
 
+  /**
+   * Creates a new {@link FullConnectorStatusAssert}.
+   *
+   * @param fullConnectorStatus asserted full connector status
+   * @param selfType self type
+   */
   public FullConnectorStatusAssert(
       FullConnectorStatus fullConnectorStatus, Class<FullConnectorStatusAssert> selfType) {
     super(fullConnectorStatus, selfType);

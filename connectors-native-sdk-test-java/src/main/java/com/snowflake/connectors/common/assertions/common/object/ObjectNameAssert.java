@@ -11,6 +11,12 @@ import org.assertj.core.api.AbstractObjectAssert;
 /** AssertJ based assertions for {@link ObjectName}. */
 public class ObjectNameAssert extends AbstractObjectAssert<ObjectNameAssert, ObjectName> {
 
+  /**
+   * Creates a new {@link ObjectNameAssert}.
+   *
+   * @param objectName asserted object name
+   * @param selfType self type
+   */
   public ObjectNameAssert(ObjectName objectName, Class<ObjectNameAssert> selfType) {
     super(objectName, selfType);
   }

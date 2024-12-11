@@ -2,7 +2,7 @@
 package com.snowflake.connectors.taskreactor;
 
 import com.snowflake.connectors.common.object.Identifier;
-import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
+import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueue;
 import com.snowflake.connectors.taskreactor.dispatcher.DispatcherTaskManager;
 import com.snowflake.snowpark_java.Session;
 
@@ -16,8 +16,8 @@ class DefaultTaskReactorInstanceComponentProvider implements TaskReactorInstance
   }
 
   @Override
-  public CommandsQueueRepository commandsQueueRepository(Identifier instanceSchema) {
-    return CommandsQueueRepository.getInstance(session, instanceSchema);
+  public CommandsQueue commandsQueue(Identifier instanceSchema) {
+    return CommandsQueue.getInstance(session, instanceSchema);
   }
 
   @Override

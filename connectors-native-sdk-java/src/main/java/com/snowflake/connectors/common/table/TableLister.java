@@ -8,9 +8,9 @@ import java.util.List;
 public interface TableLister {
 
   /**
-   * Returns list of tables for a given schema
+   * Returns list of tables for a given schema.
    *
-   * @param schema
+   * @param schema schema name
    * @return list of tables for a given schema
    */
   List<TableProperties> showTables(SchemaName schema);
@@ -18,8 +18,8 @@ public interface TableLister {
   /**
    * Returns list of tables for a given schema with additional filter expression.
    *
-   * @param schema
-   * @param like filter expression, eg. "MYTABLE", "%TAB%"
+   * @param schema schema name
+   * @param like filter expression (case-sensitive), e.g. {@code MYTABLE} or {@code %TAB%}
    * @return list of tables
    */
   List<TableProperties> showTables(SchemaName schema, String like);

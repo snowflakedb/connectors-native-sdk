@@ -1,0 +1,12 @@
+definition_version: 1.1
+native_app:
+  name: <% ctx.env.APP_NAME %>
+  application:
+    name: <% ctx.env.APP_NAME %>
+  source_stage: TEST_SCHEMA.TEST_STAGE
+  package:
+    name: <% ctx.env.APP_PACKAGE_NAME %>
+    distribution: INTERNAL
+  artifacts:
+    - src: ./sf_build/*
+      dest: ./

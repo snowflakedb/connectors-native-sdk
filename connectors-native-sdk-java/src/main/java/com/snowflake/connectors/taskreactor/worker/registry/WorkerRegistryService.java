@@ -52,6 +52,18 @@ public class WorkerRegistryService {
     this.workerRegistry = workerRegistry;
   }
 
+  /**
+   * Returns ids of all workers in one of the following states:
+   *
+   * <ul>
+   *   <li>{@link WorkerLifecycleStatus#ACTIVE}
+   *   <li>{@link WorkerLifecycleStatus#PROVISIONING}
+   *   <li>{@link WorkerLifecycleStatus#UP_FOR_DELETION}
+   *   <li>{@link WorkerLifecycleStatus#DELETING}
+   * </ul>
+   *
+   * @return ids of all workers in the above specified states
+   */
   public List<WorkerId> getAllWorkers() {
     return workerRegistry.getWorkerIds(ACTIVE, PROVISIONING, UP_FOR_DELETION, DELETING);
   }

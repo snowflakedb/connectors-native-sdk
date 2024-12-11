@@ -1,0 +1,14 @@
+definition_version: 2
+entities:
+  app:
+    type: application
+    identifier: NATIVE_SDK_EXAMPLE_GITHUB_JAVA_CONNECTOR
+    from:
+      target: package
+  package:
+    type: application package
+    stage: TEST_SCHEMA.TEST_STAGE
+    manifest: ./app/manifest.yml
+    artifacts:
+      - src: ./sf_build/*
+        dest: ./

@@ -6,9 +6,11 @@ import com.snowflake.connectors.taskreactor.worker.WorkerId;
 import com.snowflake.snowpark_java.Session;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+/** Repository for basic storage of the Task Reactor workers statuses. */
 public interface WorkerStatusRepository {
 
   /**
@@ -57,6 +59,14 @@ public interface WorkerStatusRepository {
    *     status
    */
   Optional<Instant> getLastAvailable(WorkerId workerId);
+
+  /**
+   * Returns a map containing the number of workers in each status. The key of the map is worker
+   * status, the value is the number of workers that currently are in this status.
+   *
+   * @return a map containing the number of workers in each status
+   */
+  Map<String, Integer> getWorkersNumberForEachStatus();
 
   /**
    * Returns a new instance of the default repository implementation.

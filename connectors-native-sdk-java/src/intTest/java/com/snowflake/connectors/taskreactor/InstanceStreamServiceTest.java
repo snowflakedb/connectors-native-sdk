@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.connectors.taskreactor.commands.queue.Command.CommandType;
-import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
+import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueue;
 import com.snowflake.connectors.taskreactor.utils.TaskReactorInstanceConfiguration;
 import com.snowflake.connectors.taskreactor.utils.TaskReactorTestInstance;
 import com.snowflake.snowpark_java.types.Variant;
@@ -19,7 +19,9 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class InstanceStreamServiceTest extends BaseTaskReactorIntegrationTest {
@@ -33,11 +35,16 @@ public class InstanceStreamServiceTest extends BaseTaskReactorIntegrationTest {
       ObjectName.from(INSTANCE_NAME, ComponentNames.QUEUE_STREAM);
   private static final ObjectName COMMANDS_QUEUE_STREAM =
       ObjectName.from(INSTANCE_NAME, ComponentNames.COMMANDS_QUEUE_STREAM);
-  private final InstanceStreamService instanceStreamService =
-      InstanceStreamService.getInstance(session);
-  private final CommandsQueueRepository commandsQueueRepository =
-      CommandsQueueRepository.getInstance(session, Identifier.from(INSTANCE_NAME));
-  private static TaskReactorTestInstance instance;
+
+  private InstanceStreamService instanceStreamService;
+  private CommandsQueue commandsQueue;
+  private TaskReactorTestInstance instance;
+
+  @BeforeAll
+  void beforeAll() {
+    instanceStreamService = InstanceStreamService.getInstance(session);
+    commandsQueue = CommandsQueue.getInstance(session, Identifier.from(INSTANCE_NAME));
+  }
 
   @BeforeEach
   void setUp() {
@@ -54,7 +61,11 @@ public class InstanceStreamServiceTest extends BaseTaskReactorIntegrationTest {
     instance.delete();
   }
 
+  // TODO: Resolution should be presented in the Slack thread
   @Test
+  @Disabled(
+      "Streams attribute state_after is now not changed after running CREATE OR REPLACE with CLONE"
+          + " option")
   void shouldRecreateInstanceStreamsAndUpdateLastStreamsRecreationTime() {
     // given
     var streamsStalenessTimestampBeforeRecreation = getStreamsStalenessTimestamps();
@@ -76,7 +87,11 @@ public class InstanceStreamServiceTest extends BaseTaskReactorIntegrationTest {
     streamsDoNotHaveData();
   }
 
+  // TODO: Resolution should be presented in the Slack thread
   @Test
+  @Disabled(
+      "Streams attribute state_after is now not changed after running CREATE OR REPLACE with CLONE"
+          + " option")
   void shouldRecreateInstanceStreamsWhenAppropriateAmountOfTimePassedSinceLastRecreation() {
     // given
     setMaxDataExtensionTimeInDaysToSchema(Identifier.from(instance.getName()), 90);
@@ -179,7 +194,7 @@ public class InstanceStreamServiceTest extends BaseTaskReactorIntegrationTest {
                 "INSERT INTO %s (RESOURCE_ID, WORKER_PAYLOAD) VALUES ('123', 321)",
                 QUEUE.getValue()))
         .collect();
-    commandsQueueRepository.add(CommandType.RESUME_INSTANCE, new Variant(""));
+    commandsQueue.add(CommandType.RESUME_INSTANCE, new Variant(""));
   }
 
   private Map<String, Timestamp> getStreamsStalenessTimestamps() {

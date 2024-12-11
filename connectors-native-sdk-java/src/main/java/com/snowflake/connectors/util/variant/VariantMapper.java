@@ -10,7 +10,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.NullNode;
+import com.snowflake.connectors.util.time.LocalDateDeserializer;
+import com.snowflake.connectors.util.time.LocalDateSerializer;
+import com.snowflake.connectors.util.time.ZoneIdDeserializer;
+import com.snowflake.connectors.util.time.ZoneIdSerializer;
 import com.snowflake.snowpark_java.types.Variant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
@@ -24,10 +30,20 @@ public class VariantMapper {
           Map.of(Variant.class, new VariantDeserializer()),
           List.of(new VariantSerializer()));
 
+  private static final Module DATE_MAPPER_MODULE =
+      new SimpleModule(
+          "dateMapper",
+          unknownVersion(),
+          Map.of(
+              LocalDate.class, new LocalDateDeserializer(), ZoneId.class, new ZoneIdDeserializer()),
+          List.of(new LocalDateSerializer(), new ZoneIdSerializer()));
+
   private static final ObjectMapper objectMapper =
       new ObjectMapper()
           .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
-          .registerModule(VARIANT_MAPPER_MODULE);
+          .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+          .registerModule(VARIANT_MAPPER_MODULE)
+          .registerModule(DATE_MAPPER_MODULE);
 
   private VariantMapper() {}
 

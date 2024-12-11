@@ -6,6 +6,7 @@ import static java.util.Objects.requireNonNull;
 import com.snowflake.connectors.application.ingestion.process.CrudIngestionProcessRepository;
 import com.snowflake.connectors.application.ingestion.process.DefaultIngestionProcessRepository;
 import com.snowflake.connectors.common.exception.helper.ConnectorErrorHelper;
+import com.snowflake.connectors.util.snowflake.TransactionManager;
 import com.snowflake.snowpark_java.Session;
 
 /**
@@ -23,6 +24,7 @@ public class RunSchedulerIterationHandlerBuilder {
   private Scheduler scheduler;
   private ConnectorErrorHelper errorHelper;
   private final CrudIngestionProcessRepository ingestionProcessRepository;
+  private final TransactionManager transactionManager;
 
   /**
    * Creates a new {@link RunSchedulerIterationHandlerBuilder}.
@@ -42,9 +44,12 @@ public class RunSchedulerIterationHandlerBuilder {
     requireNonNull(session);
 
     this.ingestionProcessRepository = new DefaultIngestionProcessRepository(session);
+    this.transactionManager = TransactionManager.getInstance(session);
     this.scheduler =
         new Scheduler(
-            ingestionProcessRepository, OnIngestionScheduledCallback.getInstance(session));
+            ingestionProcessRepository,
+            OnIngestionScheduledCallback.getInstance(session),
+            transactionManager);
     this.errorHelper =
         ConnectorErrorHelper.buildDefault(session, RunSchedulerIterationHandler.ERROR_TYPE);
   }
@@ -56,7 +61,7 @@ public class RunSchedulerIterationHandlerBuilder {
    * @return this builder
    */
   public RunSchedulerIterationHandlerBuilder withCallback(OnIngestionScheduledCallback callback) {
-    this.scheduler = new Scheduler(ingestionProcessRepository, callback);
+    this.scheduler = new Scheduler(ingestionProcessRepository, callback, transactionManager);
     return this;
   }
 

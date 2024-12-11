@@ -2,6 +2,7 @@
 package com.snowflake.connectors.application.scheduler;
 
 import com.snowflake.snowpark_java.Session;
+import java.util.List;
 
 /**
  * Callback called when the next scheduler iteration is run.
@@ -14,9 +15,9 @@ public interface OnIngestionScheduledCallback {
   /**
    * Action executed when the next scheduler iteration is run.
    *
-   * @param processId ingestion process id
+   * @param processIds ingestion process ids
    */
-  void onIngestionScheduled(String processId);
+  void onIngestionScheduled(List<String> processIds);
 
   /**
    * Returns a new instance of the default callback implementation.

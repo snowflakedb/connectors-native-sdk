@@ -3,6 +3,8 @@ package com.snowflake.connectors.application.configuration.connector;
 
 import static com.snowflake.connectors.application.configuration.connector.ConnectorConfigurationKey.AGENT_ROLE;
 import static com.snowflake.connectors.application.configuration.connector.ConnectorConfigurationKey.AGENT_USERNAME;
+import static com.snowflake.connectors.application.configuration.connector.ConnectorConfigurationKey.CORTEX_USER_ROLE;
+import static com.snowflake.connectors.application.configuration.connector.ConnectorConfigurationKey.CORTEX_WAREHOUSE;
 import static com.snowflake.connectors.application.configuration.connector.ConnectorConfigurationKey.DATA_OWNER_ROLE;
 import static com.snowflake.connectors.application.configuration.connector.ConnectorConfigurationKey.DESTINATION_DATABASE;
 import static com.snowflake.connectors.application.configuration.connector.ConnectorConfigurationKey.DESTINATION_SCHEMA;
@@ -15,6 +17,7 @@ import com.snowflake.connectors.BaseIntegrationTest;
 import com.snowflake.connectors.common.exception.InternalConnectorException;
 import com.snowflake.snowpark_java.types.Variant;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,10 +39,18 @@ public class DefaultConnectorConfigurationServiceTest extends BaseIntegrationTes
               AGENT_USERNAME.getPropertyName(),
               "username",
               AGENT_ROLE.getPropertyName(),
-              "agent"));
+              "agent",
+              CORTEX_WAREHOUSE.getPropertyName(),
+              "cortex_warehouse",
+              CORTEX_USER_ROLE.getPropertyName(),
+              "cortex_user_role"));
 
-  ConnectorConfigurationService connectorService =
-      ConnectorConfigurationService.getInstance(session);
+  private ConnectorConfigurationService connectorService;
+
+  @BeforeAll
+  void beforeAll() {
+    connectorService = ConnectorConfigurationService.getInstance(session);
+  }
 
   @BeforeEach
   public void cleanupConfig() {

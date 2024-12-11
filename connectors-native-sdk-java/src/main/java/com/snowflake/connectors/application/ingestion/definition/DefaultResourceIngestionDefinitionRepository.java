@@ -206,6 +206,11 @@ class DefaultResourceIngestionDefinitionRepository<
     executeQuery(query, resources);
   }
 
+  @Override
+  public void delete(String id) {
+    session.table(TABLE_NAME).delete(col(ID_COLUMN).equal_to(lit(id)));
+  }
+
   private String prepareQuery(Collection<R> resources) {
     var rows =
         resources.stream()

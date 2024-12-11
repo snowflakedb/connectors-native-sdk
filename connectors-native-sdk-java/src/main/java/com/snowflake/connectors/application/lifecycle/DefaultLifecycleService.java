@@ -21,6 +21,13 @@ public class DefaultLifecycleService implements LifecycleService {
   private final ConnectorStatusService statusService;
   private final ConnectorStatus statusAfterRollback;
 
+  /**
+   * Creates a new {@link DefaultLifecycleService}.
+   *
+   * @param privilegeTools privilege tools instance
+   * @param statusService connector status service instance
+   * @param statusAfterRollback connector status set after connector rollback
+   */
   public DefaultLifecycleService(
       PrivilegeTools privilegeTools,
       ConnectorStatusService statusService,

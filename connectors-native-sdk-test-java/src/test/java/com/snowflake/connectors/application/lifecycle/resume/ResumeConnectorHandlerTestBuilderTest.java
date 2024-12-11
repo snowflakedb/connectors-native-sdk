@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.mock;
 
 import com.snowflake.connectors.application.lifecycle.LifecycleService;
+import com.snowflake.connectors.application.scheduler.SchedulerManager;
 import com.snowflake.connectors.common.exception.helper.ConnectorErrorHelper;
 import com.snowflake.connectors.taskreactor.InstanceStreamService;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
@@ -28,6 +29,7 @@ class ResumeConnectorHandlerTestBuilderTest {
                     .withInstanceStreamService(mock(InstanceStreamService.class))
                     .withTaskReactorInstanceActionExecutor(
                         mock(TaskReactorInstanceActionExecutor.class))
+                    .withSchedulerManager(mock(SchedulerManager.class))
                     .build());
   }
 }

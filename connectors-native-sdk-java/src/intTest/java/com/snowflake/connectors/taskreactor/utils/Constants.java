@@ -11,6 +11,7 @@ public class Constants {
   public static final String CREATE_WORKER_STATUS_PROCEDURE = "CREATE_WORKER_STATUS_TABLE";
   public static final String CREATE_CONFIG_PROCEDURE = "CREATE_CONFIG_TABLE";
   public static final String CREATE_COMMANDS_QUEUE_PROCEDURE = "CREATE_COMMANDS_QUEUE";
+  public static final String REMOVE_INSTANCE_PROCEDURE = "REMOVE_INSTANCE";
   public static final String QUEUE = "QUEUE";
   public static final String QUEUE_STREAM = "QUEUE_STREAM";
   public static final String COMMANDS_QUEUE = "COMMANDS_QUEUE";

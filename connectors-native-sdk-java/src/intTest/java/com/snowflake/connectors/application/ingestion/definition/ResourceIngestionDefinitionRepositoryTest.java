@@ -21,16 +21,22 @@ import com.snowflake.connectors.common.table.RecordsLimitExceededException;
 import com.snowflake.connectors.util.variant.VariantMapperException;
 import java.util.List;
 import java.util.stream.IntStream;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class ResourceIngestionDefinitionRepositoryTest extends BaseIntegrationTest {
 
-  ResourceIngestionDefinitionRepository<CustomResource> customResourceRepository =
-      ResourceIngestionDefinitionRepositoryFactory.create(session, CustomResource.class);
+  private ResourceIngestionDefinitionRepository<CustomResource> customResourceRepository;
+
+  @BeforeAll
+  void beforeAll() {
+    customResourceRepository =
+        ResourceIngestionDefinitionRepositoryFactory.create(session, CustomResource.class);
+  }
 
   @BeforeEach
-  void cleanupState() {
+  void beforeEach() {
     session.sql("TRUNCATE TABLE STATE.RESOURCE_INGESTION_DEFINITION").collect();
   }
 
@@ -356,6 +362,47 @@ public class ResourceIngestionDefinitionRepositoryTest extends BaseIntegrationTe
                             "Field 'ingestionConfiguration.ingestionStrategy' cannot be empty.",
                             "Field 'ingestionConfiguration.scheduleType' cannot be empty.",
                             "Field 'ingestionConfiguration.scheduleDefinition' cannot be empty.")));
+  }
+
+  @Test
+  void shouldCreateAndDeleteAResource() {
+    // given
+    var resource = createResource();
+
+    // when
+    customResourceRepository.save(resource);
+
+    // then
+    var fetchedResource = customResourceRepository.fetch(resource.getId());
+    assertThat(fetchedResource).isPresent().hasValue(resource);
+
+    // when
+    customResourceRepository.delete(resource.getId());
+
+    // then
+    var fetchedUpdatedResource = customResourceRepository.fetch(resource.getId());
+    assertThat(fetchedUpdatedResource).isEmpty();
+  }
+
+  @Test
+  void shouldDeleteBeIdempotent() {
+    // given
+    var resource = createResource();
+
+    // when
+    customResourceRepository.save(resource);
+
+    // then
+    var fetchedResource = customResourceRepository.fetch(resource.getId());
+    assertThat(fetchedResource).isPresent().hasValue(resource);
+
+    // when
+    customResourceRepository.delete(resource.getId());
+    customResourceRepository.delete(resource.getId());
+
+    // then
+    var fetchedUpdatedResource = customResourceRepository.fetch(resource.getId());
+    assertThat(fetchedUpdatedResource).isEmpty();
   }
 
   private CustomResource createResource() {

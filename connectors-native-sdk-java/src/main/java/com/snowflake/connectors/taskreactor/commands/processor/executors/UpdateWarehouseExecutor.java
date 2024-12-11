@@ -28,20 +28,20 @@ public class UpdateWarehouseExecutor implements CommandExecutor {
 
   @Override
   public void execute(Command command) {
-    var warehouseName = extractWarehouse(command);
+    var warehouse = extractWarehouse(command);
 
-    configRepository.update("WAREHOUSE", warehouseName);
+    configRepository.update("WAREHOUSE", warehouse.getValue());
     var workerIds = workerRegistry.getActiveProvisioningOrUpForDeletionWorkers();
 
     for (WorkerId workerId : workerIds) {
-      workerTaskManager.alterWarehouse(workerId, warehouseName);
+      workerTaskManager.alterWarehouse(workerId, warehouse);
     }
   }
 
-  private String extractWarehouse(Command command) {
+  private Identifier extractWarehouse(Command command) {
     return Optional.ofNullable(command.getPayload().asMap().get("warehouse_name"))
-        .orElseThrow(() -> new InvalidCommandException(command))
-        .asString();
+        .map(name -> Identifier.from(name.asString()))
+        .orElseThrow(() -> new InvalidCommandException(command));
   }
 
   /**

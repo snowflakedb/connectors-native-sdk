@@ -7,7 +7,7 @@ import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceComponentProvider;
-import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
+import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueue;
 import com.snowflake.connectors.taskreactor.registry.InstanceRegistryRepository;
 import com.snowflake.snowpark_java.types.Variant;
 import java.util.Map;
@@ -46,7 +46,7 @@ class DefaultUpdateTaskReactorTasks implements UpdateTaskReactorTasks {
     validateInstanceIsNotActive(instance);
 
     var instanceIdentifier = Identifier.from(instance);
-    var commandQueueRepository = componentProvider.commandsQueueRepository(instanceIdentifier);
+    var commandQueueRepository = componentProvider.commandsQueue(instanceIdentifier);
 
     var dispatcherTask = ObjectName.from(instance, "DISPATCHER_TASK");
     var schedulerTaskRef = taskRepository.fetch(dispatcherTask);
@@ -58,15 +58,13 @@ class DefaultUpdateTaskReactorTasks implements UpdateTaskReactorTasks {
    * Updates dispatcher task warehouse and adds update warehouse command to the queue.
    *
    * @param warehouseName warehouse name
-   * @param commandsQueueRepository instance of {@link CommandsQueueRepository}
+   * @param commandsQueue instance of {@link CommandsQueue}
    * @param dispatcherTask instance of {@link TaskRef}
    */
   private void updateWarehouse(
-      Identifier warehouseName,
-      CommandsQueueRepository commandsQueueRepository,
-      TaskRef dispatcherTask) {
+      Identifier warehouseName, CommandsQueue commandsQueue, TaskRef dispatcherTask) {
     dispatcherTask.alterWarehouse(warehouseName.getValue());
-    commandsQueueRepository.add(
+    commandsQueue.add(
         UPDATE_WAREHOUSE, new Variant(Map.of("warehouse_name", warehouseName.getValue())));
     LOG.info("Added UPDATE_WAREHOUSE command to the command queue");
   }

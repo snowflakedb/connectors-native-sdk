@@ -65,7 +65,16 @@ public interface WorkItemQueue {
    */
   void delete(List<String> ids);
 
-  // TODO Temporary function
+  /**
+   * Remove items from work item queue which were created for a give resource id and before the
+   * given timestamp.
+   *
+   * <p><i>Note: currently this method is considered temporary, it might be deleted in the future.
+   * </i>
+   *
+   * @param resourceId resource id
+   * @param timestamp limiting timestamp
+   */
   void deleteBefore(String resourceId, Timestamp timestamp);
 
   /**

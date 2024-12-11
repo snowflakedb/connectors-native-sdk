@@ -13,6 +13,12 @@ import org.assertj.core.api.AbstractAssert;
 public class IngestionProcessAssert
     extends AbstractAssert<IngestionProcessAssert, IngestionProcess> {
 
+  /**
+   * Creates a new {@link IngestionProcessAssert}.
+   *
+   * @param ingestionProcess asserted ingestion process
+   * @param selfType self type
+   */
   public IngestionProcessAssert(
       IngestionProcess ingestionProcess, Class<IngestionProcessAssert> selfType) {
     super(ingestionProcess, selfType);

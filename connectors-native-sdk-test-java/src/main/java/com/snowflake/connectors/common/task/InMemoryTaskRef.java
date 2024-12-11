@@ -11,6 +11,12 @@ public class InMemoryTaskRef implements TaskRef {
   private final ObjectName taskName;
   private final Map<ObjectName, TaskProperties> store;
 
+  /**
+   * Creates a new {@link InMemoryTaskRef}.
+   *
+   * @param taskName name of the task object
+   * @param store map used for task storage
+   */
   public InMemoryTaskRef(ObjectName taskName, Map<ObjectName, TaskProperties> store) {
     this.taskName = taskName;
     this.store = store;

@@ -2,6 +2,7 @@
 package com.snowflake.connectors.taskreactor.queue.selector;
 
 import static com.snowflake.connectors.util.sql.SqlTools.asVariant;
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 
 import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
@@ -32,7 +33,7 @@ class DefaultWorkSelector implements WorkSelector {
     Row[] rawRows =
         session
             .sql(
-                String.format(
+                format(
                     "SELECT ID, TIMESTAMP, RESOURCE_ID, DISPATCHER_OPTIONS, WORKER_PAYLOAD FROM %s",
                     workSelectorView))
             .select("ID", "TIMESTAMP", "RESOURCE_ID", "DISPATCHER_OPTIONS", "WORKER_PAYLOAD")
@@ -45,12 +46,11 @@ class DefaultWorkSelector implements WorkSelector {
       List<QueueItem> queueItems, String workSelectorProcedure) {
     LOG.debug("Selecting work items using procedure {}.", workSelectorProcedure);
 
-    return session
-        .sql(
-            String.format("CALL %s(%s)", workSelectorProcedure, asVariant(new Variant(queueItems))))
-        .first()
-        .map(DefaultWorkSelector::rowToQueueItems)
-        .orElse(Collections.emptyList());
+    Row[] queryResult =
+        session
+            .sql(format("CALL %s(%s)", workSelectorProcedure, asVariant(new Variant(queueItems))))
+            .collect();
+    return queryResult.length > 0 ? rowToQueueItems(queryResult[0]) : Collections.emptyList();
   }
 
   private static List<QueueItem> rowToQueueItems(Row row) {
