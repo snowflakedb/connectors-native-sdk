@@ -14,14 +14,16 @@ import org.junit.jupiter.api.Test;
 public class AccessToolsTest extends BaseIntegrationTest {
 
   private static final String SECRET_SCHEMA = "SECRET_SCHEMA";
-  private static final String SECRET_PATH =
-      String.format("%s.%s.TEST_SECRET_%s", DATABASE_NAME, SECRET_SCHEMA, TEST_ID);
   private static final Identifier SPECIAL_IDENTIFIER = Identifier.from("\"a'b\"\"c❄d\"");
+  private final String SECRET_PATH =
+      String.format("%s.%s.TEST_SECRET_%s", DATABASE_NAME, SECRET_SCHEMA, TEST_ID);
 
-  private final AccessTools accessTools = AccessTools.getInstance(session);
+  private AccessTools accessTools;
 
   @BeforeAll
-  static void setup() {
+  void setup() {
+    accessTools = AccessTools.getInstance(session);
+
     session.sql(String.format("CREATE SCHEMA %s", SECRET_SCHEMA)).toLocalIterator();
     session
         .sql(

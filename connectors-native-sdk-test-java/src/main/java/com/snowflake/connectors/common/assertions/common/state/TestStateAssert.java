@@ -8,6 +8,12 @@ import org.assertj.core.api.AbstractAssert;
 /** AssertJ based assertions for {@link TestState}. */
 public class TestStateAssert extends AbstractAssert<TestStateAssert, TestState> {
 
+  /**
+   * Creates a new {@link TestStateAssert}.
+   *
+   * @param testState asserted test state
+   * @param selfType self type
+   */
   public TestStateAssert(TestState testState, Class<TestStateAssert> selfType) {
     super(testState, selfType);
   }

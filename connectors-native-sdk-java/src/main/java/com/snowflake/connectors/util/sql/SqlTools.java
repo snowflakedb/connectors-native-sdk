@@ -8,6 +8,7 @@ import com.snowflake.connectors.common.response.ConnectorResponse;
 import com.snowflake.snowpark_java.Session;
 import com.snowflake.snowpark_java.types.Variant;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /** Set of basic SQL utilities. */
@@ -28,13 +29,38 @@ public class SqlTools {
   public static ConnectorResponse callProcedure(
       Session session, String schema, String procedureName, String... arguments) {
     try {
+      return ConnectorResponse.fromVariant(
+          callProcedureRaw(session, schema, procedureName, arguments));
+    } catch (ConnectorException exception) {
+      throw exception;
+    } catch (Exception exception) {
+      if (exception.getMessage().contains("Unknown user-defined function")) {
+        throw new NonexistentProcedureCallException(procedureName);
+      } else {
+        throw new UnknownSqlException(procedureName, exception.getMessage());
+      }
+    }
+  }
+
+  /**
+   * Calls the specified application procedure with the provided arguments.
+   *
+   * <p>The procedure called must return a {@link Variant} which will be returned.
+   *
+   * @param session Snowpark session object
+   * @param schema schema in which the procedure exists
+   * @param procedureName procedure name
+   * @param arguments procedure arguments
+   * @return Variant representing response from a procedure.
+   */
+  public static Variant callProcedureRaw(
+      Session session, String schema, String procedureName, String... arguments) {
+    try {
       var procedureArguments = String.join(",", arguments);
-      var variantResponse =
-          session
-              .sql(format("CALL %s.%s(%s)", schema, procedureName, procedureArguments))
-              .collect()[0]
-              .getVariant(0);
-      return ConnectorResponse.fromVariant(variantResponse);
+      return session
+          .sql(format("CALL %s.%s(%s)", schema, procedureName, procedureArguments))
+          .collect()[0]
+          .getVariant(0);
     } catch (ConnectorException exception) {
       throw exception;
     } catch (Exception exception) {
@@ -64,6 +90,22 @@ public class SqlTools {
   }
 
   /**
+   * Calls the specified application procedure, created in the {@code PUBLIC} schema, with the
+   * provided arguments.
+   *
+   * <p>The procedure called must return a {@link Variant} which will be returned
+   *
+   * @param session Snowpark session object
+   * @param procedureName procedure name
+   * @param arguments procedure arguments
+   * @return Variant
+   */
+  public static Variant callPublicProcedureRaw(
+      Session session, String procedureName, String... arguments) {
+    return callProcedureRaw(session, "PUBLIC", procedureName, arguments);
+  }
+
+  /**
    * Returns the provided String wrapped in single quotes, so it can be treated as a SQL varchar.
    *
    * <p>If the provided String contains any single quote characters - they are escaped with a
@@ -74,6 +116,27 @@ public class SqlTools {
    */
   public static String asVarchar(String string) {
     return string != null ? format("'%s'", string.replace("'", "\\'")) : null;
+  }
+
+  /**
+   * Creates a String that wraps provided arguments in ARRAY_CONSTRUCT() function.
+   *
+   * @param objects String values that represent ARRAY_CONSTRUCT() function arguments.
+   * @return provided values wrapped in ARRAY_CONSTRUCT() function.
+   */
+  public static String arrayConstruct(String... objects) {
+    return arrayConstruct(List.of(objects));
+  }
+
+  /**
+   * Creates a String that wraps provided arguments in ARRAY_CONSTRUCT() function.
+   *
+   * @param objects List of string values that represent ARRAY_CONSTRUCT() function arguments.
+   * @return provided values wrapped in ARRAY_CONSTRUCT() function.
+   */
+  public static String arrayConstruct(List<String> objects) {
+    String commaSeparatedArgs = String.join(",", objects);
+    return format("ARRAY_CONSTRUCT(%s)", commaSeparatedArgs);
   }
 
   /**

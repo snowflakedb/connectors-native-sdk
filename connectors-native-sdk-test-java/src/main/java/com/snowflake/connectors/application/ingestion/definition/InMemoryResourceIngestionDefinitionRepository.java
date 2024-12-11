@@ -95,6 +95,11 @@ public class InMemoryResourceIngestionDefinitionRepository<
     resources.forEach(this::save);
   }
 
+  @Override
+  public void delete(String id) {
+    repository.remove(id);
+  }
+
   /** Clears the repository. */
   public void clear() {
     repository.clear();

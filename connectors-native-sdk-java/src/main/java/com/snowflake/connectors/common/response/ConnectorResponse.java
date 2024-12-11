@@ -188,8 +188,10 @@ public class ConnectorResponse {
   }
 
   /**
-   * Adds a new key-value pair to additional payload
+   * Adds a new key-value pair to additional payload.
    *
+   * @param key payload item key
+   * @param value payload item value
    * @return this ConnectorResponse instance
    */
   public ConnectorResponse withAdditionalPayload(String key, Variant value) {
@@ -303,5 +305,19 @@ public class ConnectorResponse {
     ConnectorResponse response = (ConnectorResponse) other;
     return Objects.equals(responseCode, response.responseCode)
         && Objects.equals(message, response.message);
+  }
+
+  @Override
+  public String toString() {
+    return "ConnectorResponse{"
+        + "responseCode='"
+        + responseCode
+        + '\''
+        + ", message='"
+        + message
+        + '\''
+        + ", additionalPayload="
+        + additionalPayload
+        + '}';
   }
 }

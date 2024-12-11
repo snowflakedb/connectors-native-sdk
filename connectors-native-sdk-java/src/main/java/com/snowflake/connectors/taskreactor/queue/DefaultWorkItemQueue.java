@@ -12,6 +12,7 @@ import static java.util.stream.Collectors.toList;
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
+import com.snowflake.connectors.taskreactor.telemetry.TaskReactorTelemetry;
 import com.snowflake.connectors.taskreactor.worker.queue.WorkItem;
 import com.snowflake.connectors.util.sql.MergeStatementValidator;
 import com.snowflake.snowpark_java.Column;
@@ -73,10 +74,10 @@ public class DefaultWorkItemQueue implements WorkItemQueue {
     var query =
         String.format(
             "MERGE INTO %s AS target USING (SELECT id, resource_id, PARSE_JSON(worker_payload) AS"
-                + " WORKER_PAYLOAD FROM (VALUES %s) AS V(resource_id, worker_payload)) AS source ON"
-                + " ('1' = '1') WHEN NOT MATCHED THEN INSERT (\"ID\", \"RESOURCE_ID\","
-                + " \"WORKER_PAYLOAD\", \"TIMESTAMP\") VALUES (source.id, source.resource_id,"
-                + " source.worker_payload, SYSDATE()) ",
+                + " WORKER_PAYLOAD FROM (VALUES %s) AS V(id, resource_id, worker_payload)) AS"
+                + " source ON (target.id = source.id) WHEN NOT MATCHED THEN INSERT (\"ID\","
+                + " \"RESOURCE_ID\", \"WORKER_PAYLOAD\", \"TIMESTAMP\") VALUES (source.id,"
+                + " source.resource_id, source.worker_payload, SYSDATE()) ",
             queueName.getValue(), rows);
 
     try {
@@ -91,11 +92,13 @@ public class DefaultWorkItemQueue implements WorkItemQueue {
       preparedStatement.executeUpdate();
     } catch (SQLException e) {
       LOG.error(
-          "Failed to push items to queue {}. Merge statement failed with exception:",
+          "Failed to push items to queue {}. Merge statement failed with exception: {}",
           queueName.getValue(),
-          e);
+          e.getMessage());
       throw new WorkItemQueueException(e);
     }
+
+    TaskReactorTelemetry.addWorkItemsNumberInQueueEvent(count(), instanceSchema);
   }
 
   @Override
@@ -112,6 +115,8 @@ public class DefaultWorkItemQueue implements WorkItemQueue {
                     + " TABLE(FLATTEN(PARSE_JSON('[%s]')))",
                 queueName.getValue(), parsedIds))
         .toLocalIterator();
+
+    TaskReactorTelemetry.addWorkItemsNumberInQueueEvent(count(), instanceSchema);
   }
 
   @Override
@@ -126,6 +131,8 @@ public class DefaultWorkItemQueue implements WorkItemQueue {
     session
         .sql(String.format("DELETE FROM %s WHERE ID IN (%s)", queueName.getValue(), parsedIds))
         .toLocalIterator();
+
+    TaskReactorTelemetry.addWorkItemsNumberInQueueEvent(count(), instanceSchema);
   }
 
   @Override
@@ -133,5 +140,11 @@ public class DefaultWorkItemQueue implements WorkItemQueue {
     Column condition =
         col("RESOURCE_ID").equal_to(lit(resourceId)).and(col("TIMESTAMP").leq(lit(timestamp)));
     session.table(queueName.getValue()).delete(condition);
+
+    TaskReactorTelemetry.addWorkItemsNumberInQueueEvent(count(), instanceSchema);
+  }
+
+  private long count() {
+    return session.table(queueName.getValue()).count();
   }
 }

@@ -10,6 +10,12 @@ import org.assertj.core.api.AbstractAssert;
 /** AssertJ based assertions for {@link Command}. */
 public class CommandAssert extends AbstractAssert<CommandAssert, Command> {
 
+  /**
+   * Creates a new {@link CommandAssert}.
+   *
+   * @param command asserted command
+   * @param selfType self type
+   */
   public CommandAssert(Command command, Class<?> selfType) {
     super(command, selfType);
   }

@@ -5,11 +5,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.connectors.common.task.TaskProperties;
+import com.snowflake.connectors.common.task.TaskRef;
+import java.util.List;
 import org.assertj.core.api.AbstractAssert;
 
 /** AssertJ based assertions for {@link TaskProperties}. */
 public class TaskPropertiesAssert extends AbstractAssert<TaskPropertiesAssert, TaskProperties> {
 
+  /**
+   * Creates a new {@link TaskPropertiesAssert}.
+   *
+   * @param taskProperties asserted task properties
+   * @param selfType self type
+   */
   public TaskPropertiesAssert(TaskProperties taskProperties, Class<?> selfType) {
     super(taskProperties, selfType);
   }
@@ -121,6 +129,17 @@ public class TaskPropertiesAssert extends AbstractAssert<TaskPropertiesAssert, T
    */
   public TaskPropertiesAssert hasSuspendTaskAfterNumFailures(Integer num) {
     assertThat(actual.suspendTaskAfterNumFailures()).isEqualTo(num);
+    return this;
+  }
+
+  /**
+   * Asserts that these task properties have predecessors equal to the specified value.
+   *
+   * @param predecessors expected task predecessors
+   * @return this assertion
+   */
+  public TaskPropertiesAssert hasPredecessors(List<TaskRef> predecessors) {
+    assertThat(actual.predecessors()).containsExactlyInAnyOrderElementsOf(predecessors);
     return this;
   }
 }

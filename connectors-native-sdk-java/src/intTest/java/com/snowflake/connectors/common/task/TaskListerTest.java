@@ -13,14 +13,12 @@ import org.junit.jupiter.api.Test;
 
 public class TaskListerTest extends BaseIntegrationTest {
 
-  static TaskLister taskLister;
-  static TaskRepository taskRepository;
-  static TaskRef taskRef1;
-  static TaskRef taskRef2;
+  private TaskLister taskLister;
+  private TaskRef taskRef1;
+  private TaskRef taskRef2;
 
   @BeforeAll
-  static void beforeAll() {
-    taskRepository = new DefaultTaskRepository(session);
+  void beforeAll() {
     taskLister = new DefaultTaskLister(session);
 
     ObjectName firstTaskName = ObjectName.from("PUBLIC", "FOO");
@@ -31,12 +29,13 @@ public class TaskListerTest extends BaseIntegrationTest {
     TaskDefinition taskDefinition1 = new TaskDefinition(taskProperties1);
     TaskDefinition taskDefinition2 = new TaskDefinition(taskProperties2);
 
+    TaskRepository taskRepository = new DefaultTaskRepository(session);
     taskRef1 = taskRepository.create(taskDefinition1, false, false);
     taskRef2 = taskRepository.create(taskDefinition2, false, false);
   }
 
   @AfterAll
-  static void afterAll() {
+  void afterAll() {
     taskRef1.drop();
     taskRef2.drop();
   }

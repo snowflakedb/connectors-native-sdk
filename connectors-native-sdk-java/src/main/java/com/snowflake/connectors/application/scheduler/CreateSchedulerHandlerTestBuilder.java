@@ -29,7 +29,7 @@ public class CreateSchedulerHandlerTestBuilder extends CreateSchedulerHandlerBui
    * </ul>
    *
    * <ul>
-   *   <li>{@link SchedulerCreator} built using {@link SchedulerCreator#getInstance(Session)
+   *   <li>{@link SchedulerManager} built using {@link SchedulerManager#getInstance(Session)
    *       getInstance}
    * </ul>
    *
@@ -39,7 +39,7 @@ public class CreateSchedulerHandlerTestBuilder extends CreateSchedulerHandlerBui
   public CreateSchedulerHandlerTestBuilder(Session session) {
     requireNonNull(session);
 
-    super.schedulerCreator = SchedulerCreator.getInstance(session);
+    super.schedulerManager = SchedulerManager.getInstance(session);
     this.errorHelper = ConnectorErrorHelper.buildDefault(session, ERROR_TYPE);
   }
 
@@ -58,13 +58,13 @@ public class CreateSchedulerHandlerTestBuilder extends CreateSchedulerHandlerBui
   }
 
   /**
-   * Sets the scheduler creator used to build the handler instance.
+   * Sets the scheduler manager used to build the handler instance.
    *
-   * @param schedulerCreator scheduler creator
+   * @param schedulerManager scheduler manager
    * @return this builder
    */
-  public CreateSchedulerHandlerTestBuilder withSchedulerCreator(SchedulerCreator schedulerCreator) {
-    this.schedulerCreator = schedulerCreator;
+  public CreateSchedulerHandlerTestBuilder withSchedulerManager(SchedulerManager schedulerManager) {
+    this.schedulerManager = schedulerManager;
     return this;
   }
 }

@@ -10,10 +10,17 @@ import com.snowflake.snowpark_java.types.Variant;
 import java.sql.Timestamp;
 import java.util.Map;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class DefaultConfigurationRepositoryTest extends BaseIntegrationTest {
-  ConfigurationRepository repo = ConfigurationRepository.getInstance(session);
+
+  private ConfigurationRepository repo;
+
+  @BeforeAll
+  void beforeAll() {
+    repo = ConfigurationRepository.getInstance(session);
+  }
 
   @Test
   public void shouldStoreAndReadConfigurationBasedOnCustomClass() {

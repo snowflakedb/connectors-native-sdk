@@ -1,18 +1,27 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors;
 
+import static com.snowflake.connectors.common.SharedObjects.TEST_GH_EAI;
+import static com.snowflake.connectors.common.SharedObjects.TEST_SECRET;
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThatResponseMap;
 import static com.snowflake.connectors.util.ConnectorStatus.CONFIGURING;
 import static com.snowflake.connectors.util.ConnectorStatus.ConnectorConfigurationStatus.INSTALLED;
+import static com.snowflake.connectors.util.sql.SqlTools.asVarchar;
 import static java.lang.String.format;
 
 import com.snowflake.connectors.application.Application;
+import com.snowflake.connectors.application.TestNativeSdkApplication;
+import com.snowflake.connectors.common.object.Identifier;
+import com.snowflake.connectors.common.object.ObjectName;
+import com.snowflake.connectors.common.object.Reference;
 import com.snowflake.connectors.util.ConnectorStatus;
 import com.snowflake.connectors.util.ConnectorStatus.ConnectorConfigurationStatus;
+import com.snowflake.connectors.util.sql.SqlTools;
 import com.snowflake.snowpark_java.Row;
 import com.snowflake.snowpark_java.Session;
 import com.snowflake.snowpark_java.types.Variant;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -27,10 +36,11 @@ import org.junit.jupiter.api.TestMethodOrder;
 @TestMethodOrder(MethodOrderer.Random.class)
 public class BaseNativeSdkIntegrationTest {
 
-  protected static final String WAREHOUSE = "XS";
-  private static final String TASK_REACTOR_INSTANCE_NAME = "TR_INSTANCE";
-
-  protected Session session;
+  protected static final ObjectName WAREHOUSE = ObjectName.from(Identifier.from("XSMALL"));
+  protected static final Reference WAREHOUSE_REFERENCE = Reference.from("WAREHOUSE_REFERENCE");
+  protected static final Reference EAI_REFERENCE = Reference.from("EAI_REFERENCE");
+  protected static final Reference SECRET_REFERENCE = Reference.from("SECRET_REFERENCE");
+  protected Session session = SnowparkSessionProvider.createSession();
   protected Application application;
 
   @BeforeEach
@@ -47,15 +57,13 @@ public class BaseNativeSdkIntegrationTest {
 
   @BeforeAll
   public void beforeAll() throws IOException {
-    session = SnowparkSessionProvider.createSession();
-    application = Application.createNewInstance(session);
+    application = TestNativeSdkApplication.createNewInstance(session);
 
     session.sql("USE DATABASE " + application.instanceName).collect();
     session.sql("USE SCHEMA PUBLIC").collect();
 
-    application.grantUsageOnWarehouse(WAREHOUSE);
+    application.grantUsageOnWarehouse(WAREHOUSE.getValue());
     application.grantExecuteTaskPrivilege();
-    application.setDebugMode(true);
   }
 
   @AfterAll
@@ -82,6 +90,14 @@ public class BaseNativeSdkIntegrationTest {
   protected Row[] executeInApp(String query) {
     var escapedQuery = query.replace("'", "\\'");
     return session.sql(format("CALL PUBLIC.EXECUTE_SQL('%s')", escapedQuery)).collect();
+  }
+
+  protected Row[] executeInAppWithSelect(String query, String... columns) {
+    var quotedColumns = Arrays.stream(columns).map(SqlTools::quoted).toArray(String[]::new);
+    return session
+        .sql(format("CALL PUBLIC.EXECUTE_SQL(%s)", asVarchar(query)))
+        .select(quotedColumns)
+        .collect();
   }
 
   protected void setConnectorStatus(
@@ -178,12 +194,26 @@ public class BaseNativeSdkIntegrationTest {
   }
 
   protected void setupWarehouseReference() {
+    setupReference(WAREHOUSE_REFERENCE, "WAREHOUSE", WAREHOUSE, "USAGE");
+  }
+
+  protected void setupEAIReference() {
+    setupReference(
+        EAI_REFERENCE, "EXTERNAL ACCESS INTEGRATION", ObjectName.from(TEST_GH_EAI), "USAGE");
+  }
+
+  protected void setupSecretReference() {
+    setupReference(SECRET_REFERENCE, "SECRET", TEST_SECRET, "READ");
+  }
+
+  private void setupReference(
+      Reference referenceName, String objectType, ObjectName objectName, String privilegeType) {
     session
         .sql(
             format(
-                "CALL PUBLIC.REGISTER_REFERENCE('WAREHOUSE_REFERENCE', 'ADD',"
-                    + " SYSTEM$REFERENCE('WAREHOUSE', '%s', 'PERSISTENT', 'USAGE'))",
-                WAREHOUSE))
+                "CALL PUBLIC.REGISTER_REFERENCE('%s', 'ADD',"
+                    + " SYSTEM$REFERENCE('%s', '%s', 'PERSISTENT', '%s'))",
+                referenceName.getName(), objectType, objectName.getValue(), privilegeType))
         .collect();
   }
 }

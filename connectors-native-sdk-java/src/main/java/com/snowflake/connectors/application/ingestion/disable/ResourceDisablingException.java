@@ -14,6 +14,11 @@ public class ResourceDisablingException extends ConnectorException {
   /** Error code of the exception, used in the underlying {@link #getResponse() response}. */
   public static final String ERROR_CODE = "DISABLE_RESOURCE_ERROR";
 
+  /**
+   * Creates a new {@link ResourceDisablingException}.
+   *
+   * @param cause exception cause
+   */
   public ResourceDisablingException(Throwable cause) {
     super(
         ERROR_CODE,

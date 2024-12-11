@@ -1,6 +1,9 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.taskreactor.worker.status;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.summingInt;
+
 import com.snowflake.connectors.taskreactor.worker.WorkerId;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -57,9 +60,19 @@ public class InMemoryWorkerStatusRepository implements WorkerStatusRepository {
         .map(WorkerStatusEntry::getTimestamp);
   }
 
+  @Override
+  public Map<String, Integer> getWorkersNumberForEachStatus() {
+    return store().values().stream().collect(groupingBy(Enum::name, summingInt(x -> 1)));
+  }
+
+  /**
+   * Returns a map containing worker statuses assigned to worker ids.
+   *
+   * @return map containing worker statuses assigned to worker ids
+   */
   public Map<WorkerId, WorkerStatus> store() {
     Map<WorkerId, List<WorkerStatusEntry>> mapByWorkerId =
-        repository.stream().collect(Collectors.groupingBy(WorkerStatusEntry::getWorkerId));
+        repository.stream().collect(groupingBy(WorkerStatusEntry::getWorkerId));
     return mapByWorkerId.entrySet().stream()
         .collect(
             Collectors.toMap(

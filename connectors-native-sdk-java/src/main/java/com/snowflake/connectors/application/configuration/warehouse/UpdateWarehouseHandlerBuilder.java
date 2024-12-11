@@ -21,11 +21,22 @@ import com.snowflake.snowpark_java.Session;
  */
 public class UpdateWarehouseHandlerBuilder {
 
+  /** See {@link UpdateWarehouseInputValidator}. */
   protected UpdateWarehouseInputValidator inputValidator;
+
+  /** See {@link UpdateWarehouseCallback}. */
   protected UpdateWarehouseCallback callback;
+
+  /** See {@link UpdateWarehouseSdkCallback}. */
   protected UpdateWarehouseSdkCallback sdkCallback;
+
+  /** See {@link ConnectorErrorHelper}. */
   protected ConnectorErrorHelper errorHelper;
+
+  /** See {@link ConnectorStatusService}. */
   protected ConnectorStatusService connectorStatusService;
+
+  /** See {@link ConnectorConfigurationService}. */
   protected ConnectorConfigurationService connectorConfigurationService;
 
   /**

@@ -36,6 +36,7 @@ public class InMemoryTaskManagement
     return new InMemoryTaskRef(objectName, store);
   }
 
+  /** Clears the task storage of this object. */
   public void clear() {
     store.clear();
   }
@@ -65,6 +66,11 @@ public class InMemoryTaskManagement
         .collect(Collectors.toList());
   }
 
+  /**
+   * Returns all tasks stored in this object.
+   *
+   * @return all tasks stored in this object
+   */
   public Map<ObjectName, TaskProperties> fetchAll() {
     return store;
   }

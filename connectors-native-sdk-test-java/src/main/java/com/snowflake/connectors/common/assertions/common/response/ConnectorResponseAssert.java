@@ -10,6 +10,12 @@ import org.assertj.core.api.AbstractAssert;
 public class ConnectorResponseAssert
     extends AbstractAssert<ConnectorResponseAssert, ConnectorResponse> {
 
+  /**
+   * Creates a new {@link ConnectorResponseAssert}.
+   *
+   * @param connectorResponse asserted connector response
+   * @param selfType self type
+   */
   public ConnectorResponseAssert(
       ConnectorResponse connectorResponse, Class<ConnectorResponseAssert> selfType) {
     super(connectorResponse, selfType);

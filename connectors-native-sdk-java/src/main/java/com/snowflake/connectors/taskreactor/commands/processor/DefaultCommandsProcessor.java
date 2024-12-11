@@ -3,7 +3,7 @@ package com.snowflake.connectors.taskreactor.commands.processor;
 
 import com.snowflake.connectors.taskreactor.commands.processor.executors.CommandExecutor;
 import com.snowflake.connectors.taskreactor.commands.queue.Command;
-import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
+import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueue;
 import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -13,18 +13,17 @@ public class DefaultCommandsProcessor implements CommandsProcessor {
 
   private static final Logger LOG = TaskReactorLogger.getLogger(DefaultCommandsProcessor.class);
 
-  private final CommandsQueueRepository commandsQueueRepository;
+  private final CommandsQueue commandsQueue;
   private final ExecutorStrategies executorsStrategy;
 
   /**
    * Creates new object of {@link DefaultCommandsProcessor} with all fields initialized.
    *
-   * @param commandsQueueRepository implementation of the {@link CommandsQueueRepository}
+   * @param commandsQueue implementation of the {@link CommandsQueue}
    * @param executorsStrategy implementation of the {@link ExecutorStrategies}
    */
-  DefaultCommandsProcessor(
-      CommandsQueueRepository commandsQueueRepository, ExecutorStrategies executorsStrategy) {
-    this.commandsQueueRepository = commandsQueueRepository;
+  DefaultCommandsProcessor(CommandsQueue commandsQueue, ExecutorStrategies executorsStrategy) {
+    this.commandsQueue = commandsQueue;
     this.executorsStrategy = executorsStrategy;
   }
 
@@ -35,7 +34,7 @@ public class DefaultCommandsProcessor implements CommandsProcessor {
    */
   @Override
   public void processCommands() {
-    var commands = commandsQueueRepository.fetchAllSupportedOrderedBySeqNo();
+    var commands = commandsQueue.fetchAllSupportedOrderedBySeqNo();
 
     LOG.trace(
         "Starting executing {} commands of types [{}]",
@@ -45,7 +44,7 @@ public class DefaultCommandsProcessor implements CommandsProcessor {
             .map(Command.CommandType::name)
             .collect(Collectors.joining(", ")));
     commands.forEach(this::executeCommand);
-    commandsQueueRepository.deleteUnsupportedCommands();
+    commandsQueue.deleteUnsupportedCommands();
   }
 
   /**
@@ -78,6 +77,6 @@ public class DefaultCommandsProcessor implements CommandsProcessor {
           command.getId(),
           e.getMessage());
     }
-    commandsQueueRepository.deleteById(command.getId());
+    commandsQueue.deleteById(command.getId());
   }
 }

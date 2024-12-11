@@ -83,10 +83,20 @@ public class Command {
 
   /** Valid command types that are recognized and supported by the command processor. */
   public enum CommandType {
+
+    /** Resume a Task Reactor instance. */
     RESUME_INSTANCE,
+
+    /** Pause a Task Reactor instance. */
     PAUSE_INSTANCE,
+
+    /** Update the warehouse for a Task Reactor instance. */
     UPDATE_WAREHOUSE,
+
+    /** Set workers number for a Task Reactor instance. */
     SET_WORKERS_NUMBER,
+
+    /** Cancel ongoing executions in a Task Reactor instance. */
     CANCEL_ONGOING_EXECUTIONS;
 
     /**

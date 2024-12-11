@@ -1,13 +1,9 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.taskreactor.config;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.snowflake.connectors.taskreactor.WorkSelectorType;
 
 /** Representation of configuration stored in CONFIG table */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class TaskReactorConfig {
 
   /** Task reactor instance schema. */
@@ -28,14 +24,13 @@ public class TaskReactorConfig {
   /** Warehouse name. */
   private final String warehouse;
 
-  @JsonCreator
   TaskReactorConfig(
-      @JsonProperty("SCHEMA") String schema,
-      @JsonProperty("WORKER_PROCEDURE") String workerProcedure,
-      @JsonProperty("WORK_SELECTOR_TYPE") String workSelectorType,
-      @JsonProperty("WORK_SELECTOR") String workSelector,
-      @JsonProperty("EXPIRED_WORK_SELECTOR") String expiredWorkSelector,
-      @JsonProperty("WAREHOUSE") String warehouse) {
+      String schema,
+      String workerProcedure,
+      String workSelectorType,
+      String workSelector,
+      String expiredWorkSelector,
+      String warehouse) {
     this.schema = schema;
     this.workerProcedure = workerProcedure;
     this.workSelectorType = WorkSelectorType.valueOf(workSelectorType);

@@ -6,6 +6,10 @@ import static com.snowflake.connectors.application.ingestion.process.IngestionPr
 import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.SCHEDULED;
 import static com.snowflake.connectors.common.IdGenerator.randomId;
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.assertArg;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -13,6 +17,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.snowflake.connectors.application.ingestion.process.InMemoryIngestionProcessRepository;
 import com.snowflake.connectors.application.ingestion.process.IngestionProcess;
+import com.snowflake.connectors.util.snowflake.InMemoryTransactionManager;
+import com.snowflake.connectors.util.snowflake.TransactionManager;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +29,9 @@ public class SchedulerTest {
   InMemoryIngestionProcessRepository ingestionProcessRepository =
       new InMemoryIngestionProcessRepository();
   OnIngestionScheduledCallback onIngestionScheduledCallback = mock();
-  Scheduler scheduler = new Scheduler(ingestionProcessRepository, onIngestionScheduledCallback);
+  TransactionManager transactionManager = new InMemoryTransactionManager();
+  Scheduler scheduler =
+      new Scheduler(ingestionProcessRepository, onIngestionScheduledCallback, transactionManager);
 
   @AfterEach
   void cleanUp() {
@@ -39,7 +49,7 @@ public class SchedulerTest {
 
     // then
     assertProcessHasStatus(id, IN_PROGRESS);
-    assertCallbackWasCalledForProcess(id);
+    assertCallbackWasCalledForProcesses(Collections.singletonList(id));
   }
 
   @Test
@@ -62,8 +72,7 @@ public class SchedulerTest {
     assertProcessHasStatus(inProgressProcess2, IN_PROGRESS);
     assertProcessHasStatus(finishedProcess1, FINISHED);
     assertProcessHasStatus(finishedProcess2, FINISHED);
-    assertCallbackWasCalledForProcess(scheduledProcess1);
-    assertCallbackWasCalledForProcess(scheduledProcess2);
+    assertCallbackWasCalledForProcesses(List.of(scheduledProcess1, scheduledProcess2));
     assertNoMoreInteractionOnCallback();
   }
 
@@ -91,6 +100,21 @@ public class SchedulerTest {
     assertNoMoreInteractionOnCallback();
   }
 
+  @Test
+  void shouldRethrowExceptionThrownInACallback() {
+    // given
+    processWithStatusExists(SCHEDULED);
+    processWithStatusExists(SCHEDULED);
+    doThrow(new RuntimeException("Some exception"))
+        .when(onIngestionScheduledCallback)
+        .onIngestionScheduled(any());
+
+    // expect
+    assertThatThrownBy(() -> scheduler.runIteration())
+        .isInstanceOf(RuntimeException.class)
+        .hasMessage("Some exception");
+  }
+
   private String processWithStatusExists(String status) {
     return ingestionProcessRepository.createProcess(
         randomId(), randomId(), "DEFAULT", status, null);
@@ -101,8 +125,10 @@ public class SchedulerTest {
     assertThat(process).hasStatus(expectedStatus);
   }
 
-  private void assertCallbackWasCalledForProcess(String processId) {
-    verify(onIngestionScheduledCallback).onIngestionScheduled(processId);
+  private void assertCallbackWasCalledForProcesses(List<String> processIds) {
+    verify(onIngestionScheduledCallback)
+        .onIngestionScheduled(
+            assertArg(ids -> assertThat(ids).containsExactlyInAnyOrderElementsOf(processIds)));
   }
 
   private void assertNoMoreInteractionOnCallback() {

@@ -16,9 +16,13 @@ import java.util.stream.Collectors;
 public class InMemoryReadOnlyKeyValueTable implements KeyValueTable {
 
   private final Map<String, Variant> repository;
-
   private Predicate<Entry<String, Variant>> getAllWherePredicate;
 
+  /**
+   * Creates a new {@link InMemoryReadOnlyKeyValueTable}.
+   *
+   * @param repository map backing this table
+   */
   public InMemoryReadOnlyKeyValueTable(Map<String, Variant> repository) {
     this.repository = repository;
   }
@@ -49,6 +53,11 @@ public class InMemoryReadOnlyKeyValueTable implements KeyValueTable {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Sets the predicate used by {@link #getAllWhere(Column)} method.
+   *
+   * @param getAllWherePredicate new predicate
+   */
   public void setGetAllWherePredicate(Predicate<Entry<String, Variant>> getAllWherePredicate) {
     this.getAllWherePredicate = getAllWherePredicate;
   }

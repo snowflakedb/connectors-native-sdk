@@ -245,7 +245,7 @@ public class Identifier {
 
   @Override
   public String toString() {
-    return format("Identifier[value = %s]", value);
+    return getValue();
   }
 
   @Override

@@ -12,7 +12,7 @@ import com.snowflake.snowpark_java.Session;
  *
  * <ul>
  *   <li>{@link ConnectorErrorHelper}
- *   <li>{@link SchedulerCreator}
+ *   <li>{@link SchedulerManager}
  * </ul>
  */
 public class CreateSchedulerHandlerTestBuilder extends CreateSchedulerHandlerBuilder {
@@ -33,7 +33,7 @@ public class CreateSchedulerHandlerTestBuilder extends CreateSchedulerHandlerBui
    * <ul>
    *   <li>{@link ConnectorErrorHelper} built using {@link
    *       ConnectorErrorHelper#buildDefault(Session, String) buildDefault}
-   *   <li>a default implementation of {@link SchedulerCreator}
+   *   <li>a default implementation of {@link SchedulerManager}
    * </ul>
    *
    * @param session Snowpark session object
@@ -55,13 +55,13 @@ public class CreateSchedulerHandlerTestBuilder extends CreateSchedulerHandlerBui
   }
 
   /**
-   * Sets the scheduler creator used to build the handler instance.
+   * Sets the scheduler manager used to build the handler instance.
    *
-   * @param schedulerCreator scheduler creator
+   * @param schedulerManager scheduler manager
    * @return this builder
    */
-  public CreateSchedulerHandlerTestBuilder withSchedulerCreator(SchedulerCreator schedulerCreator) {
-    super.schedulerCreator = schedulerCreator;
+  public CreateSchedulerHandlerTestBuilder withSchedulerManager(SchedulerManager schedulerManager) {
+    super.schedulerManager = schedulerManager;
     return this;
   }
 }

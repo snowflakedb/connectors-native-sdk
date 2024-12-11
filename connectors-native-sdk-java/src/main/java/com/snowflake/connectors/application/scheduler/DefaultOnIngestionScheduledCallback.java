@@ -1,10 +1,11 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.application.scheduler;
 
-import static com.snowflake.connectors.util.sql.SqlTools.asVarchar;
+import static com.snowflake.connectors.util.sql.SqlTools.arrayConstruct;
 import static com.snowflake.connectors.util.sql.SqlTools.callPublicProcedure;
 
 import com.snowflake.snowpark_java.Session;
+import java.util.List;
 
 /** Default implementation of {@link OnIngestionScheduledCallback}. */
 class DefaultOnIngestionScheduledCallback implements OnIngestionScheduledCallback {
@@ -16,7 +17,7 @@ class DefaultOnIngestionScheduledCallback implements OnIngestionScheduledCallbac
   }
 
   @Override
-  public void onIngestionScheduled(String processId) {
-    callPublicProcedure(session, "ON_INGESTION_SCHEDULED", asVarchar(processId));
+  public void onIngestionScheduled(List<String> processIds) {
+    callPublicProcedure(session, "ON_INGESTION_SCHEDULED", arrayConstruct(processIds));
   }
 }

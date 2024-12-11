@@ -41,7 +41,7 @@ The SDK is tested by tests at different layers, which are:
 * Application tests - the main difference between these tests and integration tests is that these tests test the whole flow of the particular functionality in the environment of the Snowflake Native Application instead of the database. It's required to use Native Application as a test environment because sometimes, Native Applications behavior differs from the standard Snowflake database. These tests can be found in the `src/appTests` directory.
 
 As for integration and application tests they require connection to Snowflake. Connection details can be defined using
-the `.env/snowflake_credentials file`. Application tests directory also contains an empty connector application in
+the `deployment/snowflake.toml file`. Application tests directory also contains an empty connector application in
 `src/appTests/resources`. That application is deployed during the test suite execution.
 
 The code is tested with the usage of the Native SDK for Connectors Java Test library which consists of Java utils

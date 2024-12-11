@@ -20,6 +20,11 @@ public class DefaultTableLister implements TableLister {
 
   private final Session session;
 
+  /**
+   * Creates a new {@link DefaultTableLister}.
+   *
+   * @param session Snowpark session object
+   */
   public DefaultTableLister(Session session) {
     this.session = session;
   }
@@ -50,7 +55,8 @@ public class DefaultTableLister implements TableLister {
                     quoted("database_name"),
                     quoted("schema_name"),
                     quoted("kind"),
-                    quoted("owner"))
+                    quoted("owner"),
+                    quoted("rows"))
                 .collect())
         .map(this::mapToTableProperties)
         .collect(Collectors.toList());
@@ -63,13 +69,15 @@ public class DefaultTableLister implements TableLister {
     var schemaName = row.getString(3);
     var kind = row.getString(4);
     var owner = row.getString(5);
+    var rows = row.getLong(6);
     return new TableProperties(
         from(databaseName, Identifier.AutoQuoting.ENABLED),
         from(schemaName, Identifier.AutoQuoting.ENABLED),
         from(tableName, Identifier.AutoQuoting.ENABLED),
         createdOn,
         kind,
-        owner);
+        owner,
+        rows);
   }
 
   private static String makeQuery(SchemaName schema, String likePattern) {

@@ -10,7 +10,7 @@ import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.taskreactor.InMemoryTaskReactorInstanceComponentProvider;
 import com.snowflake.connectors.taskreactor.TaskReactorExistenceVerifier;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
-import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
+import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueue;
 import com.snowflake.connectors.taskreactor.registry.InMemoryInstanceRegistryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,9 +65,8 @@ public class PauseTaskReactorServiceTest {
   }
 
   private void assertPauseCommandWasAddedToCommandQueue(Identifier instance) {
-    CommandsQueueRepository commandsQueueRepository =
-        componentProvider.commandsQueueRepository(instance);
-    assertThat(commandsQueueRepository.fetchAllSupportedOrderedBySeqNo())
+    CommandsQueue commandsQueue = componentProvider.commandsQueue(instance);
+    assertThat(commandsQueue.fetchAllSupportedOrderedBySeqNo())
         .hasSize(1)
         .satisfiesOnlyOnce(command -> assertThat(command.getType()).isEqualTo(PAUSE_INSTANCE));
   }

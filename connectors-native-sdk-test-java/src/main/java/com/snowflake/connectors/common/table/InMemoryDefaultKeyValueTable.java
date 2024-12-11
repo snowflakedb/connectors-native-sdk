@@ -55,6 +55,11 @@ public class InMemoryDefaultKeyValueTable implements KeyValueTable {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Sets the predicate used by {@link #getAllWhere(Column)} method.
+   *
+   * @param getAllWherePredicate new predicate
+   */
   public void setGetAllWherePredicate(Predicate<Entry<String, FakeKeyValue>> getAllWherePredicate) {
     this.getAllWherePredicate = getAllWherePredicate;
   }
@@ -89,10 +94,16 @@ public class InMemoryDefaultKeyValueTable implements KeyValueTable {
     repository.remove(key);
   }
 
+  /**
+   * Returns the map backing this table.
+   *
+   * @return map backing this table
+   */
   public Map<String, FakeKeyValue> getRepository() {
     return repository;
   }
 
+  /** Clears this table. */
   public void clear() {
     repository.clear();
   }

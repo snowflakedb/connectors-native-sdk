@@ -15,6 +15,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.snowflake.connectors.application.lifecycle.resume.ResumeConnectorHandlerTestBuilder;
+import com.snowflake.connectors.application.scheduler.SchedulerManager;
 import com.snowflake.connectors.application.status.ConnectorStatus;
 import com.snowflake.connectors.application.status.ConnectorStatusRepository;
 import com.snowflake.connectors.application.status.ConnectorStatusService;
@@ -50,6 +51,7 @@ public class ResumeConnectorHandlerTest {
   private final InstanceStreamService instanceStreamService = mock();
   private final ResumeTaskReactorService resumeTaskReactorService = mock();
   private final TaskReactorInstanceActionExecutor taskReactorInstanceActionExecutor = mock();
+  private final SchedulerManager schedulerManager = mock();
 
   private final InMemoryDefaultKeyValueTable connectorStatusTable =
       new InMemoryDefaultKeyValueTable();
@@ -88,6 +90,7 @@ public class ResumeConnectorHandlerTest {
         .applyToAllInitializedTaskReactorInstances(recreateStreamsLambdaCaptor.capture());
     recreateStreamsLambdaCaptor.getValue().accept(exampleTaskReactorInstance);
     verify(instanceStreamService, times(1)).recreateStreams(exampleTaskReactorInstance);
+    verify(schedulerManager, times(1)).resumeScheduler();
   }
 
   @Test
@@ -253,6 +256,7 @@ public class ResumeConnectorHandlerTest {
         .withErrorHelper(errorHelper)
         .withInstanceStreamService(instanceStreamService)
         .withLifecycleService(lifecycleService)
-        .withResumeTaskReactorService(resumeTaskReactorService);
+        .withResumeTaskReactorService(resumeTaskReactorService)
+        .withSchedulerManager(schedulerManager);
   }
 }

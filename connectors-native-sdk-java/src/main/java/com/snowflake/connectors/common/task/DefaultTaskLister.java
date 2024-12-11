@@ -8,6 +8,7 @@ import com.snowflake.connectors.common.object.Identifier.AutoQuoting;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.snowpark_java.Row;
 import com.snowflake.snowpark_java.Session;
+import com.snowflake.snowpark_java.types.Variant;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -62,7 +63,8 @@ public class DefaultTaskLister implements TaskLister {
                     quoted("state"),
                     quoted("warehouse"),
                     quoted("condition"),
-                    quoted("allow_overlapping_execution"))
+                    quoted("allow_overlapping_execution"),
+                    quoted("predecessors"))
                 .collect())
         .map(this::mapToProperties)
         .sorted(Comparator.comparing(task -> task.name().getValue()))
@@ -77,6 +79,15 @@ public class DefaultTaskLister implements TaskLister {
         .withWarehouse(row.getString(5), AutoQuoting.ENABLED)
         .withCondition(row.getString(6))
         .withAllowOverlappingExecution(Boolean.parseBoolean(row.getString(7)))
+        .withPredecessors(mapVariantsToTaskRefs(row.getListOfVariant(8)))
         .build();
+  }
+
+  private List<TaskRef> mapVariantsToTaskRefs(List<Variant> variants) {
+    return variants.stream()
+        .map(Variant::asString)
+        .map(ObjectName::fromString)
+        .map(name -> TaskRef.of(session, name))
+        .collect(Collectors.toList());
   }
 }

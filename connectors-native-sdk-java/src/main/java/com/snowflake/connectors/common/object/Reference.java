@@ -21,7 +21,7 @@ public class Reference {
       format("^reference\\('%s'\\)$", Identifier.UNQUOTED_PATTERN_RAW);
 
   /** Compiled regex pattern of a valid reference. */
-  private static final Pattern PATTERN = Pattern.compile(PATTERN_RAW, CASE_INSENSITIVE);
+  public static final Pattern PATTERN = Pattern.compile(PATTERN_RAW, CASE_INSENSITIVE);
 
   private final String name;
   private final String value;
@@ -111,7 +111,7 @@ public class Reference {
 
   @Override
   public String toString() {
-    return format("Reference[value = %s, name = %s]", value, name);
+    return getValue();
   }
 
   @Override

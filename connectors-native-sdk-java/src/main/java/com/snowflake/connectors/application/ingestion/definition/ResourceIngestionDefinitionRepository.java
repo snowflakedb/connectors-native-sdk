@@ -105,4 +105,11 @@ public interface ResourceIngestionDefinitionRepository<
    *     ingestion definitions failed
    */
   void saveMany(List<R> resources);
+
+  /**
+   * Deletes a resource ingestion definition with the specified id.
+   *
+   * @param id resource ingestion definition id
+   */
+  void delete(String id);
 }

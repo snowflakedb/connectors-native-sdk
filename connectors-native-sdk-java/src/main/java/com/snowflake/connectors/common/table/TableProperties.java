@@ -17,6 +17,7 @@ public class TableProperties {
   private final Timestamp createdOn;
   private final String kind;
   private final String owner;
+  private final long rows;
 
   /**
    * Creates new {@link TableProperties}
@@ -27,6 +28,7 @@ public class TableProperties {
    * @param createdOn created on property
    * @param kind kind
    * @param owner owner
+   * @param rows number of rows in the table
    */
   public TableProperties(
       Identifier database,
@@ -34,7 +36,9 @@ public class TableProperties {
       Identifier name,
       Timestamp createdOn,
       String kind,
-      String owner) {
+      String owner,
+      long rows) {
+    this.rows = rows;
     this.objectName = ObjectName.from(database, schema, name);
     this.createdOn = createdOn;
     this.kind = kind;
@@ -84,6 +88,15 @@ public class TableProperties {
    */
   public String getOwner() {
     return owner;
+  }
+
+  /**
+   * {@link #rows} property accessor
+   *
+   * @return rowcount
+   */
+  public long getRows() {
+    return rows;
   }
 
   @Override

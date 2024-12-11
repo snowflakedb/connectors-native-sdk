@@ -10,10 +10,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.snowflake.connectors.BaseIntegrationTest;
 import com.snowflake.connectors.application.status.exception.ConnectorStatusNotFoundException;
 import com.snowflake.connectors.common.exception.InternalConnectorException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class ConnectorStatusServiceTest extends BaseIntegrationTest {
-  ConnectorStatusService connectorStatusService = ConnectorStatusService.getInstance(session);
+
+  private ConnectorStatusService connectorStatusService;
+
+  @BeforeAll
+  void beforeAll() {
+    connectorStatusService = ConnectorStatusService.getInstance(session);
+  }
 
   @Test
   void shouldInsertAndUpdateConnectorState() {

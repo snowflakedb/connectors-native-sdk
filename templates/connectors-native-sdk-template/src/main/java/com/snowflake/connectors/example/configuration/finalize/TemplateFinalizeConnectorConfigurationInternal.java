@@ -14,7 +14,7 @@ import static com.snowflake.connectors.util.sql.SqlTools.callProcedure;
 import static java.lang.String.format;
 
 import com.snowflake.connectors.application.configuration.finalization.FinalizeConnectorCallback;
-import com.snowflake.connectors.application.scheduler.SchedulerCreator;
+import com.snowflake.connectors.application.scheduler.SchedulerManager;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.connectors.common.object.Reference;
 import com.snowflake.connectors.common.response.ConnectorResponse;
@@ -39,12 +39,12 @@ public class TemplateFinalizeConnectorConfigurationInternal implements FinalizeC
   private static final String NULL_ARG = "null";
 
   private final Session session;
-  private final SchedulerCreator schedulerCreator;
+  private final SchedulerManager schedulerManager;
 
   public TemplateFinalizeConnectorConfigurationInternal(
-      Session session, SchedulerCreator schedulerCreator) {
+      Session session, SchedulerManager schedulerManager) {
     this.session = session;
-    this.schedulerCreator = schedulerCreator;
+    this.schedulerManager = schedulerManager;
   }
 
   @Override
@@ -153,7 +153,7 @@ public class TemplateFinalizeConnectorConfigurationInternal implements FinalizeC
   }
 
   private void initializeScheduler() {
-    schedulerCreator.createScheduler();
+    schedulerManager.createScheduler();
   }
 
   private void setTaskReactorWorkersNumber() {

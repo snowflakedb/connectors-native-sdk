@@ -5,6 +5,7 @@ import static com.snowflake.connectors.application.status.ConnectorStatus.PAUSED
 import static java.util.Objects.requireNonNull;
 
 import com.snowflake.connectors.application.lifecycle.LifecycleService;
+import com.snowflake.connectors.application.scheduler.SchedulerManager;
 import com.snowflake.connectors.common.exception.helper.ConnectorErrorHelper;
 import com.snowflake.connectors.taskreactor.InstanceStreamService;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
@@ -37,6 +38,7 @@ public class ResumeConnectorHandlerTestBuilder {
   private ResumeTaskReactorService resumeTaskReactorService;
   private InstanceStreamService instanceStreamService;
   private TaskReactorInstanceActionExecutor taskReactorInstanceActionExecutor;
+  private SchedulerManager schedulerManager;
 
   /**
    * Creates a new, empty {@link ResumeConnectorHandlerTestBuilder}.
@@ -63,6 +65,7 @@ public class ResumeConnectorHandlerTestBuilder {
    *   <li>a default implementation of {@link ResumeTaskReactorService}
    *   <li>a default implementation of {@link InstanceStreamService}
    *   <li>a default implementation of {@link TaskReactorInstanceActionExecutor}
+   *   <li>a default implementation of {@link SchedulerManager}
    * </ul>
    *
    * @param session Snowpark session object
@@ -80,6 +83,7 @@ public class ResumeConnectorHandlerTestBuilder {
     this.resumeTaskReactorService = ResumeTaskReactorService.getInstance(session);
     this.instanceStreamService = InstanceStreamService.getInstance(session);
     this.taskReactorInstanceActionExecutor = TaskReactorInstanceActionExecutor.getInstance(session);
+    this.schedulerManager = SchedulerManager.getInstance(session);
   }
 
   /**
@@ -175,6 +179,17 @@ public class ResumeConnectorHandlerTestBuilder {
   }
 
   /**
+   * Sets the scheduler manager used to build the handler instance.
+   *
+   * @param schedulerManager scheduler task manager
+   * @return this builder
+   */
+  public ResumeConnectorHandlerTestBuilder withSchedulerManager(SchedulerManager schedulerManager) {
+    this.schedulerManager = schedulerManager;
+    return this;
+  }
+
+  /**
    * Builds a new handler instance.
    *
    * @return new handler instance
@@ -189,6 +204,7 @@ public class ResumeConnectorHandlerTestBuilder {
     requireNonNull(instanceStreamService);
     requireNonNull(taskReactorInstanceActionExecutor);
     requireNonNull(resumeTaskReactorService);
+    requireNonNull(schedulerManager);
 
     return new ResumeConnectorHandler(
         stateValidator,
@@ -198,6 +214,7 @@ public class ResumeConnectorHandlerTestBuilder {
         sdkCallback,
         instanceStreamService,
         taskReactorInstanceActionExecutor,
-        resumeTaskReactorService);
+        resumeTaskReactorService,
+        schedulerManager);
   }
 }

@@ -7,7 +7,6 @@ import static com.snowflake.connectors.application.ingestion.process.IngestionPr
 import static com.snowflake.connectors.application.ingestion.process.IngestionProcessStatuses.SCHEDULED;
 import static com.snowflake.connectors.common.IdGenerator.randomId;
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.INGESTION_PROCESS;
-import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.RESOURCE_INGESTION_DEFINITION;
 import static com.snowflake.connectors.common.assertions.NativeSdkAssertions.assertThat;
 
 import com.snowflake.connectors.application.ingestion.definition.InMemoryResourceIngestionDefinitionRepository;
@@ -225,12 +224,12 @@ public class EnableResourceHandlerTest {
 
   private void assertResourceIngestionDefinitionIsEnabled(String resourceIngestionDefinitionId) {
     var definition = resourceIngestionDefinitionRepository.fetch(resourceIngestionDefinitionId);
-    assertThat(definition).isPresent().get(RESOURCE_INGESTION_DEFINITION).isEnabled();
+    assertThat(definition).isPresent().hasValueSatisfying(value -> assertThat(value).isEnabled());
   }
 
   private void assertResourceIngestionDefinitionIsDisabled(String resourceIngestionDefinitionId) {
     var definition = resourceIngestionDefinitionRepository.fetch(resourceIngestionDefinitionId);
-    assertThat(definition).isPresent().get(RESOURCE_INGESTION_DEFINITION).isDisabled();
+    assertThat(definition).isPresent().hasValueSatisfying(value -> assertThat(value).isDisabled());
   }
 
   private void assertThatNewIngestionProcessWasCreated(

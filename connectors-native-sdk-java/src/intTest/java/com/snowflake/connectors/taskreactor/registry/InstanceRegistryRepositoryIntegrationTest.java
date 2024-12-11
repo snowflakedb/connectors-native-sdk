@@ -7,11 +7,17 @@ import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.taskreactor.BaseTaskReactorIntegrationTest;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class InstanceRegistryRepositoryIntegrationTest extends BaseTaskReactorIntegrationTest {
 
-  InstanceRegistryRepository repository = new DefaultInstanceRegistryRepository(session);
+  private InstanceRegistryRepository repository;
+
+  @BeforeAll
+  void beforeAll() {
+    repository = new DefaultInstanceRegistryRepository(session);
+  }
 
   @AfterEach
   void cleanup() {

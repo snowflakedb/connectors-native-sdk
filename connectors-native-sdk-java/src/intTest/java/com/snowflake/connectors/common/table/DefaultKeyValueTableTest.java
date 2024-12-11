@@ -13,11 +13,17 @@ import com.snowflake.snowpark_java.types.Variant;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class DefaultKeyValueTableTest extends BaseIntegrationTest {
 
-  KeyValueTable table = new DefaultKeyValueTable(session, "STATE.APP_CONFIG");
+  private KeyValueTable table;
+
+  @BeforeAll
+  void beforeAll() {
+    table = new DefaultKeyValueTable(session, "STATE.APP_CONFIG");
+  }
 
   @Test
   void shouldAccessIntConfiguration() {
@@ -69,7 +75,7 @@ public class DefaultKeyValueTableTest extends BaseIntegrationTest {
     assertThat(results)
         .hasSize(4)
         .containsExactlyInAnyOrder(
-            new Variant(16), new Variant(17), new Variant(18), new Variant(19));
+            rows.stream().map(element -> mapToVariant(element.value())).toArray(Variant[]::new));
   }
 
   @Test
@@ -106,10 +112,10 @@ public class DefaultKeyValueTableTest extends BaseIntegrationTest {
     // then
     List<Variant> results = table.getAllWhere(col("key").like(lit("k-%")));
     assertThat(results)
-        .isEqualTo(
+        .containsExactlyInAnyOrder(
             rowsToCreate.stream()
                 .map(element -> mapToVariant(element.value()))
-                .collect(Collectors.toList()));
+                .toArray(Variant[]::new));
 
     // when
     table.updateAll(rowsToUpdate);
@@ -117,10 +123,10 @@ public class DefaultKeyValueTableTest extends BaseIntegrationTest {
     // then
     List<Variant> updatedResult = table.getAllWhere(col("key").like(lit("k-%")));
     assertThat(updatedResult)
-        .isEqualTo(
+        .containsExactlyInAnyOrder(
             rowsToUpdate.stream()
                 .map(element -> mapToVariant(element.value()))
-                .collect(Collectors.toList()));
+                .toArray(Variant[]::new));
   }
 
   @Test

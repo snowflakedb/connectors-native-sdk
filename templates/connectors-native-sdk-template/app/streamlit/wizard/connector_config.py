@@ -83,7 +83,7 @@ def connector_config_page():
     with input_col:
         st.text_input("", key="dest_schema", label_visibility="collapsed")
     st.caption("Name of the new schema, which will be created to store ingested data")
-    # TODO: Here you can add additional fields in connector configuration. Supported values are the following: warehouse, operational_warehouse, data_owner_role, agent_role, agent_username
+    # TODO: Here you can add additional fields in connector configuration. Supported values are the following: warehouse, operational_warehouse, data_owner_role, agent_role, agent_username, cortex_warehouse, cortex_user_role
     # For example:
     # st.subheader("Operational warehouse")
     # input_col, _ = st.columns([2, 1])

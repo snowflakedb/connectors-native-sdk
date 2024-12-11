@@ -11,4 +11,12 @@ public interface TableRepository extends TableLister {
    * @param table table to drop
    */
   void dropTableIfExists(ObjectName table);
+
+  /**
+   * Renames the table
+   *
+   * @param oldTable old table
+   * @param newTable new table
+   */
+  void renameTable(ObjectName oldTable, ObjectName newTable);
 }

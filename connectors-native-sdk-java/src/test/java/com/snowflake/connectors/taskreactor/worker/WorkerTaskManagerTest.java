@@ -40,7 +40,7 @@ public class WorkerTaskManagerTest {
             "WORK_SELECTOR_TYPE", "PROCEDURE",
             "WORK_SELECTOR", "work-selector-test",
             "EXPIRED_WORK_SELECTOR", "expired-work-selector-test",
-            "WAREHOUSE", "\"\\\"escap3d%_warehouse\\\"\""));
+            "WAREHOUSE", "\"escap3d%_warehouse\""));
   }
 
   @AfterEach

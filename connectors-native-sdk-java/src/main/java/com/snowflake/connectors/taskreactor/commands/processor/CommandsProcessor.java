@@ -2,7 +2,7 @@
 package com.snowflake.connectors.taskreactor.commands.processor;
 
 import com.snowflake.connectors.common.object.Identifier;
-import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
+import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueue;
 import com.snowflake.snowpark_java.Session;
 
 /**
@@ -23,7 +23,7 @@ public interface CommandsProcessor {
    */
   static DefaultCommandsProcessor getInstance(Session session, Identifier instanceName) {
     return new DefaultCommandsProcessor(
-        CommandsQueueRepository.getInstance(session, instanceName),
+        CommandsQueue.getInstance(session, instanceName),
         ExecutorStrategies.getInstance(session, instanceName));
   }
 }

@@ -9,6 +9,12 @@ import org.assertj.core.api.AbstractObjectAssert;
 /** AssertJ based assertions for {@link Reference}. */
 public class ReferenceAssert extends AbstractObjectAssert<ReferenceAssert, Reference> {
 
+  /**
+   * Creates a new {@link ReferenceAssert}.
+   *
+   * @param reference asserted reference
+   * @param selfType self type
+   */
   public ReferenceAssert(Reference reference, Class<ReferenceAssert> selfType) {
     super(reference, selfType);
   }

@@ -5,6 +5,7 @@ import static com.snowflake.connectors.application.status.ConnectorStatus.STARTE
 import static java.util.Objects.requireNonNull;
 
 import com.snowflake.connectors.application.lifecycle.LifecycleService;
+import com.snowflake.connectors.application.scheduler.SchedulerManager;
 import com.snowflake.connectors.common.exception.helper.ConnectorErrorHelper;
 import com.snowflake.connectors.taskreactor.lifecycle.PauseTaskReactorService;
 import com.snowflake.snowpark_java.Session;
@@ -28,6 +29,7 @@ public class PauseConnectorHandlerBuilder {
   private final LifecycleService lifecycleService;
   private final PauseConnectorSdkCallback sdkCallback;
   private final PauseTaskReactorService pauseTaskReactorService;
+  private final SchedulerManager schedulerManager;
 
   /**
    * Creates a new {@link PauseConnectorHandlerBuilder}.
@@ -53,6 +55,7 @@ public class PauseConnectorHandlerBuilder {
     this.lifecycleService = LifecycleService.getInstance(session, STARTED);
     this.sdkCallback = DefaultPauseConnectorSdkCallback.getInstance(session);
     this.pauseTaskReactorService = PauseTaskReactorService.getInstance(session);
+    this.schedulerManager = SchedulerManager.getInstance(session);
   }
 
   /**
@@ -101,6 +104,7 @@ public class PauseConnectorHandlerBuilder {
     requireNonNull(errorHelper);
     requireNonNull(lifecycleService);
     requireNonNull(pauseTaskReactorService);
+    requireNonNull(schedulerManager);
 
     return new PauseConnectorHandler(
         stateValidator,
@@ -108,6 +112,7 @@ public class PauseConnectorHandlerBuilder {
         errorHelper,
         lifecycleService,
         sdkCallback,
-        pauseTaskReactorService);
+        pauseTaskReactorService,
+        schedulerManager);
   }
 }

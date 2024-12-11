@@ -3,7 +3,6 @@ package com.snowflake.connectors.example.lifecycle.resume;
 
 import com.snowflake.connectors.application.lifecycle.resume.ResumeConnectorHandler;
 import com.snowflake.connectors.common.response.ConnectorResponse;
-import com.snowflake.connectors.common.task.TaskRepository;
 import com.snowflake.snowpark_java.Session;
 import com.snowflake.snowpark_java.types.Variant;
 
@@ -11,7 +10,7 @@ import com.snowflake.snowpark_java.types.Variant;
 public class ResumeConnectorCustomHandler {
 
   public Variant resumeConnector(Session session) {
-    var internalCallback = new InternalResumeConnectorCallback(TaskRepository.getInstance(session));
+    var internalCallback = new InternalResumeConnectorCallback();
     var handler =
         ResumeConnectorHandler.builder(session)
             .withStateValidator(ConnectorResponse::success)

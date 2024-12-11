@@ -17,6 +17,7 @@ public class InMemoryAccessTools implements AccessTools {
   private final Map<String, List<String>> databasesAndSchemas;
   private final List<String> secrets;
 
+  /** Creates new {@link InMemoryAccessTools}. */
   public InMemoryAccessTools() {
     warehouses = new ArrayList<>();
     databasesAndSchemas = new HashMap<>();

@@ -7,11 +7,16 @@ import com.snowflake.connectors.application.configuration.ConfigurationRepositor
 import com.snowflake.snowpark_java.types.Variant;
 
 /** Default implementation of {@link ConnectionConfigurationService}. */
-class DefaultConnectionConfigurationService implements ConnectionConfigurationService {
+public class DefaultConnectionConfigurationService implements ConnectionConfigurationService {
 
   private final ConfigurationRepository configurationRepository;
 
-  DefaultConnectionConfigurationService(ConfigurationRepository configurationRepository) {
+  /**
+   * Creates a new {@link DefaultConnectionConfigurationService}.
+   *
+   * @param configurationRepository {@link ConfigurationRepository} object
+   */
+  public DefaultConnectionConfigurationService(ConfigurationRepository configurationRepository) {
     this.configurationRepository = configurationRepository;
   }
 

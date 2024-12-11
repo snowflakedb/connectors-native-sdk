@@ -72,6 +72,8 @@ public class DisableResourceHandler {
    * given id does not exist, {@link InvalidInputException} is thrown.
    *
    * @param resourceIngestionDefinitionId id of resource ingestion definition
+   * @return a response with the code {@code OK} if the execution was successful, otherwise a
+   *     response with an error code and an error message
    */
   public ConnectorResponse disableResource(String resourceIngestionDefinitionId) {
     return errorHelper.withExceptionLoggingAndWrapping(

@@ -7,6 +7,7 @@ artifacts:
   default_streamlit: STREAMLIT.NATIVE_SDK_TEMPLATE_ST
 version:
   name: "1.0"
+  patch: 0
   label: "connectors-native-sdk-connector-template"
   comment: "A template providing a working connector out of the box to accelerate initial development"
 configuration:

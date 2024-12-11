@@ -27,7 +27,7 @@ public class WorkerQueueTest extends BaseIntegrationTest {
   private static WorkerQueue workerQueue;
 
   @BeforeAll
-  static void beforeAll() {
+  void beforeAll() {
     workerQueue = WorkerQueue.getInstance(session, schema);
     tableName = String.format("%s.%s.%s", DATABASE_NAME, schema.getValue(), "WORKER_QUEUE_1");
     session
@@ -47,7 +47,7 @@ public class WorkerQueueTest extends BaseIntegrationTest {
   }
 
   @AfterAll
-  static void afterAll() {
+  void afterAll() {
     session.sql(String.format("DROP TABLE %s", tableName)).toLocalIterator();
     session
         .sql(String.format("DROP SCHEMA %s.%s", DATABASE_NAME, schema.getValue()))

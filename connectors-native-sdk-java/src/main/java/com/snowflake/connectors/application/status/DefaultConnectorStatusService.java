@@ -11,6 +11,11 @@ public class DefaultConnectorStatusService implements ConnectorStatusService {
 
   private final ConnectorStatusRepository connectorStatusRepository;
 
+  /**
+   * Creates a new {@link DefaultConnectorStatusService}, using the provided status repository.
+   *
+   * @param connectorStatusRepository connector status repository
+   */
   public DefaultConnectorStatusService(ConnectorStatusRepository connectorStatusRepository) {
     this.connectorStatusRepository = connectorStatusRepository;
   }

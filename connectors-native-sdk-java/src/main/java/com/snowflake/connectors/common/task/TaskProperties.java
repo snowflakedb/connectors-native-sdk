@@ -1,10 +1,14 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.common.task;
 
+import static java.util.Objects.nonNull;
+
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.object.Identifier.AutoQuoting;
 import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.connectors.common.object.Reference;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -18,8 +22,10 @@ public class TaskProperties {
   private final Identifier warehouseIdentifier;
   private final Reference warehouseReference;
   private final String condition;
+  private final Long userTaskTimeoutMs;
   private final boolean allowOverlappingExecution;
   private final Integer suspendTaskAfterNumFailures;
+  private final List<TaskRef> predecessors;
 
   private TaskProperties(
       ObjectName objectName,
@@ -30,7 +36,9 @@ public class TaskProperties {
       Identifier warehouseIdentifier,
       String condition,
       boolean allowOverlappingExecution,
-      Integer suspendTaskAfterNumFailures) {
+      Integer suspendTaskAfterNumFailures,
+      Long userTaskTimeoutMs,
+      List<TaskRef> predecessors) {
     this.objectName = objectName;
     this.definition = definition;
     this.schedule = schedule;
@@ -40,6 +48,8 @@ public class TaskProperties {
     this.condition = condition;
     this.allowOverlappingExecution = allowOverlappingExecution;
     this.suspendTaskAfterNumFailures = suspendTaskAfterNumFailures;
+    this.userTaskTimeoutMs = userTaskTimeoutMs;
+    this.predecessors = predecessors;
   }
 
   /** Builder for the {@link TaskProperties}. */
@@ -54,6 +64,8 @@ public class TaskProperties {
     private String condition;
     private boolean allowOverlappingExecution;
     private Integer suspendTaskAfterNumFailures;
+    private Long userTaskTimeoutMs;
+    private List<TaskRef> predecessors;
 
     /**
      * Creates a new {@link Builder}.
@@ -66,6 +78,7 @@ public class TaskProperties {
       this.objectName = objectName;
       this.definition = definition;
       this.schedule = schedule;
+      this.predecessors = Collections.emptyList();
     }
 
     /**
@@ -83,6 +96,8 @@ public class TaskProperties {
       this.condition = properties.condition;
       this.allowOverlappingExecution = properties.allowOverlappingExecution;
       this.suspendTaskAfterNumFailures = properties.suspendTaskAfterNumFailures;
+      this.userTaskTimeoutMs = properties.userTaskTimeoutMs;
+      this.predecessors = properties.predecessors;
     }
 
     /**
@@ -141,6 +156,7 @@ public class TaskProperties {
      * Sets the warehouse used to build task properties.
      *
      * @param warehouse warehouse identifier or reference
+     * @param autoQuoting whether warehouse identifier auto quoting should be used
      * @return this builder
      */
     public Builder withWarehouse(String warehouse, AutoQuoting autoQuoting) {
@@ -189,6 +205,17 @@ public class TaskProperties {
     }
 
     /**
+     * Specifies the time limit on a single run of the task before it times out (in milliseconds).
+     *
+     * @param userTaskTimeoutMs time limit on a single run of the task before it times out
+     * @return this builder
+     */
+    public Builder withUserTaskTimeoutMs(long userTaskTimeoutMs) {
+      this.userTaskTimeoutMs = userTaskTimeoutMs;
+      return this;
+    }
+
+    /**
      * Sets the task schedule used to build task properties.
      *
      * @param schedule task schedule
@@ -196,6 +223,20 @@ public class TaskProperties {
      */
     public Builder withSchedule(String schedule) {
       this.schedule = schedule;
+      return this;
+    }
+
+    /**
+     * Sets the task predecessors used to build task properties.
+     *
+     * <p>Task predecessors are tasks, which were listed in the {@code AFTER} parameter during task
+     * creation.
+     *
+     * @param predecessors task predecessors
+     * @return this builder
+     */
+    public Builder withPredecessors(List<TaskRef> predecessors) {
+      this.predecessors = predecessors;
       return this;
     }
 
@@ -209,12 +250,14 @@ public class TaskProperties {
           objectName,
           definition,
           schedule,
-          state,
+          nonNull(state) ? state : "SUSPENDED",
           warehouseReference,
           warehouseIdentifier,
           condition,
           allowOverlappingExecution,
-          suspendTaskAfterNumFailures);
+          suspendTaskAfterNumFailures,
+          userTaskTimeoutMs,
+          predecessors);
     }
   }
 
@@ -252,6 +295,13 @@ public class TaskProperties {
    */
   public String state() {
     return state;
+  }
+
+  /**
+   * @return Returns time limit on a single run of the task before it times out (in milliseconds).
+   */
+  public Long userTaskTimeoutMs() {
+    return userTaskTimeoutMs;
   }
 
   /**
@@ -314,6 +364,18 @@ public class TaskProperties {
     return suspendTaskAfterNumFailures;
   }
 
+  /**
+   * Returns the task predecessors.
+   *
+   * <p>Task predecessors are tasks, which were listed in the {@code AFTER} parameter during task
+   * creation.
+   *
+   * @return task predecessors
+   */
+  public List<TaskRef> predecessors() {
+    return predecessors;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -331,7 +393,9 @@ public class TaskProperties {
         && Objects.equals(warehouseIdentifier, that.warehouseIdentifier)
         && Objects.equals(warehouseReference, that.warehouseReference)
         && Objects.equals(condition, that.condition)
-        && Objects.equals(suspendTaskAfterNumFailures, that.suspendTaskAfterNumFailures);
+        && Objects.equals(userTaskTimeoutMs, that.userTaskTimeoutMs)
+        && Objects.equals(suspendTaskAfterNumFailures, that.suspendTaskAfterNumFailures)
+        && Objects.equals(predecessors, that.predecessors);
   }
 
   @Override
@@ -345,6 +409,8 @@ public class TaskProperties {
         warehouseReference,
         condition,
         allowOverlappingExecution,
-        suspendTaskAfterNumFailures);
+        userTaskTimeoutMs,
+        suspendTaskAfterNumFailures,
+        predecessors);
   }
 }

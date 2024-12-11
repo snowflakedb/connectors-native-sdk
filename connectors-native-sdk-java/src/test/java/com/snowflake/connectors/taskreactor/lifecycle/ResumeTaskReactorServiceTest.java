@@ -15,7 +15,7 @@ import com.snowflake.connectors.common.task.TaskRepository;
 import com.snowflake.connectors.taskreactor.InMemoryTaskReactorInstanceComponentProvider;
 import com.snowflake.connectors.taskreactor.TaskReactorExistenceVerifier;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
-import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
+import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueue;
 import com.snowflake.connectors.taskreactor.registry.InMemoryInstanceRegistryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -80,9 +80,8 @@ public class ResumeTaskReactorServiceTest {
   }
 
   private void assertResumeCommandWasAddedToCommandQueue(Identifier instance) {
-    CommandsQueueRepository commandsQueueRepository =
-        componentProvider.commandsQueueRepository(instance);
-    assertThat(commandsQueueRepository.fetchAllSupportedOrderedBySeqNo())
+    CommandsQueue commandsQueue = componentProvider.commandsQueue(instance);
+    assertThat(commandsQueue.fetchAllSupportedOrderedBySeqNo())
         .hasSize(1)
         .satisfiesOnlyOnce(command -> assertThat(command.getType()).isEqualTo(RESUME_INSTANCE));
   }

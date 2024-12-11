@@ -8,6 +8,12 @@ import org.assertj.core.api.AbstractAssert;
 /** AssertJ based assertions for {@link TestConfig}. */
 public class TestConfigAssert extends AbstractAssert<TestConfigAssert, TestConfig> {
 
+  /**
+   * Creates a new {@link TestConfigAssert}.
+   *
+   * @param testConfig asserted test config
+   * @param selfType self type
+   */
   public TestConfigAssert(TestConfig testConfig, Class<TestConfigAssert> selfType) {
     super(testConfig, selfType);
   }

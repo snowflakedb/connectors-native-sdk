@@ -42,7 +42,7 @@ public class IdentifierIntegrationTest extends BaseNativeSdkIntegrationTest {
         getConfigValues(
             "connector_configuration",
             new String[] {"warehouse", "destination_database", "destination_schema"});
-    configValues.assertContainsExactly("xs", "dEsT_Db", "\"dest\"\"sch'ema_@$%\"");
+    configValues.assertContainsExactly("xsmall", "dEsT_Db", "\"dest\"\"sch'ema_@$%\"");
   }
 
   @ParameterizedTest
@@ -77,7 +77,9 @@ public class IdentifierIntegrationTest extends BaseNativeSdkIntegrationTest {
           "unquoted_identifier", "quoted_identifier", "unquoted_obj_name", "quoted_obj_name"
         };
     var expectedValues =
-        new String[] {"xs", "\"QuoT3d_$%\"\"❄\"", "db.schema.name", "\"a.b.c\".schema.\"N4m'$%❄\""};
+        new String[] {
+          "xsmall", "\"QuoT3d_$%\"\"❄\"", "db.schema.name", "\"a.b.c\".schema.\"N4m'$%❄\""
+        };
 
     getConfigValues("mock_custom_config_src", selectedKeys).assertContainsExactly(expectedValues);
     getConfigValues("mock_custom_config_modified", selectedKeys)
@@ -90,7 +92,7 @@ public class IdentifierIntegrationTest extends BaseNativeSdkIntegrationTest {
   private void configureConnector() {
     var connectorConfig =
         Map.of(
-            "warehouse", "xs",
+            "warehouse", "xsmall",
             "destination_database", "dEsT_Db",
             "destination_schema", "\"dest\"\"sch'ema_@$%\"");
     callProcedure(format("CONFIGURE_CONNECTOR(%s)", asVariant(new Variant(connectorConfig))));
@@ -99,7 +101,7 @@ public class IdentifierIntegrationTest extends BaseNativeSdkIntegrationTest {
   private void finalizeConfiguration() {
     var customConfig =
         Map.of(
-            "unquoted_identifier", "xs",
+            "unquoted_identifier", "xsmall",
             "quoted_identifier", "\"QuoT3d_$%\"\"❄\"",
             "unquoted_obj_name", "db.schema.name",
             "quoted_obj_name", "\"a.b.c\".schema.\"N4m'$%❄\"");

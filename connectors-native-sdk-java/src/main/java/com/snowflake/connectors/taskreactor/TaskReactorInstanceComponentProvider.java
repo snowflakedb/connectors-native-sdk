@@ -2,7 +2,7 @@
 package com.snowflake.connectors.taskreactor;
 
 import com.snowflake.connectors.common.object.Identifier;
-import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
+import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueue;
 import com.snowflake.connectors.taskreactor.dispatcher.DispatcherTaskManager;
 import com.snowflake.snowpark_java.Session;
 
@@ -17,12 +17,12 @@ import com.snowflake.snowpark_java.Session;
 public interface TaskReactorInstanceComponentProvider {
 
   /**
-   * Creates a new instance of {@link CommandsQueueRepository} for a given Task Reactor instance
+   * Creates a new instance of {@link CommandsQueue} for a given Task Reactor instance
    *
    * @param instanceSchema name of Task Reactor instance
-   * @return new instance of {@link CommandsQueueRepository}
+   * @return new instance of {@link CommandsQueue}
    */
-  CommandsQueueRepository commandsQueueRepository(Identifier instanceSchema);
+  CommandsQueue commandsQueue(Identifier instanceSchema);
 
   /**
    * Creates a new instance of {@link DispatcherTaskManager} for a given Task Reactor instance

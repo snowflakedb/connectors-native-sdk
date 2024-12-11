@@ -6,6 +6,7 @@ import java.util.List;
 /** Exception thrown when validation of resource ingestion definition fails. */
 public class ResourceIngestionDefinitionValidationException extends RuntimeException {
 
+  /** Definition validation errors. */
   private final List<String> validationErrors;
 
   /**

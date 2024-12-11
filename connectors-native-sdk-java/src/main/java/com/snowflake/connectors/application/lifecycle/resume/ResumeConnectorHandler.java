@@ -6,6 +6,7 @@ import static com.snowflake.connectors.application.status.ConnectorStatus.STARTE
 import static com.snowflake.connectors.application.status.ConnectorStatus.STARTING;
 
 import com.snowflake.connectors.application.lifecycle.LifecycleService;
+import com.snowflake.connectors.application.scheduler.SchedulerManager;
 import com.snowflake.connectors.common.exception.helper.ConnectorErrorHelper;
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.common.response.ConnectorResponse;
@@ -33,6 +34,7 @@ public class ResumeConnectorHandler {
   private final InstanceStreamService instanceStreamService;
   private final TaskReactorInstanceActionExecutor taskReactorInstanceActionExecutor;
   private final ResumeTaskReactorService resumeTaskReactorService;
+  private final SchedulerManager schedulerManager;
 
   ResumeConnectorHandler(
       ResumeConnectorStateValidator stateValidator,
@@ -42,7 +44,8 @@ public class ResumeConnectorHandler {
       ResumeConnectorSdkCallback sdkCallback,
       InstanceStreamService instanceStreamService,
       TaskReactorInstanceActionExecutor taskReactorInstanceActionExecutor,
-      ResumeTaskReactorService resumeTaskReactorService) {
+      ResumeTaskReactorService resumeTaskReactorService,
+      SchedulerManager schedulerManager) {
     this.stateValidator = stateValidator;
     this.callback = callback;
     this.errorHelper = errorHelper;
@@ -51,6 +54,7 @@ public class ResumeConnectorHandler {
     this.instanceStreamService = instanceStreamService;
     this.taskReactorInstanceActionExecutor = taskReactorInstanceActionExecutor;
     this.resumeTaskReactorService = resumeTaskReactorService;
+    this.schedulerManager = schedulerManager;
   }
 
   /**
@@ -123,6 +127,8 @@ public class ResumeConnectorHandler {
     if (callbackResult.isNotOk()) {
       return callbackResult;
     }
+
+    schedulerManager.resumeScheduler();
 
     resumeTaskReactorService.resumeAllInstances();
     taskReactorInstanceActionExecutor.applyToAllInitializedTaskReactorInstances(

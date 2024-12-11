@@ -5,7 +5,7 @@ package com.snowflake.connectors.example.configuration.connection;
 public final class GithubConnectionConfiguration {
 
   /** GitHub token name set in the procedures altered with the external access. */
-  public static final String TOKEN_NAME = "github_api_token";
+  public static final String TOKEN_NAME = "credentials";
 
   private GithubConnectionConfiguration() {}
 }

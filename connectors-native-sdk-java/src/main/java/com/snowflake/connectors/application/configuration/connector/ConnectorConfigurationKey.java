@@ -31,7 +31,13 @@ public enum ConnectorConfigurationKey {
   AGENT_USERNAME("agent_username"),
 
   /** Role which is used by db connector's agent when connecting with Snowflake. */
-  AGENT_ROLE("agent_role");
+  AGENT_ROLE("agent_role"),
+
+  /** Warehouse used for creating a Cortex Search object. */
+  CORTEX_WAREHOUSE("cortex_warehouse"),
+
+  /** Name of the role, that is able to use a Cortex Search available in the application. */
+  CORTEX_USER_ROLE("cortex_user_role");
 
   private final String propertyName;
 

@@ -67,6 +67,11 @@ public class DefaultIngestionRunRepository
 
   private final Session session;
 
+  /**
+   * Creates a new {@link DefaultIngestionRunRepository}.
+   *
+   * @param session Snowpark session object
+   */
   public DefaultIngestionRunRepository(Session session) {
     this.session = session;
   }
@@ -175,6 +180,13 @@ public class DefaultIngestionRunRepository
   @Override
   public List<IngestionRun> fetchAllByProcessId(String processId) {
     return fetchAllBy(col(INGESTION_PROCESS_ID).equal_to(lit(processId)));
+  }
+
+  @Override
+  public void deleteAllByResourceId(String resourceIngestionDefinitionId) {
+    session
+        .table(TABLE_NAME)
+        .delete(col(RESOURCE_INGESTION_DEFINITION_ID).equal_to(lit(resourceIngestionDefinitionId)));
   }
 
   @Override

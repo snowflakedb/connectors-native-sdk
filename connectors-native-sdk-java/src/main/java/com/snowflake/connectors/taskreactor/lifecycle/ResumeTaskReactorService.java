@@ -6,7 +6,7 @@ import static com.snowflake.connectors.taskreactor.commands.queue.Command.Comman
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceActionExecutor;
 import com.snowflake.connectors.taskreactor.TaskReactorInstanceComponentProvider;
-import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueueRepository;
+import com.snowflake.connectors.taskreactor.commands.queue.CommandsQueue;
 import com.snowflake.connectors.taskreactor.dispatcher.DispatcherTaskManager;
 import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.snowpark_java.Session;
@@ -50,12 +50,11 @@ public class ResumeTaskReactorService {
    */
   public void resumeInstance(Identifier instanceSchema) {
     LOG.info("Started resuming Task Reactor instance: {}", instanceSchema);
-    CommandsQueueRepository commandsQueueRepository =
-        componentProvider.commandsQueueRepository(instanceSchema);
+    CommandsQueue commandsQueue = componentProvider.commandsQueue(instanceSchema);
     DispatcherTaskManager dispatcherTaskManager =
         componentProvider.dispatcherTaskManager(instanceSchema);
 
-    commandsQueueRepository.addCommandWithEmptyPayload(RESUME_INSTANCE);
+    commandsQueue.addCommandWithEmptyPayload(RESUME_INSTANCE);
     dispatcherTaskManager.resumeDispatcherTask();
     LOG.info("Added RESUME_INSTANCE command to the command queue (instance: {})", instanceSchema);
   }

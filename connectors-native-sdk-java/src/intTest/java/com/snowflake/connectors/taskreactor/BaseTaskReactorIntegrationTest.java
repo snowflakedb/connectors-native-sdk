@@ -4,15 +4,14 @@ package com.snowflake.connectors.taskreactor;
 import static java.lang.String.format;
 
 import com.snowflake.connectors.BaseTest;
-import com.snowflake.connectors.SnowsqlConfigurer;
-import com.snowflake.connectors.taskreactor.utils.CommandLineHelper;
 import com.snowflake.connectors.taskreactor.utils.GradleUtils;
-import com.snowflake.connectors.taskreactor.utils.SnowsqlFileExecutor;
+import com.snowflake.connectors.taskreactor.utils.snowflakecli.SnowflakeCliFileExecutionBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.io.TempDir;
 
 public class BaseTaskReactorIntegrationTest extends BaseTest {
 
@@ -22,7 +21,6 @@ public class BaseTaskReactorIntegrationTest extends BaseTest {
   public static final String WORK_SELECTOR_LOCATION = TASK_REACTOR_TEST_SCHEMA + ".WORK_SELECTOR";
   public static final String EXPIRED_WORK_SELECTOR_LOCATION =
       TASK_REACTOR_TEST_SCHEMA + ".EMPTY_EXPIRED_WORK_SELECTOR";
-  private static final String SNOWFLAKE_CONNECTION = "native_sdk_connection";
   private static final String STAGE_NAME = "TASK_REACTOR_STAGE";
   private static final String STAGE_SCHEMA = "STAGE_SCHEMA";
   private static final String JAR_NAME = GradleUtils.getSdkJarName();
@@ -33,33 +31,22 @@ public class BaseTaskReactorIntegrationTest extends BaseTest {
   protected static final String TEST_INSTANCE = "TEST_INSTANCE";
 
   @BeforeAll
-  public static void beforeAll() throws IOException, InterruptedException {
-    SnowsqlConfigurer.configureSnowsqlInDocker();
-    buildProject();
+  void baseTaskReactorIntegrationBeforeAll(@TempDir File tempDir) throws Exception {
     createStage();
-    setUpTaskReactorApi();
-    createTestObjects();
+    setUpTaskReactorApi(tempDir);
+    createTestObjects(tempDir);
   }
 
   @BeforeEach
-  public void beforeEach() {
+  void baseTaskReactorIntegrationBeforeEach() {
     session.sql("DELETE FROM " + WORKER_PROCEDURE_CALLS).collect();
-  }
-
-  private static void buildProject() throws IOException, InterruptedException {
-    String command = "./gradlew build -x test";
-    int buildResult = CommandLineHelper.runCommand(command, currentDir());
-    assert buildResult == 0
-        : format(
-            "Building with command '%s' has failed in dir '%s'",
-            command, currentDir().getAbsolutePath());
   }
 
   protected static File currentDir() {
     return new File(System.getProperty("user.dir"));
   }
 
-  private static void createStage() {
+  private void createStage() {
     session.sql(format("CREATE OR REPLACE SCHEMA %s", STAGE_SCHEMA)).collect();
     session.sql(format("CREATE OR REPLACE STAGE %s.%s", STAGE_SCHEMA, STAGE_NAME)).collect();
     session
@@ -70,39 +57,39 @@ public class BaseTaskReactorIntegrationTest extends BaseTest {
             Map.of("AUTO_COMPRESS", "FALSE"));
   }
 
-  private static void createTestObjects() {
+  private void createTestObjects(File tempDir) throws IOException {
+    String configFile = System.getProperty("configurationFile");
     String pathToSetupFile =
         ClassLoader.getSystemClassLoader().getResource("task_reactor_tests_setup.sql").getPath();
 
-    SnowsqlFileExecutor.from(pathToSetupFile)
-        .usingConnection(SNOWFLAKE_CONNECTION)
+    SnowflakeCliFileExecutionBuilder.forFile(pathToSetupFile)
+        .usingConnection(configFile)
         .usingDatabase(DATABASE_NAME)
-        .replaceText("<test_schema>")
-        .with(TASK_REACTOR_TEST_SCHEMA)
-        .replaceText("<work_selector>")
-        .with(WORK_SELECTOR_LOCATION)
-        .replaceText("<expired_work_selector>")
-        .with(EXPIRED_WORK_SELECTOR_LOCATION)
-        .replaceText("<worker_procedure_calls>")
-        .with(WORKER_PROCEDURE_CALLS)
-        .replaceText("<worker_procedure>")
-        .with(WORKER_PROCEDURE_LOCATION)
-        .replaceText("<failing_worker_procedure>")
-        .with(FAILING_WORKER_PROCEDURE_LOCATION)
+        .withExecutionFileDir(tempDir)
+        .replaceText("<test_schema>", TASK_REACTOR_TEST_SCHEMA)
+        .replaceText("<work_selector>", WORK_SELECTOR_LOCATION)
+        .replaceText("<expired_work_selector>", EXPIRED_WORK_SELECTOR_LOCATION)
+        .replaceText("<worker_procedure_calls>", WORKER_PROCEDURE_CALLS)
+        .replaceText("<worker_procedure>", WORKER_PROCEDURE_LOCATION)
+        .replaceText("<failing_worker_procedure>", FAILING_WORKER_PROCEDURE_LOCATION)
         .execute();
   }
 
-  private static void setUpTaskReactorApi() {
+  private void setUpTaskReactorApi(File tempDir) throws IOException {
+    String configFile = System.getProperty("configurationFile");
     String pathToTaskReactorSqlFile =
-        "src/main/resources/native-connectors-sdk-components/task_reactor.sql";
+        "src/main/resources/connectors-sdk-components/task_reactor.sql";
 
-    SnowsqlFileExecutor.from(pathToTaskReactorSqlFile)
-        .usingConnection(SNOWFLAKE_CONNECTION)
+    SnowflakeCliFileExecutionBuilder.forFile(pathToTaskReactorSqlFile)
+        .usingConnection(configFile)
         .usingDatabase(DATABASE_NAME)
-        .replaceText("CREATE OR ALTER VERSIONED SCHEMA")
-        .with("CREATE SCHEMA IF NOT EXISTS")
-        .replaceText("IMPORTS = ('/connectors-native-sdk.jar')")
-        .with(format("IMPORTS = ('@%s.%s/%s')", STAGE_SCHEMA, STAGE_NAME, JAR_NAME))
+        .withExecutionFileDir(tempDir)
+        .replaceText("CREATE OR ALTER VERSIONED SCHEMA", "CREATE SCHEMA IF NOT EXISTS")
+        .replaceText(
+            "IMPORTS = ('@java_jar@')",
+            format("IMPORTS = ('@%s.%s/%s')", STAGE_SCHEMA, STAGE_NAME, JAR_NAME))
+        .replaceText("@snowpark@", System.getProperty("snowpark"))
+        .replaceText("@telemetry@", System.getProperty("telemetry"))
         .execute();
   }
 }

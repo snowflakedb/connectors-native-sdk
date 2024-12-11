@@ -15,6 +15,7 @@ import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.snowpark_java.Session;
 import org.slf4j.Logger;
 
+/** Component for managing worker tasks. */
 public class WorkerTaskManager {
 
   private static final Logger LOG = TaskReactorLogger.getLogger(WorkerTaskManager.class);
@@ -91,14 +92,14 @@ public class WorkerTaskManager {
    * queue does not exist.
    *
    * @param workerId worker id
-   * @param warehouseName new warehouse name
+   * @param warehouse new warehouse
    */
-  public void alterWarehouse(WorkerId workerId, String warehouseName) {
+  public void alterWarehouse(WorkerId workerId, Identifier warehouse) {
     LOG.debug("Altering warehouse of worker with id {}.", workerId);
 
     var workerTaskInstance = ObjectName.from(instanceSchema, ComponentNames.workerTask(workerId));
     var workerTask = taskRepository.fetch(workerTaskInstance);
-    workerTask.alterWarehouse(warehouseName);
+    workerTask.alterWarehouse(warehouse.getValue());
   }
 
   /**

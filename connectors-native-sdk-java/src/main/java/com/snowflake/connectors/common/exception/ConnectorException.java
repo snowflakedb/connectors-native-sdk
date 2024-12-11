@@ -17,7 +17,10 @@ import com.snowflake.connectors.common.response.ConnectorResponse;
  */
 public class ConnectorException extends RuntimeException {
 
+  /** Underlying connector response of this exception. */
   private final ConnectorResponse response;
+
+  /** Additional context of this exception. */
   private final ExceptionContext context;
 
   /**

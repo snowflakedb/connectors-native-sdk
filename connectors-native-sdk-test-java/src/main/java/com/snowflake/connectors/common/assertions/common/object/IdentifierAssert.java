@@ -9,6 +9,12 @@ import org.assertj.core.api.AbstractObjectAssert;
 /** AssertJ based assertions for {@link Identifier}. */
 public class IdentifierAssert extends AbstractObjectAssert<IdentifierAssert, Identifier> {
 
+  /**
+   * Creates a new {@link IdentifierAssert}.
+   *
+   * @param identifier asserted identifier
+   * @param selfType self type
+   */
   public IdentifierAssert(Identifier identifier, Class<IdentifierAssert> selfType) {
     super(identifier, selfType);
   }

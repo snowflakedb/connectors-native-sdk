@@ -4,8 +4,7 @@ package com.snowflake.connectors.taskreactor.config;
 import static com.snowflake.connectors.taskreactor.ComponentNames.CONFIG_TABLE;
 
 import com.snowflake.connectors.common.object.Identifier;
-import com.snowflake.connectors.common.table.DefaultKeyValueTable;
-import com.snowflake.connectors.common.table.KeyValueTable;
+import com.snowflake.connectors.common.object.ObjectName;
 import com.snowflake.snowpark_java.Session;
 
 /** Task reactor configuration repository utility. */
@@ -41,9 +40,7 @@ public interface ConfigRepository {
    * @return a new repository instance
    */
   static ConfigRepository getInstance(Session session, Identifier instanceName) {
-    String tableName = String.format("%s.%s", instanceName.getValue(), CONFIG_TABLE);
-    KeyValueTable repository = new DefaultKeyValueTable(session, tableName);
-
-    return new DefaultConfigRepository(repository);
+    ObjectName configTableName = ObjectName.from(instanceName, Identifier.from(CONFIG_TABLE));
+    return new DefaultConfigRepository(session, configTableName);
   }
 }

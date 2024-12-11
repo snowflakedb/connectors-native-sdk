@@ -32,6 +32,16 @@ public abstract class Worker<T> {
   private final WorkerQueue workerQueue;
   private final TaskRepository taskRepository;
 
+  /**
+   * Creates a new {@link Worker}.
+   *
+   * @param workerId worker id
+   * @param instanceName Task Reactor instance name
+   * @param workerStatusRepository worker status repository
+   * @param workerTask name of the worker task object
+   * @param workerQueue worker queue
+   * @param taskRepository task repository
+   */
   protected Worker(
       WorkerId workerId,
       Identifier instanceName,
@@ -75,6 +85,9 @@ public abstract class Worker<T> {
       workerStatusRepository.updateStatusFor(workerId, IN_PROGRESS);
       WorkItem workItem = workerQueue.fetch(workerId);
       LOG.info("Worker (workerId: {}) started work on workItem ({})", workerId.value(), workItem);
+      TaskReactorTelemetry.addWorkerStatusEvent(
+          workerStatusRepository.getWorkersNumberForEachStatus());
+
       T result = performWork(workItem);
       LOG.info("Worker (workerId: {}) completed work on workItem ({})", workerId.value(), workItem);
       return result;
@@ -88,6 +101,9 @@ public abstract class Worker<T> {
       taskRepository.fetch(workerTask).suspend();
       workerQueue.delete(workerId);
       workerStatusRepository.updateStatusFor(workerId, AVAILABLE);
+
+      TaskReactorTelemetry.addWorkerStatusEvent(
+          workerStatusRepository.getWorkersNumberForEachStatus());
       TaskReactorTelemetry.addWorkerWorkingTimeEvent(workStartTime, Instant.now());
       LOG.debug("Worker finished working (workerId: {})", workerId.value());
     }
@@ -99,6 +115,11 @@ public abstract class Worker<T> {
    */
   protected abstract T performWork(WorkItem workItem);
 
+  /**
+   * Returns whether the worker should cancel its execution.
+   *
+   * @return whether the worker should cancel its execution
+   */
   protected boolean shouldCancel() {
     return workerStatusRepository.getStatusFor(workerId) == SCHEDULED_FOR_CANCELLATION;
   }

@@ -29,7 +29,7 @@ class DefaultUpdateTaskReactorTasksTest {
               ObjectName.from(INSTANCE_NAME.getValue(), "DISPATCHER_TASK"),
               "SELECT 1",
               "USING CRON * * * * * UTC")
-          .withWarehouse("XS")
+          .withWarehouse("XSMALL")
           .build();
 
   private InstanceRegistryRepository instanceRegistryRepository;
@@ -69,7 +69,7 @@ class DefaultUpdateTaskReactorTasksTest {
 
     // then
     var task = taskRepository.fetch(DISPATCHER_TASK_PROPERTIES.name());
-    var commandsQueue = componentProvider.commandsQueueRepositories();
+    var commandsQueue = componentProvider.commandsQueues();
     // this part should be changed after new identifiers approach implementation
     assertThat(task.fetch().warehouse())
         .isEqualTo(Identifier.from(warehouse.getValue()).getValue());

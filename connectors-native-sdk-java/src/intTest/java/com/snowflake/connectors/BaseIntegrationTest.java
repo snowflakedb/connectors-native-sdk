@@ -1,18 +1,24 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors;
 
-import com.snowflake.snowpark_java.Session;
 import org.junit.jupiter.api.BeforeAll;
 
 public class BaseIntegrationTest extends BaseTest {
 
   @BeforeAll
-  static void beforeAll() {
-    prepareDatabaseObjects(session);
+  void baseIntegrationBeforeAll() {
+    prepareDatabaseObjects();
   }
 
-  private static void prepareDatabaseObjects(Session session) {
+  private void prepareDatabaseObjects() {
     session.sql("CREATE SCHEMA STATE").collect();
+    session
+        .sql(
+            "CREATE TABLE STATE.PREREQUISITES (ID STRING NOT NULL, TITLE VARCHAR NOT NULL,"
+                + " DESCRIPTION VARCHAR NOT NULL, LEARNMORE_URL VARCHAR, DOCUMENTATION_URL VARCHAR,"
+                + " GUIDE_URL VARCHAR, CUSTOM_PROPERTIES VARIANT, IS_COMPLETED BOOLEAN DEFAULT"
+                + " FALSE, POSITION INTEGER NOT NULL)")
+        .collect();
     session
         .sql("CREATE TABLE STATE.APP_CONFIG(KEY STRING, VALUE VARIANT, UPDATED_AT TIMESTAMP_NTZ)")
         .collect();

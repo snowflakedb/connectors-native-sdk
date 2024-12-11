@@ -7,6 +7,15 @@ import com.snowflake.connectors.common.exception.helper.ConnectorErrorHelper;
 import com.snowflake.connectors.taskreactor.lifecycle.ResumeTaskReactorService;
 import com.snowflake.snowpark_java.Session;
 
+/**
+ * Builder for the {@link ResumeInstanceHandler}.
+ *
+ * <p>Allows for customization of the following handler components:
+ *
+ * <ul>
+ *   <li>{@link ConnectorErrorHelper}
+ * </ul>
+ */
 public class ResumeInstanceHandlerBuilder {
 
   private ConnectorErrorHelper errorHelper;

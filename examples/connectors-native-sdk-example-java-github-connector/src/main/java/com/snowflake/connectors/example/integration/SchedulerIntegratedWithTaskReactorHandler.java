@@ -1,7 +1,8 @@
 /** Copyright (c) 2024 Snowflake Inc. */
 package com.snowflake.connectors.example.integration;
 
-import com.snowflake.connectors.application.integration.SchedulerTaskReactorOnIngestionScheduled;
+import com.snowflake.connectors.application.ingestion.definition.VariantResource;
+import com.snowflake.connectors.application.integration.TaskReactorOnIngestionScheduledCallback;
 import com.snowflake.connectors.application.scheduler.RunSchedulerIterationHandler;
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.snowpark_java.Session;
@@ -15,8 +16,8 @@ public class SchedulerIntegratedWithTaskReactorHandler {
 
   public static Variant runIteration(Session session) {
     var callback =
-        SchedulerTaskReactorOnIngestionScheduled.getInstance(
-            session, Identifier.from("EXAMPLE_CONNECTOR_TASK_REACTOR"));
+        TaskReactorOnIngestionScheduledCallback.getInstance(
+            session, Identifier.from("EXAMPLE_CONNECTOR_TASK_REACTOR"), VariantResource.class);
     return RunSchedulerIterationHandler.builder(session)
         .withCallback(callback)
         .build()
