@@ -98,7 +98,7 @@ Please refer to [LICENSE][license]
 [Task Reactor official docs]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/using/task_reactor
 [SDK in Maven Central]: https://central.sonatype.com/artifact/com.snowflake/connectors-native-sdk
 [SDK Test in Maven Central]: https://central.sonatype.com/artifact/com.snowflake/connectors-native-sdk-test
-[Template tutorial]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/tutorials/native_sdk_tutorial
+[Template tutorial]: https://docs.snowflake.com/en/developer-guide/native-apps/connector-sdk/tutorials/native_sdk_template_connector_tutorial
 [Native Apps docs]: https://docs.snowflake.com/en/developer-guide/native-apps/native-apps-about
 [Snowflake CLI docs]: https://docs.snowflake.com/en/developer-guide/snowflake-cli-v2/connecting/specify-credentials
 
