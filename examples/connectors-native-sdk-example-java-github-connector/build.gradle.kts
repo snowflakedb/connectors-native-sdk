@@ -21,9 +21,9 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.snowflake:connectors-native-sdk:2.2.1-SNAPSHOT")
+    compileOnly("com.snowflake:connectors-native-sdk:2.2.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")
-    testImplementation("com.snowflake:connectors-native-sdk-test:2.2.1-SNAPSHOT")
+    testImplementation("com.snowflake:connectors-native-sdk-test:2.2.0")
 }
 
 tasks.javadoc {
