@@ -61,12 +61,7 @@ public class QueueItemSelectorTest {
     List<QueueItem> result = queueItemSelector.getSelectedItemsFromQueue();
 
     // then
-    assertThat(result).containsExactlyInAnyOrder(queueItem1, queueItem2);
-    assertThat(workItemQueue.store())
-        .extracting(item -> item.id, item -> item.resourceId, item -> item.workerPayload)
-        .containsExactlyInAnyOrder(
-            Tuple.tuple(queueItem1.id, queueItem1.resourceId, queueItem1.workerPayload),
-            Tuple.tuple(queueItem2.id, queueItem2.resourceId, queueItem2.workerPayload));
+    assertThat(result).containsExactlyElementsOf(workItemQueue.store());
   }
 
   @Test
@@ -75,28 +70,122 @@ public class QueueItemSelectorTest {
     createConfiguration(WorkSelectorType.PROCEDURE);
     QueueItem queueItem1 = generate("1", "1");
     QueueItem queueItem2 = generate("2", "2");
-    WorkItem workItem2 = WorkItem.from(queueItem2);
-    workSelector.addItems(List.of(queueItem1, queueItem2));
-    workItemQueue.push(List.of(workItem2));
+    workSelector.addItems(List.of(queueItem1));
+    workItemQueue.push(List.of(WorkItem.from(queueItem1), WorkItem.from(queueItem2)));
 
     // when
     List<QueueItem> result = queueItemSelector.getSelectedItemsFromQueue();
 
     // then
-    assertThat(result).containsExactlyInAnyOrder(queueItem1, queueItem2);
-    assertThat(workItemQueue.store())
-        .extracting(item -> item.id, item -> item.resourceId, item -> item.workerPayload)
-        .containsExactlyInAnyOrder(
-            Tuple.tuple(queueItem2.id, queueItem2.resourceId, queueItem2.workerPayload));
+    assertThat(result).containsExactly(storedItem("1"));
+    assertThat(workItemQueue.store()).extracting(item -> item.id).containsExactly("1");
+  }
+
+  @Test
+  void shouldPreserveSelectorOrder() {
+    // given
+    createConfiguration(WorkSelectorType.PROCEDURE);
+    QueueItem queueItem1 = generate("1", "1");
+    QueueItem queueItem2 = generate("2", "2");
+    workSelector.addItems(List.of(queueItem2, queueItem1));
+    workItemQueue.push(List.of(WorkItem.from(queueItem1), WorkItem.from(queueItem2)));
+
+    // when
+    List<QueueItem> result = queueItemSelector.getSelectedItemsFromQueue();
+
+    // then
+    assertThat(result).containsExactly(storedItem("2"), storedItem("1"));
+  }
+
+  @Test
+  void shouldDispatchStoredRowWhenSelectorRewritesPayload() {
+    // given
+    createConfiguration(WorkSelectorType.PROCEDURE);
+    QueueItem stored = generate("1", "resource-1", "real-payload");
+    QueueItem rewritten = generate("1", "evil-resource", "evil-payload");
+    workSelector.addItems(List.of(rewritten));
+    workItemQueue.push(List.of(WorkItem.from(stored)));
+
+    // when
+    List<QueueItem> result = queueItemSelector.getSelectedItemsFromQueue();
+
+    // then
+    assertThat(result).containsExactly(storedItem("1"));
+    assertThat(result)
+        .extracting(item -> item.resourceId, item -> item.workerPayload.asString())
+        .containsExactly(Tuple.tuple("resource-1", "real-payload"));
+  }
+
+  @Test
+  void shouldRemoveEveryQueueItemWhenSelectorReturnsNone() {
+    // given
+    createConfiguration(WorkSelectorType.PROCEDURE);
+    QueueItem queueItem1 = generate("1", "1");
+    QueueItem queueItem2 = generate("2", "2");
+    workItemQueue.push(List.of(WorkItem.from(queueItem1), WorkItem.from(queueItem2)));
+
+    // when
+    List<QueueItem> result = queueItemSelector.getSelectedItemsFromQueue();
+
+    // then
+    assertThat(result).isEmpty();
+    assertThat(workItemQueue.store()).isEmpty();
+  }
+
+  @Test
+  void shouldDropFabricatedItemsWhenBatchSizeMatches() {
+    // given
+    createConfiguration(WorkSelectorType.PROCEDURE);
+    QueueItem queueItem1 = generate("1", "1");
+    QueueItem queueItem2 = generate("2", "2");
+    QueueItem fabricated1 = generate("fake-1", "evil-1", "injected");
+    QueueItem fabricated2 = generate("fake-2", "evil-2", "injected");
+    workSelector.addItems(List.of(fabricated1, fabricated2));
+    workItemQueue.push(List.of(WorkItem.from(queueItem1), WorkItem.from(queueItem2)));
+
+    // when
+    List<QueueItem> result = queueItemSelector.getSelectedItemsFromQueue();
+
+    // then
+    assertThat(result).isEmpty();
+    assertThat(workItemQueue.store()).extracting(item -> item.id).containsExactly("1", "2");
+  }
+
+  @Test
+  void shouldDispatchKnownIdOnceWhenSelectorRepeatsIt() {
+    // given
+    createConfiguration(WorkSelectorType.PROCEDURE);
+    QueueItem queueItem1 = generate("1", "1");
+    QueueItem queueItem2 = generate("2", "2");
+    workSelector.addItems(List.of(queueItem1, queueItem1));
+    workItemQueue.push(List.of(WorkItem.from(queueItem1), WorkItem.from(queueItem2)));
+
+    // when
+    List<QueueItem> result = queueItemSelector.getSelectedItemsFromQueue();
+
+    // then
+    assertThat(result).containsExactly(storedItem("1"));
+    assertThat(workItemQueue.store()).extracting(item -> item.id).containsExactly("1");
+  }
+
+  private QueueItem storedItem(String id) {
+    return workItemQueue.store().stream()
+        .filter(item -> id.equals(item.id))
+        .findFirst()
+        .orElseThrow();
   }
 
   private static QueueItem generate(String id, String resourceId) {
+    return generate(id, resourceId, "payload");
+  }
+
+  private static QueueItem generate(String id, String resourceId, String payload) {
     return QueueItem.fromMap(
         Map.of(
             "id", new Variant(id),
             "timestamp", new Variant(Timestamp.from(Instant.now())),
             "resourceId", new Variant(resourceId),
-            "workerPayload", new Variant("payload")));
+            "workerPayload", new Variant(payload)));
   }
 
   private void createConfiguration(WorkSelectorType workSelectorType) {

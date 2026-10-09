@@ -4,7 +4,6 @@ package com.snowflake.connectors.taskreactor.queue.selector;
 import static com.snowflake.connectors.taskreactor.WorkSelectorType.PROCEDURE;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.taskreactor.WorkSelectorType;
@@ -13,7 +12,11 @@ import com.snowflake.connectors.taskreactor.config.TaskReactorConfig;
 import com.snowflake.connectors.taskreactor.queue.QueueItem;
 import com.snowflake.connectors.taskreactor.queue.WorkItemQueue;
 import com.snowflake.snowpark_java.Session;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /** Class responsible for selection of items from the WorkItemQueue. */
@@ -48,6 +51,10 @@ public class QueueItemSelector {
    * Selects items from WorkItemQueue based on Task Reactor configuration. Items are either selected
    * from the view or processed by the procedure provided during Task Reactor setup.
    *
+   * <p>A procedure selector may only filter and reorder items already in the queue. Returned ids
+   * that are not in the queue are ignored, and the stored queue row is dispatched so the procedure
+   * cannot replace its payload.
+   *
    * @return list of items to be dispatched
    */
   public List<QueueItem> getSelectedItemsFromQueue() {
@@ -59,24 +66,43 @@ public class QueueItemSelector {
       List<QueueItem> queueItems = workItemQueue.fetchNotProcessedAndCancelingItems();
       List<QueueItem> selectedQueueItems =
           workSelector.selectItemsUsingProcedure(queueItems, workSelectorName);
-      removeObsoleteQueueItems(queueItems, selectedQueueItems);
-      return selectedQueueItems;
+      return reconcileSelectedItems(queueItems, selectedQueueItems);
     }
     return workSelector.selectItemsFromView(workSelectorName);
   }
 
-  private void removeObsoleteQueueItems(
+  private List<QueueItem> reconcileSelectedItems(
       List<QueueItem> originalQueueItems, List<QueueItem> selectedQueueItems) {
-    if (originalQueueItems.size() == selectedQueueItems.size()) {
-      return;
+    Map<String, QueueItem> originalItemsById = new LinkedHashMap<>();
+    for (QueueItem originalItem : originalQueueItems) {
+      originalItemsById.putIfAbsent(originalItem.id, originalItem);
     }
 
-    Set<String> selectedItemIds = selectedQueueItems.stream().map(i -> i.id).collect(toSet());
+    Set<String> acceptedIds = new LinkedHashSet<>();
+    List<QueueItem> itemsToDispatch = new ArrayList<>();
+    for (QueueItem selectedItem : selectedQueueItems) {
+      if (selectedItem.id == null || !originalItemsById.containsKey(selectedItem.id)) {
+        continue;
+      }
+      if (acceptedIds.add(selectedItem.id)) {
+        itemsToDispatch.add(originalItemsById.get(selectedItem.id));
+      }
+    }
+
+    // A non-empty response that matches no queued id is not a filter of the queue. Leave the rows
+    // in place so a substituted batch cannot erase them, and dispatch nothing. An empty response
+    // still means the selector filtered every row out.
+    if (acceptedIds.isEmpty() && !selectedQueueItems.isEmpty()) {
+      return List.of();
+    }
+
     List<String> itemIdsToRemove =
         originalQueueItems.stream()
-            .map(i -> i.id)
-            .filter(not(selectedItemIds::contains))
+            .map(item -> item.id)
+            .filter(not(acceptedIds::contains))
+            .distinct()
             .collect(toList());
     workItemQueue.delete(itemIdsToRemove);
+    return itemsToDispatch;
   }
 }
