@@ -2,6 +2,7 @@
 package com.snowflake.connectors.taskreactor.queue.selector;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.snowflake.connectors.taskreactor.WorkSelectorType;
 import com.snowflake.connectors.taskreactor.config.InMemoryConfigRepository;
@@ -38,12 +39,47 @@ public class QueueItemSelectorTest {
     QueueItem queueItem1 = generate("1", "1");
     QueueItem queueItem2 = generate("2", "2");
     workSelector.addItems(List.of(queueItem1, queueItem2));
+    workItemQueue.push(List.of(WorkItem.from(queueItem1), WorkItem.from(queueItem2)));
 
     // when
     List<QueueItem> result = queueItemSelector.getSelectedItemsFromQueue();
 
     // then
-    assertThat(result).containsExactlyInAnyOrder(queueItem1, queueItem2);
+    assertThat(result).containsExactlyElementsOf(workItemQueue.store());
+  }
+
+  @Test
+  void shouldNotRemoveUnselectedItemsWhenSelectingFromView() {
+    // given
+    createConfiguration(WorkSelectorType.VIEW);
+    QueueItem queueItem1 = generate("1", "1");
+    QueueItem queueItem2 = generate("2", "2");
+    workSelector.addItems(List.of(queueItem1));
+    workItemQueue.push(List.of(WorkItem.from(queueItem1), WorkItem.from(queueItem2)));
+
+    // when
+    List<QueueItem> result = queueItemSelector.getSelectedItemsFromQueue();
+
+    // then
+    assertThat(result).containsExactly(storedItem("1"));
+    assertThat(workItemQueue.store()).extracting(item -> item.id).containsExactly("1", "2");
+  }
+
+  @Test
+  void shouldDispatchStoredRowWhenViewRewritesPayload() {
+    // given
+    createConfiguration(WorkSelectorType.VIEW);
+    QueueItem stored = generate("1", "resource-1", "real-payload");
+    QueueItem rewritten = generate("1", "evil-resource", "evil-payload");
+    workSelector.addItems(List.of(rewritten));
+    workItemQueue.push(List.of(WorkItem.from(stored)));
+
+    // when
+    List<QueueItem> result = queueItemSelector.getSelectedItemsFromQueue();
+
+    // then
+    assertThat(result).containsExactly(storedItem("1"));
+    assertThat(result.get(0).workerPayload.asString()).isEqualTo("real-payload");
   }
 
   @Test
@@ -117,7 +153,7 @@ public class QueueItemSelectorTest {
   }
 
   @Test
-  void shouldRemoveEveryQueueItemWhenSelectorReturnsNone() {
+  void shouldKeepQueueWhenSelectorReturnsNone() {
     // given
     createConfiguration(WorkSelectorType.PROCEDURE);
     QueueItem queueItem1 = generate("1", "1");
@@ -129,7 +165,47 @@ public class QueueItemSelectorTest {
 
     // then
     assertThat(result).isEmpty();
-    assertThat(workItemQueue.store()).isEmpty();
+    assertThat(workItemQueue.store()).extracting(item -> item.id).containsExactly("1", "2");
+  }
+
+  @Test
+  void shouldFailWhenQueueContainsDuplicateIds() {
+    // given
+    createConfiguration(WorkSelectorType.PROCEDURE);
+    workItemQueue.push(
+        List.of(
+            new WorkItem("same", "resource-1", new Variant("one")),
+            new WorkItem("same", "resource-2", new Variant("two"))));
+    workSelector.addItems(List.of(generate("same", "resource-1")));
+
+    // expect
+    assertThatThrownBy(queueItemSelector::getSelectedItemsFromQueue)
+        .isInstanceOf(IllegalStateException.class)
+        .hasMessage("Duplicate queue item id: same");
+    assertThat(workItemQueue.store()).extracting(item -> item.id).containsExactly("same", "same");
+  }
+
+  @Test
+  void shouldNotDispatchCancellationMarker() {
+    // given
+    createConfiguration(WorkSelectorType.PROCEDURE);
+    QueueItem queueItem = generate("1", "resource-1");
+    workItemQueue.push(List.of(WorkItem.from(queueItem)));
+    workItemQueue.cancelOngoingExecutions(List.of("resource-1"));
+    QueueItem cancellationMarker =
+        workItemQueue.store().stream()
+            .filter(item -> item.cancelOngoingExecution)
+            .findFirst()
+            .orElseThrow();
+    workSelector.addItems(List.of(queueItem, cancellationMarker));
+
+    // when
+    List<QueueItem> result = queueItemSelector.getSelectedItemsFromQueue();
+
+    // then
+    assertThat(result).containsExactly(storedItem("1"));
+    assertThat(result).noneMatch(item -> item.cancelOngoingExecution);
+    assertThat(workItemQueue.store()).extracting(item -> item.id).containsExactly("1");
   }
 
   @Test

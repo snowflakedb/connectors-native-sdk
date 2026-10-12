@@ -9,6 +9,7 @@ import com.snowflake.connectors.common.object.Identifier;
 import com.snowflake.connectors.taskreactor.WorkSelectorType;
 import com.snowflake.connectors.taskreactor.config.ConfigRepository;
 import com.snowflake.connectors.taskreactor.config.TaskReactorConfig;
+import com.snowflake.connectors.taskreactor.log.TaskReactorLogger;
 import com.snowflake.connectors.taskreactor.queue.QueueItem;
 import com.snowflake.connectors.taskreactor.queue.WorkItemQueue;
 import com.snowflake.snowpark_java.Session;
@@ -18,9 +19,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
 
 /** Class responsible for selection of items from the WorkItemQueue. */
 public class QueueItemSelector {
+
+  private static final Logger LOG = TaskReactorLogger.getLogger(QueueItemSelector.class);
 
   private final ConfigRepository configRepository;
   private final WorkItemQueue workItemQueue;
@@ -51,9 +55,10 @@ public class QueueItemSelector {
    * Selects items from WorkItemQueue based on Task Reactor configuration. Items are either selected
    * from the view or processed by the procedure provided during Task Reactor setup.
    *
-   * <p>A procedure selector may only filter and reorder items already in the queue. Returned ids
-   * that are not in the queue are ignored, and the stored queue row is dispatched so the procedure
-   * cannot replace its payload.
+   * <p>A selector may only filter and reorder items already in the queue. Returned ids that are not
+   * in the queue are ignored, and the stored queue row is dispatched so the selector cannot replace
+   * its payload. Cancellation markers are never dispatched as work. An empty or fully unrecognized
+   * response leaves the queue unchanged.
    *
    * @return list of items to be dispatched
    */
@@ -61,48 +66,75 @@ public class QueueItemSelector {
     TaskReactorConfig config = configRepository.getConfig();
     WorkSelectorType workSelectorType = config.workSelectorType();
     String workSelectorName = config.workSelector();
+    List<QueueItem> queueItems = workItemQueue.fetchNotProcessedAndCancelingItems();
 
     if (workSelectorType == PROCEDURE) {
-      List<QueueItem> queueItems = workItemQueue.fetchNotProcessedAndCancelingItems();
       List<QueueItem> selectedQueueItems =
           workSelector.selectItemsUsingProcedure(queueItems, workSelectorName);
-      return reconcileSelectedItems(queueItems, selectedQueueItems);
+      return reconcileSelectedItems(queueItems, selectedQueueItems, true);
     }
-    return workSelector.selectItemsFromView(workSelectorName);
+    List<QueueItem> selectedQueueItems = workSelector.selectItemsFromView(workSelectorName);
+    return reconcileSelectedItems(queueItems, selectedQueueItems, false);
   }
 
   private List<QueueItem> reconcileSelectedItems(
-      List<QueueItem> originalQueueItems, List<QueueItem> selectedQueueItems) {
-    Map<String, QueueItem> originalItemsById = new LinkedHashMap<>();
-    for (QueueItem originalItem : originalQueueItems) {
-      originalItemsById.putIfAbsent(originalItem.id, originalItem);
-    }
+      List<QueueItem> originalQueueItems,
+      List<QueueItem> selectedQueueItems,
+      boolean removeUnselected) {
+    Map<String, QueueItem> originalItemsById = indexQueueItems(originalQueueItems);
 
     Set<String> acceptedIds = new LinkedHashSet<>();
-    List<QueueItem> itemsToDispatch = new ArrayList<>();
+    int unrecognizedIds = 0;
     for (QueueItem selectedItem : selectedQueueItems) {
-      if (selectedItem.id == null || !originalItemsById.containsKey(selectedItem.id)) {
+      QueueItem originalItem =
+          selectedItem.id == null ? null : originalItemsById.get(selectedItem.id);
+      if (originalItem == null) {
+        unrecognizedIds++;
         continue;
       }
-      if (acceptedIds.add(selectedItem.id)) {
-        itemsToDispatch.add(originalItemsById.get(selectedItem.id));
+      if (originalItem.cancelOngoingExecution) {
+        continue;
+      }
+      acceptedIds.add(selectedItem.id);
+    }
+
+    if (unrecognizedIds > 0) {
+      LOG.warn("Ignored {} selector item(s) whose ids are not in the queue.", unrecognizedIds);
+    }
+
+    List<QueueItem> itemsToDispatch = new ArrayList<>();
+    for (String acceptedId : acceptedIds) {
+      itemsToDispatch.add(originalItemsById.get(acceptedId));
+    }
+
+    // no dispatchable ids: keep queue, dispatch nothing
+    if (acceptedIds.isEmpty()) {
+      LOG.warn(
+          "Selector response contained no dispatchable queue items (returned={}). Leaving the queue"
+              + " unchanged.",
+          selectedQueueItems.size());
+      return itemsToDispatch;
+    }
+
+    if (removeUnselected) {
+      List<String> itemIdsToRemove =
+          originalItemsById.keySet().stream().filter(not(acceptedIds::contains)).collect(toList());
+      workItemQueue.delete(itemIdsToRemove);
+    }
+    return itemsToDispatch;
+  }
+
+  private static Map<String, QueueItem> indexQueueItems(List<QueueItem> originalQueueItems) {
+    Map<String, QueueItem> originalItemsById = new LinkedHashMap<>();
+    for (QueueItem originalItem : originalQueueItems) {
+      if (originalItem.id == null) {
+        throw new IllegalStateException("Queue item id must not be null");
+      }
+      QueueItem previous = originalItemsById.putIfAbsent(originalItem.id, originalItem);
+      if (previous != null) {
+        throw new IllegalStateException("Duplicate queue item id: " + originalItem.id);
       }
     }
-
-    // A non-empty response that matches no queued id is not a filter of the queue. Leave the rows
-    // in place so a substituted batch cannot erase them, and dispatch nothing. An empty response
-    // still means the selector filtered every row out.
-    if (acceptedIds.isEmpty() && !selectedQueueItems.isEmpty()) {
-      return List.of();
-    }
-
-    List<String> itemIdsToRemove =
-        originalQueueItems.stream()
-            .map(item -> item.id)
-            .filter(not(acceptedIds::contains))
-            .distinct()
-            .collect(toList());
-    workItemQueue.delete(itemIdsToRemove);
-    return itemsToDispatch;
+    return originalItemsById;
   }
 }
