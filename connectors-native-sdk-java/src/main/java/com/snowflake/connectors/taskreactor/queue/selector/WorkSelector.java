@@ -5,7 +5,12 @@ import com.snowflake.connectors.taskreactor.queue.QueueItem;
 import com.snowflake.snowpark_java.Session;
 import java.util.List;
 
-/** Class representing selection mechanism from WorkItemQueue. */
+/**
+ * Class representing selection mechanism from WorkItemQueue.
+ *
+ * <p>Returned items are untrusted. Callers must dispatch the stored queue row for a matching id and
+ * must ignore the payload and resource id from this result.
+ */
 public interface WorkSelector {
 
   /**
