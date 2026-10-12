@@ -57,8 +57,9 @@ public class QueueItemSelector {
    *
    * <p>A selector may only filter and reorder items already in the queue. Returned ids that are not
    * in the queue are ignored, and the stored queue row is dispatched so the selector cannot replace
-   * its payload. Cancellation markers are never dispatched as work. An empty or fully unrecognized
-   * response leaves the queue unchanged.
+   * its payload. Cancellation markers are never dispatched as work. Rows with a null or duplicate
+   * id are skipped so the rest of the queue can still be dispatched. An empty or fully unrecognized
+   * response leaves real work queued. A procedure response still removes cancellation markers.
    *
    * @return list of items to be dispatched
    */
@@ -67,56 +68,63 @@ public class QueueItemSelector {
     WorkSelectorType workSelectorType = config.workSelectorType();
     String workSelectorName = config.workSelector();
     List<QueueItem> queueItems = workItemQueue.fetchNotProcessedAndCancelingItems();
+    Map<String, QueueItem> originalItemsById = indexQueueItems(queueItems);
 
     if (workSelectorType == PROCEDURE) {
       List<QueueItem> selectedQueueItems =
           workSelector.selectItemsUsingProcedure(queueItems, workSelectorName);
-      return reconcileSelectedItems(queueItems, selectedQueueItems, true);
+      return reconcileSelectedItems(originalItemsById, selectedQueueItems, UnselectedItems.REMOVE);
     }
     List<QueueItem> selectedQueueItems = workSelector.selectItemsFromView(workSelectorName);
-    return reconcileSelectedItems(queueItems, selectedQueueItems, false);
+    return reconcileSelectedItems(originalItemsById, selectedQueueItems, UnselectedItems.KEEP);
   }
 
   private List<QueueItem> reconcileSelectedItems(
-      List<QueueItem> originalQueueItems,
+      Map<String, QueueItem> originalItemsById,
       List<QueueItem> selectedQueueItems,
-      boolean removeUnselected) {
-    Map<String, QueueItem> originalItemsById = indexQueueItems(originalQueueItems);
-
+      UnselectedItems unselectedItems) {
     Set<String> acceptedIds = new LinkedHashSet<>();
+    List<QueueItem> itemsToDispatch = new ArrayList<>();
     int unrecognizedIds = 0;
+    int cancellationMarkers = 0;
     for (QueueItem selectedItem : selectedQueueItems) {
-      QueueItem originalItem =
-          selectedItem.id == null ? null : originalItemsById.get(selectedItem.id);
+      if (selectedItem == null || selectedItem.id == null) {
+        unrecognizedIds++;
+        continue;
+      }
+      QueueItem originalItem = originalItemsById.get(selectedItem.id);
       if (originalItem == null) {
         unrecognizedIds++;
         continue;
       }
       if (originalItem.cancelOngoingExecution) {
+        cancellationMarkers++;
         continue;
       }
-      acceptedIds.add(selectedItem.id);
+      if (acceptedIds.add(selectedItem.id)) {
+        itemsToDispatch.add(originalItem);
+      }
     }
 
     if (unrecognizedIds > 0) {
       LOG.warn("Ignored {} selector item(s) whose ids are not in the queue.", unrecognizedIds);
     }
-
-    List<QueueItem> itemsToDispatch = new ArrayList<>();
-    for (String acceptedId : acceptedIds) {
-      itemsToDispatch.add(originalItemsById.get(acceptedId));
+    if (cancellationMarkers > 0) {
+      LOG.warn("Ignored {} cancellation marker(s) returned by the selector.", cancellationMarkers);
     }
 
-    // no dispatchable ids: keep queue, dispatch nothing
+    // no dispatchable ids: keep real work, dispatch nothing
     if (acceptedIds.isEmpty()) {
+      if (unselectedItems == UnselectedItems.REMOVE) {
+        removeCancellationMarkers(originalItemsById);
+      }
       LOG.warn(
-          "Selector response contained no dispatchable queue items (returned={}). Leaving the queue"
-              + " unchanged.",
+          "Selector response contained no dispatchable queue items (returned={}).",
           selectedQueueItems.size());
       return itemsToDispatch;
     }
 
-    if (removeUnselected) {
+    if (unselectedItems == UnselectedItems.REMOVE) {
       List<String> itemIdsToRemove =
           originalItemsById.keySet().stream().filter(not(acceptedIds::contains)).collect(toList());
       workItemQueue.delete(itemIdsToRemove);
@@ -124,17 +132,47 @@ public class QueueItemSelector {
     return itemsToDispatch;
   }
 
+  private void removeCancellationMarkers(Map<String, QueueItem> originalItemsById) {
+    List<String> markerIds =
+        originalItemsById.values().stream()
+            .filter(item -> item.cancelOngoingExecution)
+            .map(item -> item.id)
+            .collect(toList());
+    workItemQueue.delete(markerIds);
+  }
+
   private static Map<String, QueueItem> indexQueueItems(List<QueueItem> originalQueueItems) {
     Map<String, QueueItem> originalItemsById = new LinkedHashMap<>();
+    Set<String> duplicateIds = new LinkedHashSet<>();
+    int nullItems = 0;
+    int nullIds = 0;
     for (QueueItem originalItem : originalQueueItems) {
+      if (originalItem == null) {
+        nullItems++;
+        continue;
+      }
       if (originalItem.id == null) {
-        throw new IllegalStateException("Queue item id must not be null");
+        nullIds++;
+        continue;
       }
       QueueItem previous = originalItemsById.putIfAbsent(originalItem.id, originalItem);
       if (previous != null) {
-        throw new IllegalStateException("Duplicate queue item id: " + originalItem.id);
+        duplicateIds.add(originalItem.id);
       }
     }
+    duplicateIds.forEach(originalItemsById::remove);
+    if (nullItems > 0 || nullIds > 0 || !duplicateIds.isEmpty()) {
+      LOG.error(
+          "Skipped corrupted queue items (nullItems={}, nullIds={}, duplicateIds={}).",
+          nullItems,
+          nullIds,
+          duplicateIds);
+    }
     return originalItemsById;
+  }
+
+  private enum UnselectedItems {
+    REMOVE,
+    KEEP
   }
 }
